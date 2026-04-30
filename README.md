@@ -1,5 +1,5 @@
 # pokeclicker-editor
-
+USE AT YOUR OWN RISK. UNOFFICIAL
 A small Python CLI for inspecting and editing [PokeClicker](https://www.pokeclicker.com/) save exports. Tested against `v0.10.25`.
 
 ## Save format
