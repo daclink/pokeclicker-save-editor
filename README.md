@@ -32,86 +32,189 @@ A few observed conventions worth knowing:
 - **`save.logbook.logs`** is a 100-entry ring buffer; almost every save has 100 differing positions because the in-game log scrolled.
 - **Type drift `int ↔ float`** appears in `*.durability`, `*.timeUntilDiscovery`, etc. JS serializes whole-number floats as ints, so the same field shows as `27` or `27.0` depending on whether a tick happens to be a whole number.
 
-## Install
+## Requirements
 
-Pure standard library, no dependencies. Requires Python ≥ 3.10.
+- Python **≥ 3.10**.
+- For the GUI: that Python must include the `tkinter` module (most distros ship it; bare Homebrew Python on macOS does not, see below).
+- No third-party packages — pure standard library.
 
-```sh
-git clone <this repo>
-cd pokeclicker-editor
-python3 pcedit.py --help
-```
-
-For the GUI, use a Python build that ships Tk. On macOS:
-
-- `/opt/homebrew/bin/python3` (Apple Silicon Homebrew) ships with Tk 9.0.
-- For other Pythons, `brew install python-tk@3.13` (or the matching version).
-- Apple's `/usr/bin/python3` Tk currently requires macOS 26+, so prefer Homebrew.
+Verify Tk:
 
 ```sh
-/opt/homebrew/bin/python3 pcedit_gui.py [optional-save-path.txt]
+python3 -c "import tkinter; print('tk', tkinter.TkVersion)"
 ```
 
-## GUI
+If that errors with `ModuleNotFoundError: No module named '_tkinter'`:
 
-`pcedit_gui.py` opens a Tk window with three tabs:
-
-| tab | edits |
+| OS | fix |
 |---|---|
-| **Currencies & Multipliers** | PokéDollars, Dungeon Tokens, Quest Points, Diamonds, Farm Points, plus the Protein price multiplier (`player._itemMultipliers["Protein\|money"]`). Lower = vitamins cost less next purchase. |
-| **Eggs** | The 4-slot breeding `eggList`. Edit pokémon ID, type, current/total steps, shiny chance; "Hatch now" sets `steps = totalSteps`; "Make empty" wipes a slot back to `{type: -1, pokemon: 0}`. Also edits `eggSlots`. |
-| **Caught Pokémon** | Scrollable table of all caught pokémon. Double-click to edit `atkBonus` (`.0`), `pokerus` (`.1`), `exp` (`.3`), the in-egg flag (`.4`), and the resistant flag (`.5`). |
+| macOS, Apple Silicon Homebrew | use `/opt/homebrew/bin/python3` — ships Tk 9.0. |
+| macOS, Intel Homebrew | `brew install python-tk@3.13` (or whichever 3.x you use). |
+| macOS, Apple's `/usr/bin/python3` | Tk requires macOS 26+; prefer a Homebrew Python. |
+| Debian / Ubuntu | `sudo apt install python3-tk` |
+| Fedora | `sudo dnf install python3-tkinter` |
+| Windows | bundled with the installer from python.org. |
 
-Top bar:
+The CLI (`pcedit.py`) does **not** need Tk — only `pcedit_gui.py` does.
 
-- **Browse / Reload** load a save from disk.
-- **Save** writes the file in place after copying the original to `<file>.bak`.
-- **Undo (.bak)** prompts for confirmation, restores from the backup, and reloads.
+## Build
 
-## Examples
+There is nothing to compile — this is plain Python. "Build" is just getting the code in place.
 
 ```sh
-# Show a snapshot
-python3 pcedit.py summary "[v0.10.25] PokeClicker 2026-04-30 19_55_05.txt"
+git clone <this repo> pokeclicker-editor
+cd pokeclicker-editor
 
-# Decode to pretty JSON for inspection
-python3 pcedit.py decode save.txt -o save.json
+# sanity-check the CLI
+python3 pcedit.py --help
 
-# Re-encode an edited JSON back into a save file
-python3 pcedit.py encode save.json -o save.txt
+# sanity-check the GUI (opens an empty window — close it)
+python3 pcedit_gui.py
+```
 
-# Read any field by JSON path
-python3 pcedit.py get save.txt save.statistics.totalMoney
-python3 pcedit.py get save.txt 'save.party.caughtPokemon[id=25]'
-python3 pcedit.py get save.txt 'save.wallet.currencies[0]'
+Optional conveniences:
 
-# Write any field by JSON path (auto-backs up to *.bak)
-python3 pcedit.py set save.txt save.quests.xp 99999
-python3 pcedit.py set save.txt 'save.oakItems.Amulet_Coin.level' 9
+```sh
+# Make the scripts directly executable.
+chmod +x pcedit.py pcedit_gui.py
+./pcedit.py --help
 
-# Currency shortcuts
-python3 pcedit.py money  save.txt 9999999
-python3 pcedit.py tokens save.txt 1000000 --add        # add to current
+# Add a shell alias so you can run from anywhere.
+alias pcedit='python3 /path/to/pokeclicker-editor/pcedit.py'
+alias pcedit-gui='python3 /path/to/pokeclicker-editor/pcedit_gui.py'
+
+# Optional virtualenv. Not necessary (no deps) but harmless.
+python3 -m venv .venv && source .venv/bin/activate
+```
+
+To bundle a single-file standalone GUI (no Python install required by the end user):
+
+```sh
+pip install pyinstaller
+pyinstaller --onefile --windowed --name PCEdit pcedit_gui.py
+# binary lands in ./dist/PCEdit  (or PCEdit.exe on Windows)
+```
+
+PyInstaller is the only step that brings in a non-stdlib dependency, and it's only needed if you want to ship a frozen binary.
+
+## Usage
+
+### Workflow
+
+1. In PokeClicker, open Settings → Save → **Download Save** to get a `.txt`.
+2. Run `pcedit_gui.py <save.txt>` (or use the CLI), edit, click Save.
+3. The original file is copied to `<save>.txt.bak` automatically.
+4. In PokeClicker, Settings → Save → **Import Save** and pick the edited `.txt`.
+5. If the game refuses or behaves oddly, hit **Undo (.bak)** in the GUI (or `pcedit.py undo <save.txt>`) to roll back.
+
+### GUI
+
+```sh
+python3 pcedit_gui.py                              # empty window, use Browse…
+python3 pcedit_gui.py path/to/save.txt             # auto-load on launch
+```
+
+Three tabs:
+
+| tab | what you can change |
+|---|---|
+| **Currencies & Multipliers** | PokéDollars, Dungeon Tokens, Quest Points, Diamonds, Farm Points, and the **Protein price multiplier** (`player._itemMultipliers["Protein\|money"]`). Use the *Reset to 1.0* button to make vitamins cheap again. |
+| **Eggs** | The breeding `eggList` (one row per slot). *Edit selected* opens a form. *Hatch now* sets `steps = totalSteps`. *Make empty* clears a slot back to `{type: -1, pokemon: 0}`. *Add egg* / *Remove* manage entries. The `eggSlots` field above the table controls how many slots the game shows. |
+| **Caught Pokémon** | All caught pokémon, sortable by ID. Double-click a row (or *Edit selected…*) to change `atkBonus` (`.0`, increments by 25 per hatch), `pokerus` (`.1`), `exp` (`.3`), and toggle the in-egg (`.4`) and resistant (`.5`) flags. Quick-action buttons set common values without opening a dialog. |
+
+Top bar buttons:
+
+- **Browse…** — open a save from anywhere.
+- **Reload** — discard pending edits and re-read from disk.
+- **Save** — write the file in place after copying it to `<file>.bak`.
+- **Undo (.bak)** — confirm, then restore from the backup and reload.
+
+The status bar at the bottom shows what just happened.
+
+### CLI
+
+```sh
+python3 pcedit.py <command> <save.txt> [args]
+```
+
+Reference:
+
+| command | description |
+|---|---|
+| `summary <save>` | One-screen snapshot: location, badges, money, play time, etc. |
+| `decode <save> [-o out.json]` | Base64 save → pretty JSON. |
+| `encode <json> [-o out.txt]` | Pretty JSON → base64 save. |
+| `dump <save> [-o out.json]` | Alias for `decode`. |
+| `get <save> <path>` | Read any field by [path](#path-syntax). |
+| `set <save> <path> <value> [-o out]` | Write any field. Value parsed as JSON literal first, then scalar. |
+| `money <save> <amount> [--add]` | Set/add PokéDollars (`currencies[0]`). |
+| `tokens <save> <amount> [--add]` | Set/add Dungeon Tokens (`currencies[1]`). |
+| `quest-points <save> <amount> [--add]` | Set/add Quest Points (`currencies[2]`). |
+| `farm-points <save> <amount> [--add]` | Set/add Farm Points (`currencies[4]`). |
+| `give <save> <item> <amount> [--set]` | Add (or `--set`) an inventory item count in `player._itemList`. |
+| `keyitem <save> <name> [--off]` | Toggle a key item under `save.keyItems`. |
+| `berry <save> <index> [--off]` | Unlock/lock a berry by index. |
+| `caught <save>` | Print a table of caught pokémon (id, atkBonus, pokerus, exp, flags). |
+| `undo <save>` | Restore the file from its `.bak`. |
+
+All write commands take `-o <new-path>` to leave the original alone. Otherwise the original is copied to `<file>.bak` and overwritten in place.
+
+#### Examples
+
+```sh
+# Inspect
+python3 pcedit.py summary save.txt
+python3 pcedit.py decode  save.txt -o save.json
+python3 pcedit.py get     save.txt save.statistics.totalMoney
+python3 pcedit.py get     save.txt 'save.party.caughtPokemon[id=25]'
+
+# Currencies
+python3 pcedit.py money        save.txt 9999999
+python3 pcedit.py tokens       save.txt 1000000 --add
 python3 pcedit.py quest-points save.txt 50000
 python3 pcedit.py farm-points  save.txt 10000
 
+# Diamonds (no shortcut — use raw set)
+python3 pcedit.py set save.txt 'save.wallet.currencies[3]' 500
+
+# Protein price multiplier
+python3 pcedit.py set save.txt 'player._itemMultipliers.Protein|money' 1.0
+
 # Inventory
-python3 pcedit.py give save.txt Pokeball 100
-python3 pcedit.py give save.txt Lucky_egg 50 --set     # overwrite
+python3 pcedit.py give save.txt Pokeball     100
+python3 pcedit.py give save.txt Lucky_egg     50 --set
 python3 pcedit.py give save.txt Yellow_shard 999
 
-# Key items / berries
+# Eggs (manipulate the array directly)
+python3 pcedit.py get save.txt 'save.breeding.eggList[0]'
+python3 pcedit.py set save.txt 'save.breeding.eggList[0].steps' 1200   # hatch slot 0
+
+# Pokémon edits
+python3 pcedit.py set save.txt 'save.party.caughtPokemon[id=25].3' 1000000   # exp
+python3 pcedit.py set save.txt 'save.party.caughtPokemon[id=25].5' true       # resistant
+
+# Key items / berries / quests
 python3 pcedit.py keyitem save.txt Explorer_kit
 python3 pcedit.py keyitem save.txt Holo_caster --off
-python3 pcedit.py berry   save.txt 0                   # unlock berry #0
-python3 pcedit.py berry   save.txt 4 --off             # lock berry #4
+python3 pcedit.py berry   save.txt 0
+python3 pcedit.py set     save.txt save.quests.xp 99999
 
-# Caught pokémon table
-python3 pcedit.py caught  save.txt
-
-# Restore from .bak after a bad edit
-python3 pcedit.py undo    save.txt
+# Recover
+python3 pcedit.py undo save.txt
 ```
+
+### Library
+
+```python
+from pokeclicker_save import decode_file, encode_file, get_path, set_path
+
+data = decode_file("save.txt")
+print(get_path(data, "save.statistics.totalMoney"))
+set_path(data, "save.wallet.currencies[0]", 1_000_000)
+encode_file(data, "save.txt")
+```
+
+`decode_file` / `encode_file` operate on filesystem paths. `decode_bytes` / `encode_bytes` operate on raw base64 bytes if you'd rather pipe data through.
 
 ## Path syntax
 
@@ -131,17 +234,6 @@ The `[k=v]` form also matches by `name`, `region`, `berry`, etc. — anything st
 - Round-trip is byte-exact for unmodified saves — verified with the test cases this repo was developed against.
 - The tool does **not** validate game logic. You can hand the game a Pokédex entry it doesn't expect, and the game may crash or sanitize it on the next save. Edit small things first, save in-game, and confirm before going wild.
 - This is for tinkering with your own local save. Don't use it for cheating online leaderboards (PokeClicker is single-player but be a good neighbor).
-
-## Library use
-
-```python
-from pokeclicker_save import decode_file, encode_file, get_path, set_path
-
-data = decode_file("save.txt")
-print(get_path(data, "save.statistics.totalMoney"))
-set_path(data, "save.wallet.currencies[0]", 1_000_000)
-encode_file(data, "save.txt")
-```
 
 ## Repo layout
 
