@@ -253,6 +253,18 @@ class EggsTab(ttk.Frame):
         8: "Fossil",
     }
 
+    # Quick-add presets. The `pokemon` field is a representative pokémon for
+    # the type; PokeClicker picks the actual pokémon when the egg is opened
+    # from the shop, but the field is non-zero in real eggList entries.
+    # totalSteps values match what shop-bought type eggs use in v0.10.x.
+    QUICK_ADD = [
+        ("Grass",   {"type": 3, "pokemon": 1,   "totalSteps": 9000}),   # Bulbasaur
+        ("Fire",    {"type": 1, "pokemon": 4,   "totalSteps": 9000}),   # Charmander
+        ("Water",   {"type": 2, "pokemon": 7,   "totalSteps": 9000}),   # Squirtle
+        ("Dragon",  {"type": 6, "pokemon": 147, "totalSteps": 9000}),   # Dratini
+        ("Mystery", {"type": 7, "pokemon": 132, "totalSteps": 9000}),   # Ditto stand-in
+    ]
+
     def __init__(self, master, app: PCEditGUI) -> None:
         super().__init__(master, padding=12)
         self.app = app
@@ -282,6 +294,16 @@ class EggsTab(ttk.Frame):
         ttk.Button(btns, text="Make empty", command=self._on_clear).pack(side="left", padx=4)
         ttk.Button(btns, text="Add egg…", command=self._on_add).pack(side="left", padx=4)
         ttk.Button(btns, text="Remove", command=self._on_remove).pack(side="left", padx=4)
+
+        quick = ttk.LabelFrame(self, text="Quick-add type egg", padding=6)
+        quick.pack(fill="x", pady=(8, 0))
+        ttk.Label(quick, text="Fills the first empty slot, or appends if all are full.",
+                  foreground="#666").pack(anchor="w")
+        row = ttk.Frame(quick)
+        row.pack(fill="x", pady=(4, 0))
+        for label, preset in self.QUICK_ADD:
+            ttk.Button(row, text=f"+ {label}",
+                       command=lambda p=preset: self._on_quick_add(p)).pack(side="left", padx=2)
 
     def refresh(self) -> None:
         for iid in self.tree.get_children():
@@ -358,6 +380,34 @@ class EggsTab(ttk.Frame):
             return
         del self.app.data["save"]["breeding"]["eggList"][i]
         self.refresh()
+
+    def _on_quick_add(self, preset: dict) -> None:
+        eggs = self.app.data["save"]["breeding"]["eggList"]
+        egg = {
+            "totalSteps":  preset["totalSteps"],
+            "steps":       0,
+            "shinyChance": 1024,
+            "pokemon":     preset["pokemon"],
+            "type":        preset["type"],
+            "notified":    False,
+        }
+        # Replace the first empty slot if there is one; otherwise append.
+        target = next((i for i, e in enumerate(eggs)
+                       if isinstance(e, dict) and e.get("type", -1) == -1), None)
+        if target is None:
+            eggs.append(egg)
+            target = len(eggs) - 1
+        else:
+            eggs[target] = egg
+        # Make sure eggSlots reflects what's there.
+        breeding = self.app.data["save"]["breeding"]
+        if breeding.get("eggSlots", 1) < len(eggs):
+            breeding["eggSlots"] = len(eggs)
+            self.slots_var.set(str(breeding["eggSlots"]))
+        self.refresh()
+        self.tree.selection_set(str(target))
+        self.app.status_var.set(
+            f"added {self.EGG_TYPES.get(egg['type'], '?')} egg in slot {target}")
 
 
 class EggDialog(tk.Toplevel):
