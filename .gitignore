@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.venv/
+.DS_Store
+
+# Sample saves and decoded JSON live next to the user — don't commit them
+*.bak
+*.decoded.json
