@@ -112,9 +112,11 @@ class PCEditGUI(tk.Tk):
         nb.pack(fill="both", expand=True, padx=8, pady=8)
         self.tab_curr = CurrenciesTab(nb, self)
         self.tab_eggs = EggsTab(nb, self)
+        self.tab_shards = ShardsTab(nb, self)
         self.tab_caught = CaughtTab(nb, self)
         nb.add(self.tab_curr, text="Currencies & Multipliers")
         nb.add(self.tab_eggs, text="Eggs")
+        nb.add(self.tab_shards, text="Shards")
         nb.add(self.tab_caught, text="Caught Pokémon")
 
     # --- file actions -----------------------------------------------------
@@ -137,6 +139,7 @@ class PCEditGUI(tk.Tk):
         try:
             self.tab_curr.commit()
             self.tab_eggs.commit()
+            self.tab_shards.commit()
             self.tab_caught.commit()
         except ValueError as e:
             messagebox.showerror("Invalid value", str(e))
@@ -175,6 +178,7 @@ class PCEditGUI(tk.Tk):
         self._set_data_loaded(True)
         self.tab_curr.refresh()
         self.tab_eggs.refresh()
+        self.tab_shards.refresh()
         self.tab_caught.refresh()
         self.status_var.set(f"loaded {path.name}")
 
@@ -458,6 +462,120 @@ class EggDialog(tk.Toplevel):
             return
         self.on_ok(egg)
         self.destroy()
+
+
+class ShardsTab(ttk.Frame):
+    """Edit type-shard counts in player._itemList.
+
+    PokeClicker stores each colored shard as its own item (e.g. ``Red_shard``).
+    The shop unlocks colors progressively per region, but writing a non-zero
+    count for an as-yet-unseen color is harmless — the game will display and
+    spend it once the unlock is reached.
+    """
+
+    # PokeClicker's canonical 16 shard colors, in the order they unlock.
+    # Names match the underscore-suffixed keys in player._itemList.
+    KNOWN_COLORS = [
+        "Red", "Yellow", "Green", "Blue",          # Kanto
+        "Black", "Grey",                            # Hoenn
+        "Purple", "Crimson",                        # Sinnoh
+        "Pink", "White",                            # Unova
+        "Cyan", "Lime",                             # Kalos
+        "Rose", "Ochre",                            # Alola
+        "Beige", "Indigo",                          # Galar / later
+    ]
+
+    def __init__(self, master, app: PCEditGUI) -> None:
+        super().__init__(master, padding=12)
+        self.app = app
+        self.vars: dict[str, tk.StringVar] = {}
+
+        ttk.Label(self,
+                  text="Shard counts (player._itemList.<Color>_shard). "
+                       "Editing a color you haven't unlocked yet is fine — "
+                       "it appears once you reach that region.",
+                  foreground="#666", wraplength=700, justify="left").pack(anchor="w")
+
+        body = ttk.Frame(self)
+        body.pack(fill="x", pady=(8, 0))
+
+        # 4-column grid: 4 colors per row.
+        for i, color in enumerate(self.KNOWN_COLORS):
+            r, c = divmod(i, 4)
+            cell = ttk.Frame(body, padding=4)
+            cell.grid(row=r, column=c, sticky="w")
+            ttk.Label(cell, text=color, width=10, anchor="w").pack(side="left")
+            v = tk.StringVar(value="0")
+            ttk.Entry(cell, textvariable=v, width=8).pack(side="left")
+            self.vars[f"{color}_shard"] = v
+
+        bar = ttk.Frame(self)
+        bar.pack(fill="x", pady=(10, 0))
+        ttk.Button(bar, text="All known to 999",
+                   command=lambda: self._fill(999)).pack(side="left")
+        ttk.Button(bar, text="All known to 9999",
+                   command=lambda: self._fill(9999)).pack(side="left", padx=4)
+        ttk.Button(bar, text="Zero all",
+                   command=lambda: self._fill(0)).pack(side="left")
+
+        # Custom shards / unrecognised entries appear here.
+        self.extras_box = ttk.LabelFrame(self,
+            text="Other shard items in this save", padding=8)
+        self.extras_box.pack(fill="x", pady=(12, 0))
+
+    def refresh(self) -> None:
+        d = self.app.data
+        if d is None:
+            return
+        items = d["player"].get("_itemList", {})
+        for key, var in self.vars.items():
+            var.set(fnum(items.get(key, 0)))
+
+        # Refresh the "extras" section with shards we didn't predeclare.
+        for child in self.extras_box.winfo_children():
+            child.destroy()
+        extras = sorted(k for k in items
+                        if k.endswith("_shard") and k not in self.vars)
+        if not extras:
+            ttk.Label(self.extras_box,
+                      text="(none — all shards in this save are in the grid above)",
+                      foreground="#888").pack(anchor="w")
+            self._extra_vars: dict[str, tk.StringVar] = {}
+            return
+        self._extra_vars = {}
+        for i, key in enumerate(extras):
+            row = ttk.Frame(self.extras_box)
+            row.pack(anchor="w")
+            ttk.Label(row, text=key, width=22, anchor="w").pack(side="left")
+            v = tk.StringVar(value=fnum(items[key]))
+            ttk.Entry(row, textvariable=v, width=8).pack(side="left")
+            self._extra_vars[key] = v
+
+    def commit(self) -> None:
+        d = self.app.data
+        if d is None:
+            return
+        items = d["player"].setdefault("_itemList", {})
+        for key, var in self.vars.items():
+            n = parse_int(var.get(), name=key)
+            if n < 0:
+                raise ValueError(f"{key} must be ≥ 0")
+            if n == 0:
+                items.pop(key, None)
+            else:
+                items[key] = n
+        for key, var in getattr(self, "_extra_vars", {}).items():
+            n = parse_int(var.get(), name=key)
+            if n < 0:
+                raise ValueError(f"{key} must be ≥ 0")
+            if n == 0:
+                items.pop(key, None)
+            else:
+                items[key] = n
+
+    def _fill(self, n: int) -> None:
+        for v in self.vars.values():
+            v.set(str(n))
 
 
 class CaughtTab(ttk.Frame):

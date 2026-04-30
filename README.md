@@ -120,6 +120,7 @@ Three tabs:
 |---|---|
 | **Currencies & Multipliers** | PokéDollars, Dungeon Tokens, Quest Points, Diamonds, Farm Points, and the **Protein price multiplier** (`player._itemMultipliers["Protein\|money"]`). Use the *Reset to 1.0* button to make vitamins cheap again. |
 | **Eggs** | The breeding `eggList` (one row per slot). *Edit selected* opens a form. *Hatch now* sets `steps = totalSteps`. *Make empty* clears a slot back to `{type: -1, pokemon: 0}`. *Add egg* / *Remove* manage entries. **Quick-add** buttons drop a Grass / Fire / Water / Dragon / Mystery egg into the first empty slot (or append, bumping `eggSlots`). The `eggSlots` field above the table controls how many slots the game shows. |
+| **Shards** | Counts for the 16 type-shard colors (Red/Yellow/Green/Blue, Black/Grey, Purple/Crimson, Pink/White, Cyan/Lime, Rose/Ochre, Beige/Indigo). Editing a color you haven't unlocked yet is fine — it appears once you reach the right region. Buttons set the whole grid to 999 / 9999 / 0 in one click. Any unrecognised `*_shard` items in the save show up in the "Other" panel below the grid. |
 | **Caught Pokémon** | All caught pokémon, sortable by ID. Double-click a row (or *Edit selected…*) to change `atkBonus` (`.0`, increments by 25 per hatch), `pokerus` (`.1`), `exp` (`.3`), and toggle the in-egg (`.4`) and resistant (`.5`) flags. Quick-action buttons set common values without opening a dialog. |
 
 Top bar buttons:
@@ -180,10 +181,11 @@ python3 pcedit.py set save.txt 'save.wallet.currencies[3]' 500
 # Protein price multiplier
 python3 pcedit.py set save.txt 'player._itemMultipliers.Protein|money' 1.0
 
-# Inventory
+# Inventory (shards live here too)
 python3 pcedit.py give save.txt Pokeball     100
 python3 pcedit.py give save.txt Lucky_egg     50 --set
 python3 pcedit.py give save.txt Yellow_shard 999
+python3 pcedit.py give save.txt Pink_shard   500 --set
 
 # Eggs (manipulate the array directly)
 python3 pcedit.py get save.txt 'save.breeding.eggList[0]'
