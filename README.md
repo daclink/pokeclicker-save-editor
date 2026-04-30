@@ -42,6 +42,32 @@ cd pokeclicker-editor
 python3 pcedit.py --help
 ```
 
+For the GUI, use a Python build that ships Tk. On macOS:
+
+- `/opt/homebrew/bin/python3` (Apple Silicon Homebrew) ships with Tk 9.0.
+- For other Pythons, `brew install python-tk@3.13` (or the matching version).
+- Apple's `/usr/bin/python3` Tk currently requires macOS 26+, so prefer Homebrew.
+
+```sh
+/opt/homebrew/bin/python3 pcedit_gui.py [optional-save-path.txt]
+```
+
+## GUI
+
+`pcedit_gui.py` opens a Tk window with three tabs:
+
+| tab | edits |
+|---|---|
+| **Currencies & Multipliers** | PokéDollars, Dungeon Tokens, Quest Points, Diamonds, Farm Points, plus the Protein price multiplier (`player._itemMultipliers["Protein\|money"]`). Lower = vitamins cost less next purchase. |
+| **Eggs** | The 4-slot breeding `eggList`. Edit pokémon ID, type, current/total steps, shiny chance; "Hatch now" sets `steps = totalSteps`; "Make empty" wipes a slot back to `{type: -1, pokemon: 0}`. Also edits `eggSlots`. |
+| **Caught Pokémon** | Scrollable table of all caught pokémon. Double-click to edit `atkBonus` (`.0`), `pokerus` (`.1`), `exp` (`.3`), the in-egg flag (`.4`), and the resistant flag (`.5`). |
+
+Top bar:
+
+- **Browse / Reload** load a save from disk.
+- **Save** writes the file in place after copying the original to `<file>.bak`.
+- **Undo (.bak)** prompts for confirmation, restores from the backup, and reloads.
+
 ## Examples
 
 ```sh
@@ -82,6 +108,9 @@ python3 pcedit.py berry   save.txt 4 --off             # lock berry #4
 
 # Caught pokémon table
 python3 pcedit.py caught  save.txt
+
+# Restore from .bak after a bad edit
+python3 pcedit.py undo    save.txt
 ```
 
 ## Path syntax
@@ -119,6 +148,7 @@ encode_file(data, "save.txt")
 ```
 pokeclicker_save.py   format library (decode, encode, path get/set)
 pcedit.py             CLI entry point
+pcedit_gui.py         Tk GUI editor
 README.md             this file
 .gitignore
 ```

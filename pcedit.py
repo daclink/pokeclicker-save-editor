@@ -223,19 +223,31 @@ def cmd_caught(args: argparse.Namespace) -> int:
     for entry in party:
         if not isinstance(entry, dict):
             continue
+        # JSON numeric keys come through as strings in Python
         rows.append((
             entry.get("id"),
-            entry.get(0, 0),       # attack bonus from hatching
-            entry.get(1, 0),       # pokerus
-            entry.get(3, 0),       # exp
-            "S" if entry.get(4) else " ",  # in-egg flag (was misread as shiny)
-            "R" if entry.get(5) else " ",
+            entry.get("0", 0),     # attack bonus from hatching
+            entry.get("1", 0),     # pokerus
+            entry.get("3", 0),     # exp
+            "E" if entry.get("4") else " ",  # in-egg / breeding-pending
+            "R" if entry.get("5") else " ",
         ))
     rows.sort(key=lambda r: r[0])
     print(f"{'id':>4}  {'atkB':>5}  {'prus':>4}  {'exp':>10}  egg  res")
     for r in rows:
         print(f"{r[0]:>4}  {r[1]:>5}  {r[2]:>4}  {r[3]:>10}   {r[4]}    {r[5]}")
     print(f"\n{len(rows)} entries")
+    return 0
+
+
+def cmd_undo(args: argparse.Namespace) -> int:
+    target = Path(args.input)
+    bak = target.with_suffix(target.suffix + ".bak")
+    if not bak.exists():
+        print(f"no backup found at {bak}")
+        return 1
+    shutil.copy2(bak, target)
+    print(f"restored {target} from {bak}")
     return 0
 
 
@@ -317,6 +329,10 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("caught", help="list caught pokémon")
     p.add_argument("input")
     p.set_defaults(fn=cmd_caught)
+
+    p = sub.add_parser("undo", help="restore file from its .bak")
+    p.add_argument("input")
+    p.set_defaults(fn=cmd_undo)
 
     p = sub.add_parser("dump", help="alias for decode")
     p.add_argument("input")
