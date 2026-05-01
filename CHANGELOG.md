@@ -11,6 +11,10 @@ Release notes.
 
 ## [Unreleased]
 
+(none)
+
+## [0.4.0] — 2026-05-01
+
 ### Added
 - **App icon.** Pokéball SVG sourced from
   [pokeclicker.com](https://www.pokeclicker.com/) rendered into platform
@@ -119,7 +123,8 @@ Release notes.
   - **Caught Pokémon**: editable table with double-click dialog.
 - Round-trip verified byte-exact on the v0.10.25 sample save.
 
-[Unreleased]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.2.0...v0.2.1
