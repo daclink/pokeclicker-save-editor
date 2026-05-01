@@ -72,8 +72,8 @@ class PCEditGUI(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
         self.title("PokeClicker Save Editor")
-        self.geometry("760x620")
-        self.minsize(640, 480)
+        self.geometry("820x680")
+        self.minsize(560, 520)
 
         self.path: Path | None = None
         self.data: dict | None = None
@@ -86,20 +86,28 @@ class PCEditGUI(tk.Tk):
     # --- top + status -----------------------------------------------------
 
     def _build_top_bar(self) -> None:
-        bar = ttk.Frame(self, padding=(8, 6))
-        bar.pack(fill="x")
+        # Two-row top bar so the action buttons are always visible regardless
+        # of the loaded path's length:
+        #   row 1: "Save: <path>"   (path label expands and truncates)
+        #   row 2: [Browse…] [Reload] [Save] [Undo (.bak)]
+        wrap = ttk.Frame(self, padding=(8, 6))
+        wrap.pack(fill="x")
 
+        path_row = ttk.Frame(wrap)
+        path_row.pack(fill="x")
         self.path_var = tk.StringVar(value="(no file)")
-        ttk.Label(bar, text="Save:").pack(side="left")
-        ttk.Label(bar, textvariable=self.path_var, foreground="#444",
-                  width=60, anchor="w").pack(side="left", padx=(6, 8))
+        ttk.Label(path_row, text="Save:").pack(side="left")
+        ttk.Label(path_row, textvariable=self.path_var, foreground="#444",
+                  anchor="w").pack(side="left", fill="x", expand=True, padx=(6, 0))
 
-        ttk.Button(bar, text="Browse…", command=self.on_browse).pack(side="left")
-        self.btn_reload = ttk.Button(bar, text="Reload", command=self.on_reload)
+        btn_row = ttk.Frame(wrap)
+        btn_row.pack(fill="x", pady=(6, 0))
+        ttk.Button(btn_row, text="Browse…", command=self.on_browse).pack(side="left")
+        self.btn_reload = ttk.Button(btn_row, text="Reload", command=self.on_reload)
         self.btn_reload.pack(side="left", padx=4)
-        self.btn_save = ttk.Button(bar, text="Save", command=self.on_save)
+        self.btn_save = ttk.Button(btn_row, text="Save", command=self.on_save)
         self.btn_save.pack(side="left", padx=4)
-        self.btn_undo = ttk.Button(bar, text="Undo (.bak)", command=self.on_undo)
+        self.btn_undo = ttk.Button(btn_row, text="Undo (.bak)", command=self.on_undo)
         self.btn_undo.pack(side="left", padx=4)
 
     def _build_status_bar(self) -> None:
