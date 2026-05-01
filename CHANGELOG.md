@@ -11,7 +11,23 @@ Release notes.
 
 ## [Unreleased]
 
-(none)
+### Added
+- **Calcium and Carbos vitamin resets**
+  ([#17](https://github.com/daclink/pokeclicker-save-editor/issues/17)).
+  The Currencies & Multipliers tab now has rows for all three vitamins
+  (Protein, Calcium, Carbos), each with its own *Reset to 1.0* button.
+  A single **Reset all vitamins to 1.0** button zeros the three together.
+- **Master Ball price reset**
+  ([#18](https://github.com/daclink/pokeclicker-save-editor/issues/18)).
+  Sibling row for `player._itemMultipliers["Masterball|farmPoint"]`
+  (currency is Farm Points, confirmed against a save that had purchased
+  Master Balls).
+
+### Changed
+- Multipliers section now drops keys from the save when their value is
+  exactly `1.0`, instead of writing a spurious `<key>: 1.0` entry. The
+  game treats absent and 1.0 identically, so a fresh save that never
+  purchased the item stays clean.
 
 ## [0.5.0] — 2026-05-01
 

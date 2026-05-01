@@ -41,7 +41,14 @@ CURRENCY_LABELS = [
     ("Farm Points",    4),
 ]
 
-PROTEIN_KEY = "Protein|money"  # in player._itemMultipliers
+# Multipliers in player._itemMultipliers we expose as named rows.
+# `kind` groups vitamins (Reset all vitamins button operates on these).
+MULTIPLIERS: list[tuple[str, str, str]] = [
+    ("Protein price multiplier",     "Protein|money",        "vitamin"),
+    ("Calcium price multiplier",     "Calcium|money",        "vitamin"),
+    ("Carbos price multiplier",      "Carbos|money",         "vitamin"),
+    ("Master Ball price multiplier", "Masterball|farmPoint", "ball"),
+]
 
 
 # --- helpers ----------------------------------------------------------------
@@ -300,13 +307,35 @@ class CurrenciesTab(ttk.Frame):
         mult = ttk.LabelFrame(self, text="Multipliers (player._itemMultipliers)", padding=10)
         mult.pack(fill="x", pady=(12, 0))
 
-        ttk.Label(mult, text="Protein price multiplier", width=24, anchor="w").grid(row=0, column=0, sticky="w")
-        self.protein_var = tk.StringVar()
-        ttk.Entry(mult, textvariable=self.protein_var, width=22).grid(row=0, column=1, sticky="w")
-        ttk.Label(mult, text="(higher = vitamins cost more next purchase)",
-                  foreground="#888").grid(row=0, column=2, sticky="w", padx=(8, 0))
-        ttk.Button(mult, text="Reset to 1.0",
-                   command=lambda: self.protein_var.set("1.0")).grid(row=1, column=1, sticky="w", pady=(6, 0))
+        ttk.Label(mult,
+                  text="Higher = costs more next purchase. Reset to 1.0 to "
+                       "restore base price. A row at exactly 1.0 is dropped "
+                       "from the save instead of being written.",
+                  foreground="#888", wraplength=560, justify="left").grid(
+            row=0, column=0, columnspan=3, sticky="w", pady=(0, 6))
+
+        self.mult_vars: dict[str, tk.StringVar] = {}
+        for r, (label, key, _kind) in enumerate(MULTIPLIERS, start=1):
+            ttk.Label(mult, text=label, width=28, anchor="w").grid(
+                row=r, column=0, sticky="w", pady=2)
+            v = tk.StringVar(value="1.0")
+            ttk.Entry(mult, textvariable=v, width=22).grid(
+                row=r, column=1, sticky="w", pady=2)
+            ttk.Button(mult, text="Reset to 1.0",
+                       command=lambda v=v: v.set("1.0")).grid(
+                row=r, column=2, sticky="w", padx=(8, 0))
+            self.mult_vars[key] = v
+
+        # Bulk reset for the three vitamins together.
+        def _reset_all_vitamins() -> None:
+            for _label, key, kind in MULTIPLIERS:
+                if kind == "vitamin":
+                    self.mult_vars[key].set("1.0")
+
+        ttk.Button(mult, text="Reset all vitamins to 1.0",
+                   command=_reset_all_vitamins).grid(
+            row=len(MULTIPLIERS) + 1, column=0, columnspan=3,
+            sticky="w", pady=(8, 0))
 
     def refresh(self) -> None:
         d = self.app.data
@@ -316,7 +345,8 @@ class CurrenciesTab(ttk.Frame):
         for idx, v in self.curr_vars.items():
             v.set(fnum(arr[idx] if idx < len(arr) else 0))
         mults = d["player"].get("_itemMultipliers", {})
-        self.protein_var.set(fnum(mults.get(PROTEIN_KEY, 1.0)))
+        for key, v in self.mult_vars.items():
+            v.set(fnum(mults.get(key, 1.0)))
 
     def commit(self) -> None:
         d = self.app.data
@@ -328,10 +358,16 @@ class CurrenciesTab(ttk.Frame):
                 arr.append(0)
             arr[idx] = parse_int(v.get(), name=f"currencies[{idx}]")
         mults = d["player"].setdefault("_itemMultipliers", {})
-        val = parse_float(self.protein_var.get(), name="Protein price multiplier")
-        if val <= 0:
-            raise ValueError("Protein price multiplier must be > 0")
-        mults[PROTEIN_KEY] = val
+        for label, key, _ in MULTIPLIERS:
+            val = parse_float(self.mult_vars[key].get(), name=label)
+            if val <= 0:
+                raise ValueError(f"{label} must be > 0")
+            # Don't pollute saves with 1.0 keys for things the user never
+            # touched — the game treats absent and 1.0 identically.
+            if abs(val - 1.0) < 1e-9:
+                mults.pop(key, None)
+            else:
+                mults[key] = val
 
 
 class EggsTab(ttk.Frame):
