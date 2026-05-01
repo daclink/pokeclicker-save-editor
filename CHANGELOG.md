@@ -11,12 +11,17 @@ Release notes.
 
 ## [Unreleased]
 
+(none)
+
+## [0.3.0] — 2026-05-01
+
 ### Added
 - `CHANGELOG.md` (Keep a Changelog format) tracking every release.
 - `scripts/release.py` — reads a version section out of `CHANGELOG.md` and
   drives `gh release create --notes-file -` so release notes always match
   what's in the repo. Supports `--dry-run` for preview before publishing.
-- README "Releasing" section documenting the changelog-driven workflow.
+- README "Releasing" section documenting the changelog-driven workflow
+  ([#7](https://github.com/daclink/pokeclicker-save-editor/issues/7)).
 
 ### Changed
 - README "Opening a save" subsection rewritten with a screenshot
@@ -68,7 +73,8 @@ Release notes.
   - **Caught Pokémon**: editable table with double-click dialog.
 - Round-trip verified byte-exact on the v0.10.25 sample save.
 
-[Unreleased]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/daclink/pokeclicker-save-editor/releases/tag/v0.1.0
