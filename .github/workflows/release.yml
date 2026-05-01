@@ -4,7 +4,7 @@ name: Build installers
 #   * pushes to a release/** branch — produces installers as workflow
 #     artefacts you can download from the run page. Use this to iterate
 #     on a release before tagging.
-#   * pushes of tags matching v* — same build, but also uploads each
+#   * pushes of tags matching v* — same builds, but also uploads each
 #     installer to the corresponding GitHub Release (which scripts/release.py
 #     created from CHANGELOG.md).
 on:
@@ -13,6 +13,8 @@ on:
       - "release/**"
     tags:
       - "v*"
+  # Allow manual reruns from the Actions tab without pushing a new commit.
+  workflow_dispatch:
 
 # Need contents: write to attach files to releases on tag pushes.
 permissions:
@@ -22,10 +24,8 @@ jobs:
   macos:
     name: macOS .dmg
     runs-on: macos-latest
-
     steps:
-      - name: Check out
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -40,19 +40,14 @@ jobs:
       - name: Build .app and .dmg
         run: python3 scripts/build_macos.py
 
-      - name: Smoke-test the bundled app
-        run: |
-          # Headless probe: import the GUI module from inside the bundle's
-          # resources to confirm Tk is wired up.
-          dist/PCEdit.app/Contents/MacOS/PCEdit --help 2>&1 || true
-          # The CLI doesn't ship in this bundle, but the source still works:
-          python3 pcedit.py --help
+      - name: Smoke-test the CLI
+        run: python3 pcedit.py --help
 
-      - name: Upload as workflow artefact (release branches and tags)
+      - name: Upload as workflow artefact
         uses: actions/upload-artifact@v4
         with:
-          name: PCEdit-macos-dmg
-          path: dist/PCEdit.dmg
+          name: PCEdit-macos
+          path: dist/PCEdit-macos.dmg
           if-no-files-found: error
 
       - name: Attach to GitHub Release (tag pushes only)
@@ -61,4 +56,81 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           tag="${GITHUB_REF#refs/tags/}"
-          gh release upload "$tag" dist/PCEdit.dmg --clobber
+          gh release upload "$tag" dist/PCEdit-macos.dmg --clobber
+
+  windows:
+    name: Windows .exe
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Show env
+        run: |
+          python --version
+          python -c "import tkinter; print('tk', tkinter.TkVersion)"
+
+      - name: Build .exe
+        run: python scripts/build_windows.py
+
+      - name: Smoke-test the CLI
+        run: python pcedit.py --help
+
+      - name: Upload as workflow artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PCEdit-windows
+          path: dist/PCEdit-windows.exe
+          if-no-files-found: error
+
+      - name: Attach to GitHub Release (tag pushes only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          tag="${GITHUB_REF#refs/tags/}"
+          gh release upload "$tag" dist/PCEdit-windows.exe --clobber
+
+  linux:
+    name: Linux ELF + tarball
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Show env
+        # setup-python's Linux Python ships with _tkinter; if that ever changes
+        # this step fails fast and we know to bring back apt python3-tk.
+        run: |
+          python3 --version
+          python3 -c "import tkinter; print('tk', tkinter.TkVersion)"
+
+      - name: Build ELF + tarball
+        run: python3 scripts/build_linux.py
+
+      - name: Smoke-test the CLI
+        run: python3 pcedit.py --help
+
+      - name: Upload as workflow artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PCEdit-linux
+          path: dist/PCEdit-linux-x86_64.tar.gz
+          if-no-files-found: error
+
+      - name: Attach to GitHub Release (tag pushes only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="${GITHUB_REF#refs/tags/}"
+          gh release upload "$tag" dist/PCEdit-linux-x86_64.tar.gz --clobber

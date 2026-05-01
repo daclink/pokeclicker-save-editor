@@ -28,6 +28,7 @@ BUILD = REPO_ROOT / "build"
 APP_NAME = "PCEdit"
 BUNDLE_ID = "com.daclink.pcedit"
 ENTRY = REPO_ROOT / "pcedit_gui.py"
+ICON = REPO_ROOT / "assets" / "icon" / "PCEdit.icns"
 
 
 def run(cmd: list[str], **kw) -> None:
@@ -62,6 +63,8 @@ def build_app() -> Path:
         "--name", APP_NAME,
         "--osx-bundle-identifier", BUNDLE_ID,
     ]
+    if ICON.exists():
+        pyinstaller_args += ["--icon", str(ICON)]
     # Universal2 needs Python 3.8+ from python.org or Homebrew built that way.
     # If our runner can't produce universal2 we fall back to the native arch.
     if "PCEDIT_NO_UNIVERSAL2" not in __import__("os").environ:
@@ -117,9 +120,15 @@ def build_dmg(app_path: Path) -> Path:
 def main() -> int:
     app = build_app()
     dmg = build_dmg(app)
-    size_mb = dmg.stat().st_size / (1024 * 1024)
+    # Rename to a platform-tagged file so release uploads can coexist with
+    # Linux and Windows artefacts without naming collisions.
+    final = DIST / "PCEdit-macos.dmg"
+    if final.exists():
+        final.unlink()
+    dmg.rename(final)
+    size_mb = final.stat().st_size / (1024 * 1024)
     print(f"\n✓ built {app.relative_to(REPO_ROOT)}")
-    print(f"✓ built {dmg.relative_to(REPO_ROOT)}  ({size_mb:.1f} MB)")
+    print(f"✓ built {final.relative_to(REPO_ROOT)}  ({size_mb:.1f} MB)")
     return 0
 
 
