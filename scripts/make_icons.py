@@ -73,7 +73,7 @@ def make_icns() -> None:
     out = ICON_DIR / "PCEdit.icns"
     run(["iconutil", "-c", "icns", str(iconset), "-o", str(out)])
     shutil.rmtree(iconset)
-    print(f"✓ {out.relative_to(REPO_ROOT)}")
+    print(f"OK {out.relative_to(REPO_ROOT)}")
 
 
 def make_ico() -> None:
@@ -84,14 +84,14 @@ def make_ico() -> None:
         "-define", f"icon:auto-resize={sizes}",
         str(out),
     ])
-    print(f"✓ {out.relative_to(REPO_ROOT)}")
+    print(f"OK {out.relative_to(REPO_ROOT)}")
 
 
 def make_pngs() -> None:
     for sz in (256, 512):
         out = ICON_DIR / f"PCEdit-{sz}.png"
         png(sz, out)
-        print(f"✓ {out.relative_to(REPO_ROOT)}")
+        print(f"OK {out.relative_to(REPO_ROOT)}")
 
 
 def main() -> int:
@@ -103,6 +103,11 @@ def main() -> int:
     make_icns()
     return 0
 
+
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
 
 if __name__ == "__main__":
     sys.exit(main())

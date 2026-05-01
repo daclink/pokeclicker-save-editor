@@ -11,6 +11,10 @@ Release notes.
 
 ## [Unreleased]
 
+(none)
+
+## [0.4.0] — 2026-05-01
+
 ### Added
 - **App icon.** Pokéball SVG sourced from
   [pokeclicker.com](https://www.pokeclicker.com/) rendered into platform
@@ -38,6 +42,16 @@ Release notes.
 - README "Building installers locally" rewritten for all three platforms;
   new "Regenerating the app icon" subsection. Repo layout entry updated
   with the new files.
+- README "Download & install" section near the top of the file with a
+  per-platform download/install table and a link to the latest release
+  page, so first-time users land on a binary without scrolling.
+
+### Fixed
+- Build scripts crashed on Windows when printing the success summary
+  (cp1252 codec couldn't encode the `✓` glyph). Switched all build
+  scripts to ASCII output and added `sys.stdout.reconfigure(encoding=
+  "utf-8", errors="replace")` as defence-in-depth. The Windows CI build
+  now succeeds end-to-end.
 
 ## [0.3.1] — 2026-05-01
 
@@ -109,7 +123,8 @@ Release notes.
   - **Caught Pokémon**: editable table with double-click dialog.
 - Round-trip verified byte-exact on the v0.10.25 sample save.
 
-[Unreleased]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.2.0...v0.2.1

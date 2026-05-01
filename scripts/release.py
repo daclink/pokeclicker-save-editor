@@ -136,9 +136,14 @@ def main(argv: list[str] | None = None) -> int:
     if args.prerelease:
         cmd.append("--prerelease")
     run(cmd, input_text=notes)
-    print(f"\n✓ released {tag}")
+    print(f"\nOK released {tag}")
     return 0
 
+
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
 
 if __name__ == "__main__":
     sys.exit(main())

@@ -72,9 +72,14 @@ def main() -> int:
     src.rename(final)
 
     size_mb = final.stat().st_size / (1024 * 1024)
-    print(f"\n✓ built {final.relative_to(REPO_ROOT)}  ({size_mb:.1f} MB)")
+    print(f"\nOK built {final.relative_to(REPO_ROOT)}  ({size_mb:.1f} MB)")
     return 0
 
+
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
 
 if __name__ == "__main__":
     sys.exit(main())
