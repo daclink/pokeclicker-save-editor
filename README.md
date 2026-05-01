@@ -122,6 +122,7 @@ Three tabs:
 | **Eggs** | The breeding `eggList` (one row per slot). *Edit selected* opens a form. *Hatch now* sets `steps = totalSteps`. *Make empty* clears a slot back to `{type: -1, pokemon: 0}`. *Add egg* / *Remove* manage entries. **Quick-add** buttons drop a Grass / Fire / Water / Dragon / Mystery egg into the first empty slot (or append, bumping `eggSlots`). The `eggSlots` field above the table controls how many slots the game shows. |
 | **Shards** | Counts for the 16 type-shard colors (Red/Yellow/Green/Blue, Black/Grey, Purple/Crimson, Pink/White, Cyan/Lime, Rose/Ochre, Beige/Indigo). Editing a color you haven't unlocked yet is fine — it appears once you reach the right region. Buttons set the whole grid to 999 / 9999 / 0 in one click. Any unrecognised `*_shard` items in the save show up in the "Other" panel below the grid. |
 | **Caught Pokémon** | All caught pokémon, sortable by ID. Double-click a row (or *Edit selected…*) to change `atkBonus` (`.0`, increments by 25 per hatch), `pokerus` (`.1`), `exp` (`.3`), and toggle the in-egg (`.4`) and resistant (`.5`) flags. Quick-action buttons set common values without opening a dialog. |
+| **Pokédex** | Region dropdown (Kanto … Paldea) over a listbox of every pokémon in that range. Caught entries are marked with `✓` and dimmed; uncaught are blank. Multi-select rows and click *Mark selected caught*, or *Mark all uncaught in region* to fill the entire region in one click. *Show uncaught only* hides the already-caught rows. New entries are minimal stubs (`{"2": {"0":0,"1":0,"2":0}, "3": 1, "id": <n>}`); the in-game capture statistics (`totalPokemonCaptured` etc.) are **not** updated, so the Trainer Card numbers won't move even though the pokémon will appear caught in the dex. |
 
 Top bar buttons:
 
@@ -241,8 +242,23 @@ The `[k=v]` form also matches by `name`, `region`, `berry`, etc. — anything st
 
 ```
 pokeclicker_save.py   format library (decode, encode, path get/set)
+pokeclicker_data.py   static reference data (region ranges, Kanto names)
 pcedit.py             CLI entry point
 pcedit_gui.py         Tk GUI editor
 README.md             this file
+LICENSE               CC0 1.0
 .gitignore
 ```
+
+## Roadmap
+
+Tracking, in rough priority:
+
+- [ ] **Platform installers.** Ship pre-built single-file binaries so end-users don't need a Python install:
+  - macOS: `pyinstaller --onefile --windowed` → `.app` bundle, packaged into a signed `.dmg`.
+  - Windows: same `pyinstaller` invocation → `.exe`, optionally wrapped in an MSI via `wix`.
+  - Linux: AppImage (via `python-appimage`) or a `.deb` for Ubuntu/Debian.
+  - CI workflow that builds all three on tag push and attaches them to the GitHub release.
+- [ ] **Pokédex names beyond Kanto.** Currently `pokeclicker_data.py` has only Kanto names; later regions show ID numbers without a friendly name. Embedding the full national-dex roster (~1025 entries) is one option; pulling from a small data file at startup is another.
+- [ ] **Pokédex stat back-fill.** When marking pokémon caught from the Pokédex tab, also bump `save.statistics.totalPokemonCaptured` and per-id capture counts so the Trainer Card numbers match.
+- [ ] **Schema diff for new game versions.** A fixture-driven test that decodes saves from each minor version and asserts the editor's known-keys still resolve, so we notice when v0.10.26 (etc.) shifts something.
