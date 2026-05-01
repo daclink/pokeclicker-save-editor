@@ -15,12 +15,20 @@ from __future__ import annotations
 import shutil
 import sys
 import tkinter as tk
+import webbrowser
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 from typing import Any
 
+from _version import __version__
 from pokeclicker_save import decode_file, encode_file
 from pokeclicker_data import REGION_RANGES, name_for
+from pcedit_updates import (
+    UpdateResult,
+    check_for_update_async,
+    get_setting,
+    set_setting,
+)
 
 
 # Index → label for save.wallet.currencies. Position 5 is BattlePoints in some
@@ -71,17 +79,22 @@ def parse_float(s: str, *, name: str = "value") -> float:
 class PCEditGUI(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
-        self.title("PokeClicker Save Editor")
-        self.geometry("820x680")
-        self.minsize(560, 520)
+        self.title(f"PokeClicker Save Editor — v{__version__}")
+        self.geometry("820x720")
+        self.minsize(560, 540)
 
         self.path: Path | None = None
         self.data: dict | None = None
 
         self._build_top_bar()
+        self._build_update_banner()
         self._build_status_bar()
         self._build_notebook()
         self._set_data_loaded(False)
+
+        # Kick off the update check 200 ms after mainloop starts so first
+        # paint is unaffected. Honours the "update_check_on_launch" setting.
+        self.after(200, self._kickoff_update_check)
 
     # --- top + status -----------------------------------------------------
 
@@ -92,6 +105,7 @@ class PCEditGUI(tk.Tk):
         #   row 2: [Browse…] [Reload] [Save] [Undo (.bak)]
         wrap = ttk.Frame(self, padding=(8, 6))
         wrap.pack(fill="x")
+        self._top_bar_frame = wrap   # for the update banner to position itself after
 
         path_row = ttk.Frame(wrap)
         path_row.pack(fill="x")
@@ -109,6 +123,23 @@ class PCEditGUI(tk.Tk):
         self.btn_save.pack(side="left", padx=4)
         self.btn_undo = ttk.Button(btn_row, text="Undo (.bak)", command=self.on_undo)
         self.btn_undo.pack(side="left", padx=4)
+
+    def _build_update_banner(self) -> None:
+        # Hidden until the update check returns "available".
+        self._update_url: str | None = None
+        self._update_dismissed_for: str | None = None
+        self.update_banner = tk.Frame(self, background="#fff3cd",
+                                       highlightbackground="#ffe69c",
+                                       highlightthickness=1)
+        # Placed by .pack only when needed.
+        self.update_banner_label = tk.Label(
+            self.update_banner, background="#fff3cd", foreground="#664d03",
+            anchor="w", padx=8, pady=4, text="")
+        self.update_banner_label.pack(side="left", fill="x", expand=True)
+        ttk.Button(self.update_banner, text="Open release notes",
+                   command=self._open_update_url).pack(side="left", padx=4, pady=4)
+        ttk.Button(self.update_banner, text="Dismiss",
+                   command=self._dismiss_update).pack(side="left", padx=(0, 8), pady=4)
 
     def _build_status_bar(self) -> None:
         self.status_var = tk.StringVar(value="open a save file to begin")
@@ -194,6 +225,53 @@ class PCEditGUI(tk.Tk):
         self.tab_caught.refresh()
         self.tab_dex.refresh()
         self.status_var.set(f"loaded {path.name}")
+
+    # --- update check ------------------------------------------------------
+
+    def _kickoff_update_check(self) -> None:
+        # Bounce the result back to the Tk main thread via .after so we touch
+        # widgets only from the main thread.
+        def on_result(result: UpdateResult) -> None:
+            self.after(0, lambda: self._render_update_result(result))
+        check_for_update_async(on_result)
+
+    def _render_update_result(self, result: UpdateResult) -> None:
+        if result.status == "available":
+            dismissed = get_setting("update_dismissed_version")
+            if dismissed == result.latest:
+                # The user already said "no thanks" for this exact release.
+                self.status_var.set(
+                    f"update available (v{result.latest}) — dismissed earlier")
+                return
+            self._update_url = result.html_url
+            self.update_banner_label.configure(
+                text=f"Update available: v{result.latest} "
+                     f"(you have v{result.current}). Click to view release notes.")
+            self.update_banner.pack(fill="x", padx=8, pady=(0, 4),
+                                    after=self._top_bar_frame)
+            self.status_var.set(f"update available: v{result.latest}")
+        elif result.status == "current":
+            self.status_var.set(f"up to date (v{result.current})")
+        elif result.status == "skipped":
+            self.status_var.set("update check: skipped")
+        elif result.status == "error":
+            # Soft-fail: just log to status bar at low volume.
+            self.status_var.set(f"update check: {result.error}")
+
+    def _open_update_url(self) -> None:
+        if self._update_url:
+            try:
+                webbrowser.open(self._update_url)
+            except Exception:  # noqa: BLE001
+                pass
+
+    def _dismiss_update(self) -> None:
+        # Persist so this exact release stays dismissed across launches.
+        if self._update_url:
+            # Pull "v0.5.0" out of the URL's tag suffix.
+            tag = self._update_url.rstrip("/").split("/")[-1].lstrip("v")
+            set_setting("update_dismissed_version", tag)
+        self.update_banner.pack_forget()
 
     def _set_data_loaded(self, ok: bool) -> None:
         state = "normal" if ok else "disabled"
@@ -771,10 +849,11 @@ class PokedexTab(ttk.Frame):
     """Mark uncaught pokémon as caught, filtered by region.
 
     Adds entries to ``save.party.caughtPokemon`` of the form
-    ``{"2": {"0": 0, "1": 0, "2": 0}, "3": 1, "id": <pid>}``. Existing entries
-    are left alone — re-marking is a no-op. The in-game capture statistics
-    (``totalPokemonCaptured``, etc.) are NOT updated; the dex entry will show
-    the pokémon as caught but the Trainer Card numbers will not move.
+    ``{"2": {"0": 0, "1": 0, "2": 0}, "3": 1, "id": <pid>}``. Existing
+    entries are left alone — re-marking is a no-op.
+
+    The "Also bump capture stats" toggle (off by default) extends the action
+    to bump the in-game capture counters as well — see :meth:`_bump_stats`.
     """
 
     DEFAULT_NEW_EXP = 1
@@ -824,6 +903,19 @@ class PokedexTab(ttk.Frame):
         ttk.Button(bar, text="Mark all uncaught in region",
                    command=self._mark_all_uncaught).pack(side="left", padx=4)
         ttk.Button(bar, text="Refresh", command=self.refresh).pack(side="right")
+
+        # Stat-backfill toggle (#5). Defaults to off because bumping totals
+        # changes Trainer Card numbers and (down the line) achievement
+        # progress; users opting in are saying "make the dex consistent
+        # with the trainer card too".
+        self.bump_stats = tk.BooleanVar(value=False)
+        opts = ttk.Frame(self)
+        opts.pack(fill="x", pady=(4, 0))
+        ttk.Checkbutton(
+            opts,
+            text="Also bump capture stats (totalPokemonCaptured, "
+                 "pokemonCaptured.<id>, …)",
+            variable=self.bump_stats).pack(side="left")
 
         # Cache: list of (pid, caught_bool) currently shown in the listbox.
         self._rows: list[tuple[int, bool]] = []
@@ -889,7 +981,7 @@ class PokedexTab(ttk.Frame):
             return 0
         party = self.app.data["save"]["party"]["caughtPokemon"]
         existing = self._caught_ids()
-        added = 0
+        added_ids: list[int] = []
         for pid in ids:
             if pid in existing:
                 continue
@@ -899,11 +991,42 @@ class PokedexTab(ttk.Frame):
                 "id": pid,
             })
             existing.add(pid)
-            added += 1
-        if added:
+            added_ids.append(pid)
+        if added_ids:
+            if self.bump_stats.get():
+                self._bump_stats(added_ids)
             # Refresh the other tab too so the caught table picks up new rows.
             self.app.tab_caught.refresh()
-        return added
+        return len(added_ids)
+
+    def _bump_stats(self, ids: list[int]) -> None:
+        """Update statistics counters so the Trainer Card matches the dex.
+
+        For each newly-marked id:
+          - ``pokemonCaptured[<id>]`` is set to ``max(1, current)``.
+          - ``pokemonEncountered[<id>]`` is set to ``max(1, current)``
+            (a real catch implies at least one encounter).
+        And the gender-neutral totals are bumped by the number of new ids:
+          - ``totalPokemonCaptured`` += len(ids)
+          - ``totalPokemonEncountered`` += len(ids)
+
+        Per-gender counters (Male/Female/Genderless) need a species
+        gender-ratio table to credit the right bucket; that's deferred
+        as a follow-up so this MVP stays simple. The gender-neutral
+        totals on the Trainer Card are the ones users actually look at,
+        so this fixes the visible mismatch even if the per-gender numbers
+        are slightly under-counted.
+        """
+        stats = self.app.data["save"].setdefault("statistics", {})
+        captured = stats.setdefault("pokemonCaptured", {})
+        encountered = stats.setdefault("pokemonEncountered", {})
+        for pid in ids:
+            key = str(pid)
+            captured[key] = max(1, int(captured.get(key, 0)))
+            encountered[key] = max(1, int(encountered.get(key, 0)))
+        bump = len(ids)
+        stats["totalPokemonCaptured"] = int(stats.get("totalPokemonCaptured", 0)) + bump
+        stats["totalPokemonEncountered"] = int(stats.get("totalPokemonEncountered", 0)) + bump
 
     def _mark_selected(self) -> None:
         idxs = self.lb.curselection()

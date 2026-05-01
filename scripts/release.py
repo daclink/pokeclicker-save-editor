@@ -102,6 +102,29 @@ def run(cmd: list[str], *, capture: bool = False, input_text: str | None = None)
     return res.stdout if capture else ""
 
 
+def check_version_constant(version: str) -> None:
+    """Ensure ``_version.py`` matches the version being released.
+
+    The CHANGELOG promotion commit must also bump ``__version__`` in
+    ``_version.py`` — that's how the running editor knows what version it
+    is for the in-app update check. Catching a mismatch here prevents
+    shipping a release whose binary self-reports the wrong version.
+    """
+    sys.path.insert(0, str(REPO_ROOT))
+    try:
+        import _version  # type: ignore
+        import importlib
+        importlib.reload(_version)
+        on_disk = _version.__version__
+    except Exception as e:  # noqa: BLE001
+        raise SystemExit(f"error: couldn't read _version.py: {e}")
+    if on_disk != version:
+        raise SystemExit(
+            f"error: _version.py says {on_disk!r} but you're releasing {version!r}.\n"
+            f"bump the constant in _version.py (alongside CHANGELOG.md) and try again."
+        )
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -114,6 +137,8 @@ def main(argv: list[str] | None = None) -> int:
                     help="mark the GitHub release as a pre-release")
     args = ap.parse_args(argv)
 
+    if not args.dry_run:
+        check_version_constant(args.version)
     title, notes = build_notes(args.version)
 
     if args.dry_run:

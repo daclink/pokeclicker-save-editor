@@ -11,7 +11,38 @@ Release notes.
 
 ## [Unreleased]
 
-(none)
+### Added
+- **Update check on launch**
+  ([#19](https://github.com/daclink/pokeclicker-save-editor/issues/19)).
+  The GUI now silently checks the GitHub Releases API 200 ms after start
+  and surfaces a non-modal banner if a newer version is available, with
+  *Open release notes* and *Dismiss* buttons. Dismissed releases stay
+  dismissed across launches. Result is cached for 24 h in
+  `<user-config>/pcedit/update_cache.json`.
+- `_version.py` exporting `__version__` as the single source of truth.
+  `scripts/release.py` now refuses to tag a release whose number doesn't
+  match the on-disk constant — bump both files in the same commit.
+- `pcedit_updates.py`: stdlib-only fetcher, semver compare, settings
+  helpers (`get_setting` / `set_setting`) read/written from a JSON file
+  under the platform's per-user config dir.
+- New per-user setting `update_check_on_launch` (default `true`). Set to
+  `false` to suppress the on-launch check; manual *Help → Check for
+  updates…* is tracked separately under
+  [#20](https://github.com/daclink/pokeclicker-save-editor/issues/20).
+- Window title now includes the running version, e.g.
+  `PokeClicker Save Editor — v0.5.0`.
+- **Pokédex stat back-fill**
+  ([#5](https://github.com/daclink/pokeclicker-save-editor/issues/5)).
+  New "Also bump capture stats" toggle on the Pokédex tab (default off).
+  When enabled, marking a pokémon caught also bumps the gender-neutral
+  capture/encounter counters:
+  - `save.statistics.totalPokemonCaptured` += newly-added count
+  - `save.statistics.totalPokemonEncountered` += newly-added count
+  - `pokemonCaptured.<id>` and `pokemonEncountered.<id>` set to
+    `max(1, current)`
+  Per-gender counters (Male/Female/Genderless) need a species
+  gender-ratio table and are tracked as a follow-up
+  ([#26](https://github.com/daclink/pokeclicker-save-editor/issues/26)).
 
 ## [0.4.1] — 2026-05-01
 
