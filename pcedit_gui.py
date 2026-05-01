@@ -20,6 +20,7 @@ from tkinter import filedialog, messagebox, ttk
 from typing import Any
 
 from pokeclicker_save import decode_file, encode_file
+from pokeclicker_data import REGION_RANGES, name_for
 
 
 # Index → label for save.wallet.currencies. Position 5 is BattlePoints in some
@@ -114,10 +115,12 @@ class PCEditGUI(tk.Tk):
         self.tab_eggs = EggsTab(nb, self)
         self.tab_shards = ShardsTab(nb, self)
         self.tab_caught = CaughtTab(nb, self)
+        self.tab_dex = PokedexTab(nb, self)
         nb.add(self.tab_curr, text="Currencies & Multipliers")
         nb.add(self.tab_eggs, text="Eggs")
         nb.add(self.tab_shards, text="Shards")
         nb.add(self.tab_caught, text="Caught Pokémon")
+        nb.add(self.tab_dex, text="Pokédex")
 
     # --- file actions -----------------------------------------------------
 
@@ -141,6 +144,7 @@ class PCEditGUI(tk.Tk):
             self.tab_eggs.commit()
             self.tab_shards.commit()
             self.tab_caught.commit()
+            self.tab_dex.commit()
         except ValueError as e:
             messagebox.showerror("Invalid value", str(e))
             return
@@ -180,6 +184,7 @@ class PCEditGUI(tk.Tk):
         self.tab_eggs.refresh()
         self.tab_shards.refresh()
         self.tab_caught.refresh()
+        self.tab_dex.refresh()
         self.status_var.set(f"loaded {path.name}")
 
     def _set_data_loaded(self, ok: bool) -> None:
@@ -742,6 +747,173 @@ class CaughtDialog(tk.Toplevel):
         # Use the post-dict via on_ok: we pass `set`, then caller removes leftovers.
         self.on_ok({"__patch__": self._post})
         self.destroy()
+
+
+class PokedexTab(ttk.Frame):
+    """Mark uncaught pokémon as caught, filtered by region.
+
+    Adds entries to ``save.party.caughtPokemon`` of the form
+    ``{"2": {"0": 0, "1": 0, "2": 0}, "3": 1, "id": <pid>}``. Existing entries
+    are left alone — re-marking is a no-op. The in-game capture statistics
+    (``totalPokemonCaptured``, etc.) are NOT updated; the dex entry will show
+    the pokémon as caught but the Trainer Card numbers will not move.
+    """
+
+    DEFAULT_NEW_EXP = 1
+
+    def __init__(self, master, app: PCEditGUI) -> None:
+        super().__init__(master, padding=12)
+        self.app = app
+
+        ttk.Label(self,
+                  text="Pick a region to see its dex. Multi-select rows and "
+                       "click a button to mark them caught. Already-caught "
+                       "pokémon are left untouched.",
+                  foreground="#666", wraplength=700, justify="left").pack(anchor="w")
+
+        controls = ttk.Frame(self)
+        controls.pack(fill="x", pady=(8, 4))
+        ttk.Label(controls, text="Region:").pack(side="left")
+        self.region_var = tk.StringVar(value=REGION_RANGES[0][0])
+        self.region_box = ttk.Combobox(
+            controls, textvariable=self.region_var, state="readonly", width=12,
+            values=[r[0] for r in REGION_RANGES])
+        self.region_box.pack(side="left", padx=(4, 12))
+        self.region_box.bind("<<ComboboxSelected>>", lambda _e: self._render_listbox())
+
+        self.show_uncaught_only = tk.BooleanVar(value=False)
+        ttk.Checkbutton(controls, text="Show uncaught only",
+                        variable=self.show_uncaught_only,
+                        command=self._render_listbox).pack(side="left")
+
+        self.status_var = tk.StringVar(value="")
+        ttk.Label(controls, textvariable=self.status_var,
+                  foreground="#444").pack(side="right")
+
+        body = ttk.Frame(self)
+        body.pack(fill="both", expand=True, pady=(4, 0))
+        self.lb = tk.Listbox(body, selectmode="extended", activestyle="dotbox",
+                             font=("Menlo", 12), height=18)
+        sb = ttk.Scrollbar(body, orient="vertical", command=self.lb.yview)
+        self.lb.configure(yscrollcommand=sb.set)
+        self.lb.pack(side="left", fill="both", expand=True)
+        sb.pack(side="left", fill="y")
+
+        bar = ttk.Frame(self)
+        bar.pack(fill="x", pady=(8, 0))
+        ttk.Button(bar, text="Mark selected caught",
+                   command=self._mark_selected).pack(side="left")
+        ttk.Button(bar, text="Mark all uncaught in region",
+                   command=self._mark_all_uncaught).pack(side="left", padx=4)
+        ttk.Button(bar, text="Refresh", command=self.refresh).pack(side="right")
+
+        # Cache: list of (pid, caught_bool) currently shown in the listbox.
+        self._rows: list[tuple[int, bool]] = []
+
+    # --- public hooks ----------------------------------------------------
+
+    def refresh(self) -> None:
+        if self.app.data is None:
+            return
+        self._render_listbox()
+
+    def commit(self) -> None:
+        # All edits are applied directly to self.app.data when the user clicks
+        # the buttons; nothing to do at file-save time.
+        return
+
+    # --- helpers ---------------------------------------------------------
+
+    def _caught_ids(self) -> set[int]:
+        if self.app.data is None:
+            return set()
+        return {e.get("id") for e in self.app.data["save"]["party"]["caughtPokemon"]
+                if isinstance(e, dict) and isinstance(e.get("id"), int)}
+
+    def _selected_region(self) -> tuple[str, int, int]:
+        label = self.region_var.get()
+        for entry in REGION_RANGES:
+            if entry[0] == label:
+                return entry
+        return REGION_RANGES[0]
+
+    def _render_listbox(self) -> None:
+        self.lb.delete(0, "end")
+        self._rows.clear()
+        if self.app.data is None:
+            self.status_var.set("")
+            return
+        label, lo, hi = self._selected_region()
+        caught = self._caught_ids()
+        total = hi - lo + 1
+        c_in_region = sum(1 for pid in range(lo, hi + 1) if pid in caught)
+        self.status_var.set(f"{label}: {c_in_region}/{total} caught")
+
+        only_uncaught = self.show_uncaught_only.get()
+        for pid in range(lo, hi + 1):
+            is_caught = pid in caught
+            if only_uncaught and is_caught:
+                continue
+            mark = "✓" if is_caught else " "
+            line = f"{mark} #{pid:04d}  {name_for(pid)}"
+            self.lb.insert("end", line)
+            self._rows.append((pid, is_caught))
+            if is_caught:
+                # Visually de-emphasise already-caught rows.
+                self.lb.itemconfigure("end", foreground="#888")
+
+    def _mark(self, ids: list[int]) -> int:
+        """Add caughtPokemon entries for any IDs not already present.
+
+        Returns how many entries were actually added.
+        """
+        if self.app.data is None or not ids:
+            return 0
+        party = self.app.data["save"]["party"]["caughtPokemon"]
+        existing = self._caught_ids()
+        added = 0
+        for pid in ids:
+            if pid in existing:
+                continue
+            party.append({
+                "2": {"0": 0, "1": 0, "2": 0},
+                "3": self.DEFAULT_NEW_EXP,
+                "id": pid,
+            })
+            existing.add(pid)
+            added += 1
+        if added:
+            # Refresh the other tab too so the caught table picks up new rows.
+            self.app.tab_caught.refresh()
+        return added
+
+    def _mark_selected(self) -> None:
+        idxs = self.lb.curselection()
+        if not idxs:
+            messagebox.showinfo("Mark caught",
+                                "No rows selected.", parent=self)
+            return
+        ids = [self._rows[i][0] for i in idxs if not self._rows[i][1]]
+        added = self._mark(ids)
+        self._render_listbox()
+        self.app.status_var.set(f"marked {added} caught (selected)")
+
+    def _mark_all_uncaught(self) -> None:
+        label, lo, hi = self._selected_region()
+        caught = self._caught_ids()
+        ids = [pid for pid in range(lo, hi + 1) if pid not in caught]
+        if not ids:
+            messagebox.showinfo("Mark caught",
+                                f"All {hi - lo + 1} pokémon in {label} are already caught.",
+                                parent=self)
+            return
+        if not messagebox.askyesno("Mark caught",
+                                    f"Mark all {len(ids)} uncaught pokémon in {label} as caught?",
+                                    parent=self):
+            return
+        added = self._mark(ids)
+        self._render_listbox()
+        self.app.status_var.set(f"marked {added} caught in {label}")
 
 
 # Patch CaughtTab._on_edit to interpret the __patch__ payload from the dialog.
