@@ -11,7 +11,20 @@ Release notes.
 
 ## [Unreleased]
 
-(none)
+### Added
+- `scripts/build_macos.py`: PyInstaller-based builder that produces
+  `dist/PCEdit.app` and `dist/PCEdit.dmg` (drag-to-`/Applications`
+  installer, ~12 MB). Defaults to `--target-arch universal2` with a
+  graceful fallback to the native arch when the building Python isn't
+  universal2-capable
+  ([#3](https://github.com/daclink/pokeclicker-save-editor/issues/3)).
+- `.github/workflows/release.yml`: GitHub Actions workflow that builds the
+  macOS `.dmg` on every push to a `release/**` branch (artefact attached
+  to the workflow run) and on every `v*` tag push (uploaded to the
+  matching GitHub Release).
+- README "Building installers locally" subsection and an updated
+  "Releasing" walkthrough describing the cut-a-release-branch → push →
+  iterate → tag → release flow.
 
 ## [0.3.1] — 2026-05-01
 

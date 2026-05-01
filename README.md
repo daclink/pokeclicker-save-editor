@@ -273,16 +273,34 @@ The `[k=v]` form also matches by `name`, `region`, `berry`, etc. — anything st
 ## Releasing
 
 Releases are driven from `CHANGELOG.md` (Keep a Changelog format) so the
-notes you read on the GitHub Releases page are exactly what's checked into
-the repo. The flow:
+notes on the GitHub Releases page are exactly what's checked into the repo.
+Native installers are built by GitHub Actions
+([`.github/workflows/release.yml`](.github/workflows/release.yml)) on every
+push to a release branch.
 
-1. Move the items you want to ship out of the `## [Unreleased]` section
-   into a new `## [X.Y.Z] — YYYY-MM-DD` section above it.
-2. Add the corresponding link reference at the bottom:
-   `[X.Y.Z]: https://github.com/daclink/pokeclicker-save-editor/compare/vP.R.E...vX.Y.Z`
-   and update `[Unreleased]` to compare against the new tag.
-3. Commit on a release PR and merge to `main`.
-4. Cut the release with the helper:
+The flow:
+
+1. **Cut a release branch** off `main`:
+
+   ```sh
+   git checkout main && git pull
+   git checkout -b release/v0.4.0
+   git push -u origin release/v0.4.0
+   ```
+
+   Pushing to a branch that matches `release/**` triggers the **Build
+   installers** workflow. The macOS `.dmg` shows up as a downloadable
+   artefact on the run page. Each subsequent push to the same branch
+   re-runs the build — iterate on it as much as you need before tagging.
+
+2. **Promote `[Unreleased]` to `[X.Y.Z] — YYYY-MM-DD`** in `CHANGELOG.md`,
+   add the compare-link reference at the bottom, and update `[Unreleased]`
+   to compare against the new tag.
+
+3. **Open a PR from the release branch into `main`.** Review the
+   workflow-built `.dmg` from the latest run, hit Merge.
+
+4. **Cut the release with the helper:**
 
    ```sh
    # Preview the notes without publishing or tagging.
@@ -293,12 +311,33 @@ the repo. The flow:
    python3 scripts/release.py X.Y.Z
    ```
 
+   The same workflow re-fires on the tag push and **uploads the `.dmg`
+   directly to the GitHub Release** the script just created.
+
    If the tag already exists (e.g. you're filling in notes for a release
    that was tagged manually), pass `--skip-tag`. Pre-releases use
    `--prerelease`.
 
-The script is stdlib-only and shells out to `git` and `gh`, so it works on
-any machine with both installed and `gh auth status` configured.
+The release helper is stdlib-only and shells out to `git` and `gh`, so it
+works on any machine with both installed and `gh auth status` configured.
+
+### Building installers locally
+
+If you want to produce a `.dmg` without going through CI:
+
+```sh
+python3 scripts/build_macos.py
+# → dist/PCEdit.app   bundled application
+# → dist/PCEdit.dmg   drag-to-Applications installer (~12 MB)
+```
+
+The script creates a venv-friendly install of PyInstaller on demand, so the
+only requirement is a Python with Tk (see [Requirements](#requirements)).
+It defaults to `--target-arch universal2` and falls back to the native arch
+if your Python isn't universal2-capable.
+
+> Linux (`AppImage`) and Windows (`.exe`) builds are tracked under issue
+> [#3](https://github.com/daclink/pokeclicker-save-editor/issues/3).
 
 ## Repo layout
 
@@ -308,6 +347,8 @@ pokeclicker_data.py   static reference data (region ranges, Kanto names)
 pcedit.py             CLI entry point
 pcedit_gui.py         Tk GUI editor
 scripts/release.py    CHANGELOG-driven release helper (gh wrapper)
+scripts/build_macos.py PyInstaller-based .app + .dmg builder for macOS
+.github/workflows/    CI: build installers on push to release/** and tag
 screenshots/          README images
 CHANGELOG.md          Keep a Changelog history; canonical release notes
 README.md             this file

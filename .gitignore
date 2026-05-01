@@ -7,3 +7,8 @@ __pycache__/
 # Sample saves and decoded JSON live next to the user — don't commit them
 *.bak
 *.decoded.json
+
+# PyInstaller / installer build artefacts
+build/
+dist/
+*.spec
