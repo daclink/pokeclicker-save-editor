@@ -1,14 +1,191 @@
+# =============================================================================
+# Python
+# =============================================================================
+# Byte-compiled / optimised / DLL files
 __pycache__/
-**/__pycache__/
-*.pyc
-.venv/
-.DS_Store
+*.py[cod]
+*$py.class
 
-# Sample saves and decoded JSON live next to the user — don't commit them
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Type checkers
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+.ruff_cache/
+
+# pyenv / pipenv / poetry / pdm
+.python-version
+Pipfile.lock
+poetry.lock
+.pdm-python
+__pypackages__/
+
+# Environments
+.env
+.env.*
+!.env.example
+.venv
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Jupyter / IPython (in case anyone tinkers with notebooks here)
+.ipynb_checkpoints
+profile_default/
+ipython_config.py
+
+# =============================================================================
+# PyInstaller / packaging artefacts
+# =============================================================================
+# Generated alongside dist/ — already covered above, kept here for clarity
+*.spec
+*.manifest
+
+# =============================================================================
+# Operating-system noise
+# =============================================================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.stackdump
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# =============================================================================
+# Editors / IDEs
+# =============================================================================
+# VS Code (keep recommended extensions / settings opt-in if ever added)
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json.example
+
+# JetBrains (PyCharm, IntelliJ, etc.)
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Vim
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+Session.vim
+Sessionx.vim
+.netrwhist
+*.un~
+tags
+[._]*.un~
+
+# Emacs
+\#*\#
+.\#*
+*.elc
+auto-save-list
+tramp
+.org-id-locations
+
+# Sublime Text
+*.sublime-workspace
+
+# =============================================================================
+# Logs & debug output
+# =============================================================================
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =============================================================================
+# pokeclicker-editor specific
+# =============================================================================
+# pcedit auto-creates *.bak before any in-place save; never commit one.
 *.bak
+
+# CLI `decode` / `dump` output sits next to the source save. Never commit
+# real saves — they contain the user's trainer ID, achievements, etc.
 *.decoded.json
 
-# PyInstaller / installer build artefacts
-build/
-dist/
-*.spec
+# Sample/working saves dropped into the repo root or scripts/ should not
+# be committed. Real fixtures (small, redacted) belong under tests/fixtures
+# once that exists; whitelist them there. Brackets are gitignore character
+# classes, so we match the exported-save filename pattern by substring.
+*.txt.bak
+*PokeClicker*.txt
+*pokeclicker*.txt
