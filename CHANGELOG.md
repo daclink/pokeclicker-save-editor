@@ -11,6 +11,10 @@ Release notes.
 
 ## [Unreleased]
 
+(none)
+
+## [0.3.1] — 2026-05-01
+
 ### Added
 - **Caught Pokémon** tab: new read-only `Name` column to the right of `ID`,
   populated via `name_for(pid)` from `pokeclicker_data.py`. Falls back to
@@ -79,7 +83,8 @@ Release notes.
   - **Caught Pokémon**: editable table with double-click dialog.
 - Round-trip verified byte-exact on the v0.10.25 sample save.
 
-[Unreleased]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.1.0...v0.2.0
