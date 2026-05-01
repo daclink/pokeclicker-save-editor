@@ -114,7 +114,43 @@ python3 pcedit_gui.py                              # empty window, use Browse…
 python3 pcedit_gui.py path/to/save.txt             # auto-load on launch
 ```
 
-Three tabs:
+#### Opening a save
+
+![PokeClicker Save Editor on first launch — top bar with Browse/Reload/Save/Undo, the Currencies & Multipliers tab visible, and "open a save file to begin" in the status bar.](screenshots/clicker-editor-ui.png)
+
+On first launch the window looks like the screenshot above:
+
+1. **Row 1** of the top bar shows `Save: (no file)` — that's where the
+   loaded path will appear.
+2. **Row 2** has four action buttons. Only **Browse…** is enabled until a
+   save is loaded; **Reload**, **Save**, and **Undo (.bak)** are greyed out
+   on purpose.
+3. The notebook below has five tabs (Currencies & Multipliers, Eggs,
+   Shards, Caught Pokémon, Pokédex). Their fields are empty until a file
+   is open.
+4. The status bar at the bottom reads `open a save file to begin`.
+
+To open a save:
+
+1. Click **Browse…** and pick the `.txt` file PokeClicker exported
+   (Settings → Save → Download Save in the game).
+2. The path replaces `(no file)` in row 1, the other three buttons
+   activate, every tab populates, and the status bar reads
+   `loaded <filename>`.
+3. From there: edit, click **Save** (the original is copied to
+   `<file>.bak` automatically), and re-import the file in PokeClicker.
+
+You can also pre-load a save by passing it on the command line:
+
+```sh
+python3 pcedit_gui.py path/to/save.txt
+```
+
+**Reload** discards any in-flight edits and re-reads the file from disk.
+**Undo (.bak)** confirms, then restores the file from its backup and
+re-loads — handy if a save you just wrote causes the game to misbehave.
+
+#### Tabs
 
 | tab | what you can change |
 |---|---|
@@ -124,12 +160,8 @@ Three tabs:
 | **Caught Pokémon** | All caught pokémon, sortable by ID. Double-click a row (or *Edit selected…*) to change `atkBonus` (`.0`, increments by 25 per hatch), `pokerus` (`.1`), `exp` (`.3`), and toggle the in-egg (`.4`) and resistant (`.5`) flags. Quick-action buttons set common values without opening a dialog. |
 | **Pokédex** | Region dropdown (Kanto … Paldea) over a listbox of every pokémon in that range. Caught entries are marked with `✓` and dimmed; uncaught are blank. Multi-select rows and click *Mark selected caught*, or *Mark all uncaught in region* to fill the entire region in one click. *Show uncaught only* hides the already-caught rows. New entries are minimal stubs (`{"2": {"0":0,"1":0,"2":0}, "3": 1, "id": <n>}`); the in-game capture statistics (`totalPokemonCaptured` etc.) are **not** updated, so the Trainer Card numbers won't move even though the pokémon will appear caught in the dex. |
 
-Top bar buttons:
-
-- **Browse…** — open a save from anywhere.
-- **Reload** — discard pending edits and re-read from disk.
-- **Save** — write the file in place after copying it to `<file>.bak`.
-- **Undo (.bak)** — confirm, then restore from the backup and reload.
+The status bar at the bottom of the window shows what just happened
+(`loaded …`, `saved …`, `restored …`, etc.).
 
 The status bar at the bottom shows what just happened.
 
@@ -238,6 +270,36 @@ The `[k=v]` form also matches by `name`, `region`, `berry`, etc. — anything st
 - The tool does **not** validate game logic. You can hand the game a Pokédex entry it doesn't expect, and the game may crash or sanitize it on the next save. Edit small things first, save in-game, and confirm before going wild.
 - This is for tinkering with your own local save. Don't use it for cheating online leaderboards (PokeClicker is single-player but be a good neighbor).
 
+## Releasing
+
+Releases are driven from `CHANGELOG.md` (Keep a Changelog format) so the
+notes you read on the GitHub Releases page are exactly what's checked into
+the repo. The flow:
+
+1. Move the items you want to ship out of the `## [Unreleased]` section
+   into a new `## [X.Y.Z] — YYYY-MM-DD` section above it.
+2. Add the corresponding link reference at the bottom:
+   `[X.Y.Z]: https://github.com/daclink/pokeclicker-save-editor/compare/vP.R.E...vX.Y.Z`
+   and update `[Unreleased]` to compare against the new tag.
+3. Commit on a release PR and merge to `main`.
+4. Cut the release with the helper:
+
+   ```sh
+   # Preview the notes without publishing or tagging.
+   python3 scripts/release.py X.Y.Z --dry-run
+
+   # Tag, push, and create the GitHub release. Notes come straight out of
+   # CHANGELOG.md plus a header (tag, date, "tested against PokeClicker vN.M").
+   python3 scripts/release.py X.Y.Z
+   ```
+
+   If the tag already exists (e.g. you're filling in notes for a release
+   that was tagged manually), pass `--skip-tag`. Pre-releases use
+   `--prerelease`.
+
+The script is stdlib-only and shells out to `git` and `gh`, so it works on
+any machine with both installed and `gh auth status` configured.
+
 ## Repo layout
 
 ```
@@ -245,6 +307,9 @@ pokeclicker_save.py   format library (decode, encode, path get/set)
 pokeclicker_data.py   static reference data (region ranges, Kanto names)
 pcedit.py             CLI entry point
 pcedit_gui.py         Tk GUI editor
+scripts/release.py    CHANGELOG-driven release helper (gh wrapper)
+screenshots/          README images
+CHANGELOG.md          Keep a Changelog history; canonical release notes
 README.md             this file
 LICENSE               CC0 1.0
 .gitignore
