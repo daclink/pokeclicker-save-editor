@@ -125,10 +125,15 @@ def main() -> int:
         tf.add(readme_path, arcname="README.txt")
 
     size_mb = tar_path.stat().st_size / (1024 * 1024)
-    print(f"\n✓ built {bin_path.relative_to(REPO_ROOT)}")
-    print(f"✓ built {tar_path.relative_to(REPO_ROOT)}  ({size_mb:.1f} MB)")
+    print(f"\nOK built {bin_path.relative_to(REPO_ROOT)}")
+    print(f"OK built {tar_path.relative_to(REPO_ROOT)}  ({size_mb:.1f} MB)")
     return 0
 
+
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
 
 if __name__ == "__main__":
     sys.exit(main())

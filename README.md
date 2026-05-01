@@ -4,6 +4,21 @@ USE AT YOUR OWN RISK. UNOFFICIAL, educational use only.
 
 A small Python CLI for inspecting and editing [PokeClicker](https://www.pokeclicker.com/) save exports. Tested against `v0.10.25`.
 
+> **Latest release:** see <https://github.com/daclink/pokeclicker-save-editor/releases/latest>.
+> Pre-built installers are attached for macOS, Windows, and Linux — see *Download & install* below.
+
+## Download & install
+
+| platform | file | install |
+|---|---|---|
+| **macOS** (Apple Silicon, Intel via Rosetta) | `PCEdit-macos.dmg` | Double-click → drag **PCEdit** to **Applications**. First launch: right-click → **Open** to bypass the *unidentified developer* prompt (the app isn't code-signed yet). |
+| **Windows 10 / 11** | `PCEdit-windows.exe` | Save anywhere and double-click to run. SmartScreen may show a warning on the first launch — click **More info → Run anyway** (the binary isn't code-signed yet). |
+| **Linux x86_64** (glibc-based distros) | `PCEdit-linux-x86_64.tar.gz` | `tar xzf PCEdit-linux-x86_64.tar.gz && chmod +x PCEdit-linux-x86_64 && ./PCEdit-linux-x86_64`. The tarball also contains a 256 px icon, a `.desktop` file, and a short README for optional desktop integration. |
+
+All three downloads are at the **Assets** section of every release on the [Releases page](https://github.com/daclink/pokeclicker-save-editor/releases).
+
+If you want the source instead of a binary, see [Build](#build).
+
 ## Save format
 
 A PokeClicker `.txt` save export is **base64 of a JSON document**.

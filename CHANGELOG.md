@@ -38,6 +38,16 @@ Release notes.
 - README "Building installers locally" rewritten for all three platforms;
   new "Regenerating the app icon" subsection. Repo layout entry updated
   with the new files.
+- README "Download & install" section near the top of the file with a
+  per-platform download/install table and a link to the latest release
+  page, so first-time users land on a binary without scrolling.
+
+### Fixed
+- Build scripts crashed on Windows when printing the success summary
+  (cp1252 codec couldn't encode the `✓` glyph). Switched all build
+  scripts to ASCII output and added `sys.stdout.reconfigure(encoding=
+  "utf-8", errors="replace")` as defence-in-depth. The Windows CI build
+  now succeeds end-to-end.
 
 ## [0.3.1] — 2026-05-01
 
