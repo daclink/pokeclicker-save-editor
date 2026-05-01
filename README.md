@@ -1,5 +1,7 @@
 # pokeclicker-editor
-USE AT YOUR OWN RISK. UNOFFICIAL
+USE AT YOUR OWN RISK. UNOFFICIAL, educational use only. 
+
+
 A small Python CLI for inspecting and editing [PokeClicker](https://www.pokeclicker.com/) save exports. Tested against `v0.10.25`.
 
 ## Save format
@@ -323,21 +325,42 @@ works on any machine with both installed and `gh auth status` configured.
 
 ### Building installers locally
 
-If you want to produce a `.dmg` without going through CI:
+Each builder is a separate script and must run on its target OS. All three
+auto-install PyInstaller via `pip` if missing, and assume Tk is present
+(see [Requirements](#requirements)).
 
 ```sh
+# macOS (.app bundle + .dmg drag-to-Applications installer)
 python3 scripts/build_macos.py
-# → dist/PCEdit.app   bundled application
-# → dist/PCEdit.dmg   drag-to-Applications installer (~12 MB)
+# → dist/PCEdit.app
+# → dist/PCEdit-macos.dmg     ~12 MB
+
+# Windows (single .exe)
+python scripts/build_windows.py
+# → dist\PCEdit-windows.exe
+
+# Linux (single ELF + tarball with icon, .desktop, README)
+python3 scripts/build_linux.py
+# → dist/PCEdit-linux-x86_64
+# → dist/PCEdit-linux-x86_64.tar.gz
 ```
 
-The script creates a venv-friendly install of PyInstaller on demand, so the
-only requirement is a Python with Tk (see [Requirements](#requirements)).
-It defaults to `--target-arch universal2` and falls back to the native arch
-if your Python isn't universal2-capable.
+The macOS builder defaults to `--target-arch universal2` and falls back to
+the native arch when the building Python isn't universal2-capable.
 
-> Linux (`AppImage`) and Windows (`.exe`) builds are tracked under issue
-> [#3](https://github.com/daclink/pokeclicker-save-editor/issues/3).
+### Regenerating the app icon
+
+The app-icon files (`assets/icon/PCEdit.icns`, `PCEdit.ico`,
+`PCEdit-256.png`, `PCEdit-512.png`) are checked into the repo so CI doesn't
+need ImageMagick. If you edit `assets/icon/pokeball.svg`, regenerate them:
+
+```sh
+python3 scripts/make_icons.py
+```
+
+Requires `magick` (ImageMagick) plus `iconutil` (macOS, built-in) to
+rebuild the `.icns`. The source SVG is the Pokéball icon from
+[pokeclicker.com](https://www.pokeclicker.com/), used unmodified.
 
 ## Repo layout
 
@@ -347,8 +370,12 @@ pokeclicker_data.py   static reference data (region ranges, Kanto names)
 pcedit.py             CLI entry point
 pcedit_gui.py         Tk GUI editor
 scripts/release.py    CHANGELOG-driven release helper (gh wrapper)
-scripts/build_macos.py PyInstaller-based .app + .dmg builder for macOS
+scripts/build_macos.py   PyInstaller .app + .dmg builder (run on macOS)
+scripts/build_windows.py PyInstaller .exe builder (run on Windows)
+scripts/build_linux.py   PyInstaller ELF + tarball builder (run on Linux)
+scripts/make_icons.py    Rebuild assets/icon/* from pokeball.svg
 .github/workflows/    CI: build installers on push to release/** and tag
+assets/icon/          Source SVG and pre-rendered .icns / .ico / PNGs
 screenshots/          README images
 CHANGELOG.md          Keep a Changelog history; canonical release notes
 README.md             this file

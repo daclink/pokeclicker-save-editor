@@ -12,19 +12,32 @@ Release notes.
 ## [Unreleased]
 
 ### Added
-- `scripts/build_macos.py`: PyInstaller-based builder that produces
-  `dist/PCEdit.app` and `dist/PCEdit.dmg` (drag-to-`/Applications`
-  installer, ~12 MB). Defaults to `--target-arch universal2` with a
-  graceful fallback to the native arch when the building Python isn't
-  universal2-capable
-  ([#3](https://github.com/daclink/pokeclicker-save-editor/issues/3)).
-- `.github/workflows/release.yml`: GitHub Actions workflow that builds the
-  macOS `.dmg` on every push to a `release/**` branch (artefact attached
-  to the workflow run) and on every `v*` tag push (uploaded to the
-  matching GitHub Release).
-- README "Building installers locally" subsection and an updated
-  "Releasing" walkthrough describing the cut-a-release-branch → push →
-  iterate → tag → release flow.
+- **App icon.** Pokéball SVG sourced from
+  [pokeclicker.com](https://www.pokeclicker.com/) rendered into platform
+  icon files (`assets/icon/PCEdit.icns`, `PCEdit.ico`, `PCEdit-256.png`,
+  `PCEdit-512.png`). Embedded into the macOS `.app` and Windows `.exe`
+  builds via PyInstaller's `--icon`. Source SVG and a `make_icons.py`
+  regen script (ImageMagick + `iconutil`) are checked in so contributors
+  can rebuild without copying binaries by hand.
+- **macOS installer** (`scripts/build_macos.py`): PyInstaller-based builder
+  that produces `dist/PCEdit.app` and `dist/PCEdit-macos.dmg`
+  (drag-to-`/Applications`, ~12 MB). Defaults to `--target-arch
+  universal2` with a graceful fallback to the native arch when the
+  building Python isn't universal2-capable.
+- **Windows installer** (`scripts/build_windows.py`): single-file
+  `dist/PCEdit-windows.exe` via `pyinstaller --onefile --windowed`.
+- **Linux build** (`scripts/build_linux.py`): single ELF
+  `dist/PCEdit-linux-x86_64` plus a `.tar.gz` containing the executable,
+  the 256 px icon, a `.desktop` entry, and a short README for desktop
+  integration.
+- **CI matrix** (`.github/workflows/release.yml`): builds the macOS,
+  Windows, and Linux artefacts on every push to a `release/**` branch
+  (uploaded as workflow artefacts) and on every `v*` tag push (attached
+  to the corresponding GitHub Release). Closes
+  [#3](https://github.com/daclink/pokeclicker-save-editor/issues/3).
+- README "Building installers locally" rewritten for all three platforms;
+  new "Regenerating the app icon" subsection. Repo layout entry updated
+  with the new files.
 
 ## [0.3.1] — 2026-05-01
 
