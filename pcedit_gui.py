@@ -592,11 +592,15 @@ class ShardsTab(ttk.Frame):
 
 
 class CaughtTab(ttk.Frame):
+    # Column "name" is a read-only friendly species name for the row's id.
+    # Falls back to "?" for IDs outside Kanto until the full national-dex
+    # roster is filled in (issue #4).
     COLS = [
         ("id",        "ID",           50),
+        ("name",      "Name",        130),
         ("0",         "atkBonus",     90),
         ("1",         "pokerus",      80),
-        ("3",         "exp",          120),
+        ("3",         "exp",         120),
         ("4",         "in egg",       60),
         ("5",         "resistant",    80),
     ]
@@ -616,7 +620,8 @@ class CaughtTab(ttk.Frame):
         self.tree = ttk.Treeview(body, columns=cols, show="headings", height=18)
         for k, lbl, w in self.COLS:
             self.tree.heading(k, text=lbl)
-            self.tree.column(k, width=w, anchor="center")
+            anchor = "w" if k == "name" else "center"
+            self.tree.column(k, width=w, anchor=anchor)
         sb = ttk.Scrollbar(body, orient="vertical", command=self.tree.yview)
         self.tree.configure(yscrollcommand=sb.set)
         self.tree.pack(side="left", fill="both", expand=True)
@@ -641,6 +646,7 @@ class CaughtTab(ttk.Frame):
                 continue
             self.tree.insert("", "end", iid=str(entry.get("id")), values=(
                 entry.get("id"),
+                name_for(entry.get("id", 0)),
                 entry.get("0", 0),
                 entry.get("1", 0),
                 fnum(entry.get("3", 0)),
@@ -692,12 +698,16 @@ class CaughtTab(ttk.Frame):
 class CaughtDialog(tk.Toplevel):
     def __init__(self, parent, entry: dict, *, on_ok) -> None:
         super().__init__(parent)
-        self.title(f"Edit Pokémon #{entry.get('id')}")
+        pid = entry.get("id")
+        name = name_for(pid) if isinstance(pid, int) else "?"
+        title = f"Edit Pokémon #{pid}" if name == "?" else f"Edit Pokémon #{pid} {name}"
+        self.title(title)
         self.transient(parent)
         self.resizable(False, False)
         self.on_ok = on_ok
 
-        ttk.Label(self, text=f"Pokédex ID: {entry.get('id')}").grid(
+        ttk.Label(self,
+                  text=f"Pokédex ID: {entry.get('id')}    Species: {name}").grid(
             row=0, column=0, columnspan=2, sticky="w", padx=8, pady=(8, 4))
 
         spec = [

@@ -11,7 +11,13 @@ Release notes.
 
 ## [Unreleased]
 
-(none)
+### Added
+- **Caught Pokémon** tab: new read-only `Name` column to the right of `ID`,
+  populated via `name_for(pid)` from `pokeclicker_data.py`. Falls back to
+  `?` for IDs outside Kanto until the full national-dex roster is filled in
+  ([#4](https://github.com/daclink/pokeclicker-save-editor/issues/4)). The
+  edit dialog title and header now include the species name when known
+  ([#9](https://github.com/daclink/pokeclicker-save-editor/issues/9)).
 
 ## [0.3.0] — 2026-05-01
 
