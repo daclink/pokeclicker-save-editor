@@ -11,7 +11,15 @@ Release notes.
 
 ## [Unreleased]
 
-(none)
+### Fixed
+- macOS `.dmg` build flake on GitHub Actions
+  ([#23](https://github.com/daclink/pokeclicker-save-editor/issues/23)).
+  After PyInstaller's BUNDLE/codesign step the runner occasionally held a
+  transient lock on the staging directory, making `hdiutil create` fail
+  with `Resource busy`. `scripts/build_macos.py` now suppresses Spotlight
+  on the staging directory (touches `.metadata_never_index`) and wraps
+  `hdiutil create` in a 3-attempt retry loop with linear backoff (2 s,
+  4 s, 6 s).
 
 ## [0.4.0] — 2026-05-01
 

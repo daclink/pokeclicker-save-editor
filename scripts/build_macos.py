@@ -89,6 +89,7 @@ def build_app() -> Path:
 
 
 def build_dmg(app_path: Path) -> Path:
+    import time
     dmg_path = DIST / f"{APP_NAME}.dmg"
     if dmg_path.exists():
         dmg_path.unlink()
@@ -102,13 +103,36 @@ def build_dmg(app_path: Path) -> Path:
     run(["cp", "-R", str(app_path), str(staging)])
     (staging / "Applications").symlink_to("/Applications")
 
-    run([
+    # Tell Spotlight to skip the staging directory. macOS-latest CI runners
+    # otherwise grab a transient lock right after PyInstaller's codesign step
+    # finishes, which makes `hdiutil create` fail with "Resource busy".
+    # Documented Apple behaviour: presence of .metadata_never_index excludes
+    # the directory from indexing.
+    (staging / ".metadata_never_index").touch()
+
+    # Belt-and-suspenders: short retry loop. PyInstaller's BUNDLE step signs
+    # the .app and the codesign daemon can hold a handle for a beat. Three
+    # attempts with linear backoff is more than enough in practice.
+    hdiutil_cmd = [
         "hdiutil", "create",
         "-volname", APP_NAME,
         "-srcfolder", str(staging),
         "-ov", "-format", "UDZO", "-fs", "HFS+",
         str(dmg_path),
-    ])
+    ]
+    last_err: Exception | None = None
+    for attempt in range(3):
+        try:
+            run(hdiutil_cmd)
+            last_err = None
+            break
+        except subprocess.CalledProcessError as e:
+            last_err = e
+            wait = 2 + attempt * 2  # 2s, 4s, 6s
+            print(f"hdiutil attempt {attempt + 1} failed; retrying in {wait}s...")
+            time.sleep(wait)
+    if last_err is not None:
+        raise last_err
 
     shutil.rmtree(staging)
 
