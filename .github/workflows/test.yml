@@ -1,0 +1,28 @@
+name: Tests
+
+# Runs the schema-diff regression tests on every push and PR. The tests
+# don't need Tk (only the GUI does), so this job is fast and runs on a
+# stripped-down Linux runner.
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  unittest:
+    name: schema tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Show env
+        run: python3 --version
+
+      - name: Run tests
+        run: python3 -m unittest discover tests -v

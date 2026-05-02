@@ -11,7 +11,24 @@ Release notes.
 
 ## [Unreleased]
 
-(none)
+### Added
+- **Schema-diff regression tests**
+  ([#6](https://github.com/daclink/pokeclicker-save-editor/issues/6)).
+  New `tests/` suite asserts every key the editor's GUI/CLI reads is
+  still present and of the expected type in a checked-in v0.10.25
+  fixture (`tests/fixtures/v0.10.25/minimal.txt`). Covers the top-level
+  shape, player block, wallet/party/breeding/statistics/farming/keyItems/
+  gemWallet, plus byte-exact round-trip and `get_path` / `set_path`
+  invariants. 15 tests, finishes in <10 ms.
+- `tests/make_fixtures.py` builds the fixture from a Python dict literal
+  (no real save data is committed). When PokeClicker ships a v0.10.26+
+  with a different shape, drop a new dict under `tests/fixtures/v0.X.Y/`
+  and the previously-passing assertions fail loudly to tell you which
+  keys moved.
+- `.github/workflows/test.yml`: runs `python3 -m unittest discover tests`
+  on every push and pull request. Python-only, no Tk/PyInstaller, so
+  the job finishes in a few seconds.
+- README "Tests" section documents the workflow.
 
 ## [0.6.0] — 2026-05-01
 
