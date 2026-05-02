@@ -180,6 +180,13 @@ re-loads — handy if a save you just wrote causes the game to misbehave.
 The status bar at the bottom of the window shows what just happened
 (`loaded …`, `saved …`, `restored …`, etc.).
 
+#### Menubar
+
+| menu | items |
+|---|---|
+| **Settings** | *Update check on launch* (toggle the silent on-launch GitHub release check). *Backup layout* submenu picks **Folder** (sibling `bak/` directory with timestamped files — the default since v0.6.0) or **Sidecar** (single `<file>.bak`, overwritten on each save — the legacy layout). |
+| **Help** | *Check for updates…* hits the GitHub Releases API immediately (bypasses the 24 h cache from the on-launch check) and shows a three-state result. *Browse all backups…* lists every backup of the loaded save with timestamps, plus *Restore selected* / *Reveal in folder*. *About PCEdit* shows the version and source link. |
+
 The status bar at the bottom shows what just happened.
 
 ### CLI
@@ -282,10 +289,26 @@ The `[k=v]` form also matches by `name`, `region`, `berry`, etc. — anything st
 
 ## Safety
 
-- `set` and the convenience commands write to the original file by default, **after copying it to `<file>.bak`**. Use `-o new_save.txt` to write to a new file instead.
-- Round-trip is byte-exact for unmodified saves — verified with the test cases this repo was developed against.
-- The tool does **not** validate game logic. You can hand the game a Pokédex entry it doesn't expect, and the game may crash or sanitize it on the next save. Edit small things first, save in-game, and confirm before going wild.
-- This is for tinkering with your own local save. Don't use it for cheating online leaderboards (PokeClicker is single-player but be a good neighbor).
+- Every write goes through a backup first. The default since v0.6.0 is a
+  sibling `bak/` folder with timestamped files
+  (`<save-stem>.YYYYMMDD-HHMMSS<suffix>.bak`) so multiple edits accumulate
+  history; **Undo** restores the most recent. Toggle to the legacy
+  single-file `<file>.bak` layout via **Settings → Backup layout** in the
+  GUI (the same setting is read by the CLI). Use the GUI's *Help → Browse
+  all backups…* dialog, or look in the `bak/` folder, to recover an older
+  edit.
+- `pcedit set`, `money`, `give`, etc. write to the original file by
+  default. Use `-o new_save.txt` to write somewhere else and skip the
+  in-place overwrite entirely.
+- Round-trip is byte-exact for unmodified saves — verified with the test
+  cases this repo was developed against.
+- The tool does **not** validate game logic. You can hand the game a
+  Pokédex entry it doesn't expect, and the game may crash or sanitize it
+  on the next save. Edit small things first, save in-game, and confirm
+  before going wild.
+- This is for tinkering with your own local save. Don't use it for
+  cheating online leaderboards (PokeClicker is single-player but be a
+  good neighbor).
 
 ## Releasing
 
@@ -382,6 +405,9 @@ rebuild the `.icns`. The source SVG is the Pokéball icon from
 ```
 pokeclicker_save.py   format library (decode, encode, path get/set)
 pokeclicker_data.py   static reference data (region ranges, Kanto names)
+pcedit_backup.py      backup helpers (folder/sidecar layouts)
+pcedit_updates.py     update-check fetcher + persisted-settings helpers
+_version.py           single source of truth for __version__
 pcedit.py             CLI entry point
 pcedit_gui.py         Tk GUI editor
 scripts/release.py    CHANGELOG-driven release helper (gh wrapper)

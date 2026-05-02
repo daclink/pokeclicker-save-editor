@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """pcedit — PokeClicker save editor (CLI).
 
-Round-trips byte-exact for unmodified saves. Always writes a `.bak` next to
-the target before overwriting.
+Round-trips byte-exact for unmodified saves. Backups follow the
+`backup_layout` setting (folder by default, sidecar legacy) — see
+`pcedit_backup`.
 """
 from __future__ import annotations
 
@@ -22,6 +23,7 @@ from pokeclicker_save import (
     set_path,
     _coerce_scalar,
 )
+from pcedit_backup import latest_backup, list_backups, make_backup
 
 REGIONS = [
     "Kanto", "Johto", "Hoenn", "Sinnoh", "Unova",
@@ -50,7 +52,7 @@ def load(path: str) -> dict:
 def save(data: dict, path: str, *, was_encoded: bool, backup: bool = True) -> None:
     p = Path(path)
     if backup and p.exists():
-        shutil.copy2(p, p.with_suffix(p.suffix + ".bak"))
+        make_backup(p)
     if was_encoded:
         encode_file(data, p)
     else:
@@ -242,9 +244,11 @@ def cmd_caught(args: argparse.Namespace) -> int:
 
 def cmd_undo(args: argparse.Namespace) -> int:
     target = Path(args.input)
-    bak = target.with_suffix(target.suffix + ".bak")
-    if not bak.exists():
-        print(f"no backup found at {bak}")
+    bak = latest_backup(target)
+    if bak is None:
+        print(f"no backup found for {target}")
+        print(f"  looked for {target.suffix}.bak next to the file and any "
+              f"timestamped .bak files inside a sibling bak/ folder.")
         return 1
     shutil.copy2(bak, target)
     print(f"restored {target} from {bak}")

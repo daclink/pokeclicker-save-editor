@@ -11,7 +11,35 @@ Release notes.
 
 ## [Unreleased]
 
-(none)
+### Added
+- **Settings + Help menubar.** New top-level **Settings** menu (Update
+  check on launch, Backup layout submenu) and **Help** menu (Check for
+  updates…, Browse all backups…, About PCEdit). Settings persist to
+  `<user-config>/pcedit/settings.json`.
+- **Manual update check** ([#20](https://github.com/daclink/pokeclicker-save-editor/issues/20)).
+  *Help → Check for updates…* opens a modal that always hits the network
+  (bypasses the 24 h cache from #19) and shows one of three states:
+  *latest* / *available* (with *Open release notes*) / *error*.
+- **Backup layout setting** ([#16](https://github.com/daclink/pokeclicker-save-editor/issues/16)).
+  New `backup_layout` setting picks between two layouts:
+  - `"folder"` (new default): backups land in a sibling `bak/` folder
+    with timestamped filenames (`<stem>.YYYYMMDD-HHMMSS<suffix>.bak`)
+    so multiple edits accumulate history.
+  - `"sidecar"` (legacy): single `<file>.bak` next to the save,
+    overwritten on each save. Mirrors pre-v0.6.0 behaviour.
+  Toggle from **Settings → Backup layout**.
+- **Browse all backups dialog.** *Help → Browse all backups…* lists every
+  backup of the loaded save (newest first, with timestamp and folder
+  tag), with *Restore selected* and *Reveal in folder* actions.
+- New `pcedit_backup.py` module shared by the GUI and the CLI; exports
+  `make_backup`, `latest_backup`, `list_backups`. The CLI's
+  `pcedit undo` now finds the most recent backup across either layout.
+
+### Changed
+- *Undo (.bak)* in the GUI and `pcedit undo` in the CLI no longer assume
+  a specific backup location — they walk both the sidecar position and
+  the `bak/` folder and pick the newest by mtime, so undo works after
+  toggling layouts mid-session.
 
 ## [0.5.1] — 2026-05-01
 
