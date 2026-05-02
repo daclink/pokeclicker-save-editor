@@ -12,6 +12,7 @@ a `.bak` next to the target file before overwriting.
 """
 from __future__ import annotations
 
+import os
 import shutil
 import sys
 import tkinter as tk
@@ -23,7 +24,16 @@ from typing import Any
 from _version import __version__
 from pokeclicker_save import decode_file, encode_file
 from pokeclicker_data import REGION_RANGES, name_for
+from pcedit_backup import (
+    LAYOUT_FOLDER,
+    LAYOUT_SIDECAR,
+    current_layout,
+    latest_backup,
+    list_backups,
+    make_backup,
+)
 from pcedit_updates import (
+    REPO,
     UpdateResult,
     check_for_update_async,
     get_setting,
@@ -93,6 +103,7 @@ class PCEditGUI(tk.Tk):
         self.path: Path | None = None
         self.data: dict | None = None
 
+        self._build_menubar()
         self._build_top_bar()
         self._build_update_banner()
         self._build_status_bar()
@@ -102,6 +113,61 @@ class PCEditGUI(tk.Tk):
         # Kick off the update check 200 ms after mainloop starts so first
         # paint is unaffected. Honours the "update_check_on_launch" setting.
         self.after(200, self._kickoff_update_check)
+
+    # --- menubar ----------------------------------------------------------
+
+    def _build_menubar(self) -> None:
+        menubar = tk.Menu(self)
+
+        # Settings menu
+        settings_menu = tk.Menu(menubar, tearoff=0)
+        # update_check_on_launch toggle
+        self._auto_check_var = tk.BooleanVar(
+            value=bool(get_setting("update_check_on_launch", True)))
+
+        def _persist_auto_check() -> None:
+            set_setting("update_check_on_launch", self._auto_check_var.get())
+
+        settings_menu.add_checkbutton(
+            label="Update check on launch",
+            variable=self._auto_check_var,
+            command=_persist_auto_check)
+
+        # backup_layout submenu (radio)
+        layout_menu = tk.Menu(settings_menu, tearoff=0)
+        self._backup_layout_var = tk.StringVar(value=current_layout())
+
+        def _persist_layout() -> None:
+            set_setting("backup_layout", self._backup_layout_var.get())
+            self.status_var.set(
+                f"backup layout: {self._backup_layout_var.get()}")
+
+        layout_menu.add_radiobutton(
+            label="Folder (bak/ with timestamps)",
+            value=LAYOUT_FOLDER,
+            variable=self._backup_layout_var,
+            command=_persist_layout)
+        layout_menu.add_radiobutton(
+            label="Sidecar (<file>.bak, overwritten)",
+            value=LAYOUT_SIDECAR,
+            variable=self._backup_layout_var,
+            command=_persist_layout)
+        settings_menu.add_cascade(label="Backup layout", menu=layout_menu)
+
+        menubar.add_cascade(label="Settings", menu=settings_menu)
+
+        # Help menu
+        help_menu = tk.Menu(menubar, tearoff=0)
+        help_menu.add_command(label="Check for updates…",
+                              command=self._open_update_check_dialog)
+        help_menu.add_command(label="Browse all backups…",
+                              command=self._open_backups_dialog)
+        help_menu.add_separator()
+        help_menu.add_command(label="About PCEdit",
+                              command=self._open_about_dialog)
+        menubar.add_cascade(label="Help", menu=help_menu)
+
+        self.config(menu=menubar)
 
     # --- top + status -----------------------------------------------------
 
@@ -194,28 +260,44 @@ class PCEditGUI(tk.Tk):
         except ValueError as e:
             messagebox.showerror("Invalid value", str(e))
             return
-        bak = self.path.with_suffix(self.path.suffix + ".bak")
         try:
-            shutil.copy2(self.path, bak)
+            bak = make_backup(self.path)
             encode_file(self.data, self.path)
         except OSError as e:
             messagebox.showerror("Save failed", str(e))
             return
-        self.status_var.set(f"saved {self.path.name}  (backup: {bak.name})")
+        # Show a friendly "next to file" or "in bak/" hint instead of
+        # the absolute backup path.
+        if bak.parent == self.path.parent:
+            where = bak.name
+        else:
+            where = f"bak/{bak.name}"
+        self.status_var.set(f"saved {self.path.name}  (backup: {where})")
 
     def on_undo(self) -> None:
         if self.path is None:
             return
-        bak = self.path.with_suffix(self.path.suffix + ".bak")
-        if not bak.exists():
-            messagebox.showinfo("No backup", f"No backup found at\n{bak}")
+        bak = latest_backup(self.path)
+        if bak is None:
+            messagebox.showinfo(
+                "No backup",
+                f"No backup found for\n{self.path.name}\n\n"
+                f"Looked for {self.path.suffix}.bak next to the file and any "
+                f"{self.path.stem}.YYYYMMDD-HHMMSS{self.path.suffix}.bak inside "
+                f"a sibling bak/ folder.")
             return
-        if not messagebox.askyesno("Undo from backup",
-                                    f"Restore {self.path.name} from {bak.name}?"):
+        # Show the backup's timestamp/name so the user knows what they're rolling back to.
+        if bak.parent == self.path.parent:
+            origin = bak.name
+        else:
+            origin = f"bak/{bak.name}"
+        if not messagebox.askyesno(
+                "Undo from backup",
+                f"Restore {self.path.name} from {origin}?"):
             return
         shutil.copy2(bak, self.path)
         self.load(self.path)
-        self.status_var.set(f"restored {self.path.name} from {bak.name}")
+        self.status_var.set(f"restored {self.path.name} from {origin}")
 
     def load(self, path: Path) -> None:
         try:
@@ -271,6 +353,24 @@ class PCEditGUI(tk.Tk):
                 webbrowser.open(self._update_url)
             except Exception:  # noqa: BLE001
                 pass
+
+    def _open_update_check_dialog(self) -> None:
+        UpdateCheckDialog(self)
+
+    def _open_backups_dialog(self) -> None:
+        if self.path is None:
+            messagebox.showinfo("Backups", "Open a save first.")
+            return
+        BackupsDialog(self, self.path)
+
+    def _open_about_dialog(self) -> None:
+        repo_url = f"https://github.com/{REPO}"
+        msg = (f"PCEdit — PokeClicker save editor\n"
+               f"Version {__version__}\n\n"
+               f"Source / releases:\n{repo_url}\n\n"
+               f"Tested against PokeClicker v0.10.25.\n"
+               f"Unofficial. CC0 1.0 licensed.")
+        messagebox.showinfo("About PCEdit", msg)
 
     def _dismiss_update(self) -> None:
         # Persist so this exact release stays dismissed across launches.
@@ -1117,6 +1217,160 @@ def _caught_on_edit(self, _evt=None):  # type: ignore[no-redef]
 
 
 CaughtTab._on_edit = _caught_on_edit  # type: ignore[assignment]
+
+
+# --- top-level dialogs ------------------------------------------------------
+
+class UpdateCheckDialog(tk.Toplevel):
+    """Manual update check (Help → Check for updates…).
+
+    Bypasses the 24 h cache from the on-launch check and always hits the
+    network. Shows three states: latest / available / error.
+    """
+
+    def __init__(self, parent: PCEditGUI) -> None:
+        super().__init__(parent)
+        self.title("Check for updates")
+        self.transient(parent)
+        self.resizable(False, False)
+        self.grab_set()
+        self._parent = parent
+        self._url: str | None = None
+
+        body = ttk.Frame(self, padding=14)
+        body.pack(fill="both", expand=True)
+        self.status = ttk.Label(body, text="Checking github.com…",
+                                wraplength=360, justify="left")
+        self.status.pack(anchor="w")
+
+        self.button_row = ttk.Frame(body)
+        self.button_row.pack(fill="x", pady=(12, 0))
+        self._open_btn = ttk.Button(self.button_row, text="Open release notes",
+                                    command=self._open_url, state="disabled")
+        self._open_btn.pack(side="left")
+        ttk.Button(self.button_row, text="Close",
+                   command=self.destroy).pack(side="right")
+
+        self.bind("<Escape>", lambda _e: self.destroy())
+
+        # Force a fresh fetch (no cache) and bounce the result to the Tk
+        # main thread.
+        def on_result(result: UpdateResult) -> None:
+            self.after(0, lambda: self._render(result))
+        check_for_update_async(on_result, force=True)
+
+    def _render(self, result: UpdateResult) -> None:
+        if result.status == "current":
+            self.status.configure(
+                text=f"You're on the latest version (v{result.current}).")
+        elif result.status == "available":
+            self._url = result.html_url
+            self._open_btn.configure(state="normal")
+            self.status.configure(
+                text=f"v{result.latest} is available. "
+                     f"You're on v{result.current}.")
+        elif result.status == "error":
+            self.status.configure(
+                text=f"Couldn't reach github.com.\n\n{result.error}")
+        else:
+            self.status.configure(
+                text=f"Update check skipped: {result.error or 'unknown'}.")
+
+    def _open_url(self) -> None:
+        if self._url:
+            try:
+                webbrowser.open(self._url)
+            except Exception:  # noqa: BLE001
+                pass
+
+
+class BackupsDialog(tk.Toplevel):
+    """List every backup of the loaded save and allow restoring any of them."""
+
+    def __init__(self, parent: PCEditGUI, save_path: Path) -> None:
+        super().__init__(parent)
+        self.title(f"Backups for {save_path.name}")
+        self.transient(parent)
+        self.grab_set()
+        self.geometry("520x320")
+        self._parent = parent
+        self._save_path = save_path
+
+        body = ttk.Frame(self, padding=12)
+        body.pack(fill="both", expand=True)
+        ttk.Label(body, text="Newest at the top. Double-click or use the "
+                              "Restore button to roll back.",
+                  foreground="#666", wraplength=480, justify="left").pack(anchor="w")
+
+        list_wrap = ttk.Frame(body)
+        list_wrap.pack(fill="both", expand=True, pady=(8, 0))
+        self.lb = tk.Listbox(list_wrap, font=("Menlo", 11), activestyle="dotbox")
+        sb = ttk.Scrollbar(list_wrap, orient="vertical", command=self.lb.yview)
+        self.lb.configure(yscrollcommand=sb.set)
+        self.lb.pack(side="left", fill="both", expand=True)
+        sb.pack(side="left", fill="y")
+        self.lb.bind("<Double-1>", lambda _e: self._restore())
+
+        bar = ttk.Frame(body)
+        bar.pack(fill="x", pady=(8, 0))
+        ttk.Button(bar, text="Restore selected",
+                   command=self._restore).pack(side="left")
+        ttk.Button(bar, text="Reveal in folder",
+                   command=self._reveal).pack(side="left", padx=4)
+        ttk.Button(bar, text="Close",
+                   command=self.destroy).pack(side="right")
+
+        self._refresh()
+        self.bind("<Escape>", lambda _e: self.destroy())
+
+    def _refresh(self) -> None:
+        self.lb.delete(0, "end")
+        self._backups = list_backups(self._save_path)
+        if not self._backups:
+            self.lb.insert("end", "(no backups found)")
+            return
+        import datetime as _dt
+        for p in self._backups:
+            ts = _dt.datetime.fromtimestamp(p.stat().st_mtime)
+            tag = "sidecar" if p.parent == self._save_path.parent else "bak/"
+            line = f"{ts.strftime('%Y-%m-%d %H:%M:%S')}   [{tag}]  {p.name}"
+            self.lb.insert("end", line)
+
+    def _selected(self) -> Path | None:
+        idx = self.lb.curselection()
+        if not idx or not self._backups:
+            return None
+        return self._backups[idx[0]]
+
+    def _restore(self) -> None:
+        bak = self._selected()
+        if bak is None:
+            messagebox.showinfo("Restore", "Pick a backup first.", parent=self)
+            return
+        if not messagebox.askyesno(
+                "Restore from backup",
+                f"Replace {self._save_path.name} with {bak.name}?",
+                parent=self):
+            return
+        shutil.copy2(bak, self._save_path)
+        self._parent.load(self._save_path)
+        self._parent.status_var.set(f"restored {self._save_path.name} from {bak.name}")
+        self.destroy()
+
+    def _reveal(self) -> None:
+        bak = self._selected() or (self._backups[0] if self._backups else None)
+        if bak is None:
+            return
+        # Open the containing folder in the OS file manager. Cross-platform
+        # via webbrowser.open on the file:// URL works on macOS and most
+        # Linux file managers; on Windows, fall back to os.startfile.
+        try:
+            if sys.platform.startswith("win"):
+                os.startfile(str(bak.parent))  # type: ignore[attr-defined]
+            else:
+                webbrowser.open(bak.parent.as_uri())
+        except Exception:  # noqa: BLE001
+            pass
 
 
 # --- entry point ------------------------------------------------------------
