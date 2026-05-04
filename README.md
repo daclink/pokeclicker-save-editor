@@ -406,6 +406,11 @@ python3 scripts/build_linux.py
 The macOS builder defaults to `--target-arch universal2` and falls back to
 the native arch when the building Python isn't universal2-capable.
 
+For a deep dive on the pipeline — per-platform recipes, the icon
+toolchain, code-signing notes, the gotchas the build scripts paper
+over (Windows cp1252 stdout, the macOS hdiutil "Resource busy" race,
+universal2 fallback) — see **[`docs/installer-guide.md`](docs/installer-guide.md)**.
+
 ### Regenerating the app icon
 
 The app-icon files (`assets/icon/PCEdit.icns`, `PCEdit.ico`,
@@ -436,6 +441,7 @@ scripts/build_windows.py PyInstaller .exe builder (run on Windows)
 scripts/build_linux.py   PyInstaller ELF + tarball builder (run on Linux)
 scripts/make_icons.py    Rebuild assets/icon/* from pokeball.svg
 tests/                Schema-diff unittest suite + checked-in fixtures
+docs/                 Long-form guides (currently: installer-guide.md)
 .github/workflows/    CI: tests on every push, installers on release/** and tags
 assets/icon/          Source SVG and pre-rendered .icns / .ico / PNGs
 screenshots/          README images
