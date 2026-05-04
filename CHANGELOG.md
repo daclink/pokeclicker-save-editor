@@ -12,6 +12,15 @@ Release notes.
 ## [Unreleased]
 
 ### Added
+- **`docs/installer-guide.md`** — practitioner's how-to for the
+  PyInstaller pipeline that produces the macOS / Windows / Linux
+  binaries. Covers per-platform recipes (with the exact PyInstaller
+  flags), the icon toolchain (`.icns` / `.ico` / Linux PNG + `.desktop`),
+  code-signing notes, the gotchas the build scripts paper over (Windows
+  cp1252 stdout, macOS hdiutil "Resource busy" race + Spotlight
+  suppression, universal2 fallback, glibc compatibility), the CI matrix
+  shape, smoke testing the bundles, and a troubleshooting table.
+  README "Building installers locally" links to it.
 - **Schema-diff regression tests**
   ([#6](https://github.com/daclink/pokeclicker-save-editor/issues/6)).
   New `tests/` suite asserts every key the editor's GUI/CLI reads is
