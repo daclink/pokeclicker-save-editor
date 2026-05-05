@@ -440,6 +440,7 @@ scripts/build_macos.py   PyInstaller .app + .dmg builder (run on macOS)
 scripts/build_windows.py PyInstaller .exe builder (run on Windows)
 scripts/build_linux.py   PyInstaller ELF + tarball builder (run on Linux)
 scripts/make_icons.py    Rebuild assets/icon/* from pokeball.svg
+scripts/fetch_pokeapi_data.py  Regenerate pokeclicker_data.py from PokeAPI
 tests/                Schema-diff unittest suite + checked-in fixtures
 docs/                 Long-form guides (currently: installer-guide.md)
 .github/workflows/    CI: tests on every push, installers on release/** and tags

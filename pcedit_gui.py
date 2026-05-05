@@ -23,7 +23,7 @@ from typing import Any
 
 from _version import __version__
 from pokeclicker_save import decode_file, encode_file
-from pokeclicker_data import REGION_RANGES, name_for
+from pokeclicker_data import REGION_RANGES, name_for, stat_bucket_for
 from pcedit_backup import (
     LAYOUT_FOLDER,
     LAYOUT_SIDECAR,
@@ -364,13 +364,7 @@ class PCEditGUI(tk.Tk):
         BackupsDialog(self, self.path)
 
     def _open_about_dialog(self) -> None:
-        repo_url = f"https://github.com/{REPO}"
-        msg = (f"PCEdit — PokeClicker save editor\n"
-               f"Version {__version__}\n\n"
-               f"Source / releases:\n{repo_url}\n\n"
-               f"Tested against PokeClicker v0.10.25.\n"
-               f"Unofficial. CC0 1.0 licensed.")
-        messagebox.showinfo("About PCEdit", msg)
+        AboutDialog(self)
 
     def _dismiss_update(self) -> None:
         # Persist so this exact release stays dismissed across launches.
@@ -1142,24 +1136,33 @@ class PokedexTab(ttk.Frame):
           - ``pokemonCaptured[<id>]`` is set to ``max(1, current)``.
           - ``pokemonEncountered[<id>]`` is set to ``max(1, current)``
             (a real catch implies at least one encounter).
-        And the gender-neutral totals are bumped by the number of new ids:
-          - ``totalPokemonCaptured`` += len(ids)
-          - ``totalPokemonEncountered`` += len(ids)
+          - The species' bucket counter (Male / Female / Genderless,
+            resolved via :func:`pokeclicker_data.stat_bucket_for`) is
+            incremented by 1 for both the *Captured* and *Encountered*
+            buckets. Species outside the table only credit the
+            gender-neutral total.
 
-        Per-gender counters (Male/Female/Genderless) need a species
-        gender-ratio table to credit the right bucket; that's deferred
-        as a follow-up so this MVP stays simple. The gender-neutral
-        totals on the Trainer Card are the ones users actually look at,
-        so this fixes the visible mismatch even if the per-gender numbers
-        are slightly under-counted.
+        And the gender-neutral totals are bumped by the number of new ids:
+          - ``totalPokemonCaptured``      += len(ids)
+          - ``totalPokemonEncountered``   += len(ids)
         """
         stats = self.app.data["save"].setdefault("statistics", {})
         captured = stats.setdefault("pokemonCaptured", {})
         encountered = stats.setdefault("pokemonEncountered", {})
+
         for pid in ids:
             key = str(pid)
             captured[key] = max(1, int(captured.get(key, 0)))
             encountered[key] = max(1, int(encountered.get(key, 0)))
+
+            cap_bucket = stat_bucket_for(pid)
+            if cap_bucket is not None:
+                # cap_bucket is e.g. "totalMalePokemonCaptured"; the
+                # parallel *Encountered key swaps "Captured" for "Encountered".
+                enc_bucket = cap_bucket.replace("Captured", "Encountered", 1)
+                stats[cap_bucket] = int(stats.get(cap_bucket, 0)) + 1
+                stats[enc_bucket] = int(stats.get(enc_bucket, 0)) + 1
+
         bump = len(ids)
         stats["totalPokemonCaptured"] = int(stats.get("totalPokemonCaptured", 0)) + bump
         stats["totalPokemonEncountered"] = int(stats.get("totalPokemonEncountered", 0)) + bump
@@ -1220,6 +1223,66 @@ CaughtTab._on_edit = _caught_on_edit  # type: ignore[assignment]
 
 
 # --- top-level dialogs ------------------------------------------------------
+
+class AboutDialog(tk.Toplevel):
+    """About PCEdit — surfaces the running version prominently and links
+    straight to the matching GitHub Release notes.
+    """
+
+    REPO_URL = f"https://github.com/{REPO}"
+
+    def __init__(self, parent: PCEditGUI) -> None:
+        super().__init__(parent)
+        self.title("About PCEdit")
+        self.transient(parent)
+        self.resizable(False, False)
+        self.grab_set()
+
+        body = ttk.Frame(self, padding=18)
+        body.pack(fill="both", expand=True)
+
+        ttk.Label(body, text="PCEdit", font=("TkHeadingFont", 18, "bold")).pack(anchor="w")
+        ttk.Label(body, text="PokéClicker save editor",
+                  foreground="#666").pack(anchor="w")
+
+        # Big, readable version line — the thing the user usually opens this
+        # dialog to confirm.
+        ttk.Label(body, text=f"Version v{__version__}",
+                  font=("TkDefaultFont", 14, "bold"),
+                  foreground="#0a5cff").pack(anchor="w", pady=(12, 0))
+        ttk.Label(body, text="Tested against PokeClicker v0.10.25",
+                  foreground="#666").pack(anchor="w")
+
+        details = ttk.Frame(body)
+        details.pack(fill="x", pady=(14, 0))
+        ttk.Label(details, text=f"Source: {self.REPO_URL}",
+                  foreground="#444").pack(anchor="w")
+        ttk.Label(details, text="Unofficial · CC0 1.0 licensed.",
+                  foreground="#888").pack(anchor="w")
+
+        bar = ttk.Frame(body)
+        bar.pack(fill="x", pady=(16, 0))
+        ttk.Button(bar, text="Release notes for this version",
+                   command=self._open_release).pack(side="left")
+        ttk.Button(bar, text="Source on GitHub",
+                   command=self._open_source).pack(side="left", padx=4)
+        ttk.Button(bar, text="Close",
+                   command=self.destroy).pack(side="right")
+
+        self.bind("<Escape>", lambda _e: self.destroy())
+
+    def _open_release(self) -> None:
+        try:
+            webbrowser.open(f"{self.REPO_URL}/releases/tag/v{__version__}")
+        except Exception:  # noqa: BLE001
+            pass
+
+    def _open_source(self) -> None:
+        try:
+            webbrowser.open(self.REPO_URL)
+        except Exception:  # noqa: BLE001
+            pass
+
 
 class UpdateCheckDialog(tk.Toplevel):
     """Manual update check (Help → Check for updates…).

@@ -4,4 +4,4 @@ Bumped automatically by ``scripts/release.py`` before tagging, so the
 constant always matches the latest tag on ``main``.
 """
 
-__version__ = "0.6.1"
+__version__ = "0.7.0"

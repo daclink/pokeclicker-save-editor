@@ -29,6 +29,13 @@ from pokeclicker_save import (  # noqa: E402
     set_path,
 )
 from pcedit_backup import latest_backup, list_backups  # noqa: E402
+from pokeclicker_data import (  # noqa: E402
+    NATIONAL_NAMES,
+    REGION_RANGES,
+    name_for,
+    region_for,
+    stat_bucket_for,
+)
 
 FIXTURE = REPO_ROOT / "tests" / "fixtures" / "v0.10.25" / "minimal.txt"
 
@@ -193,6 +200,92 @@ class BackupHelperTest(unittest.TestCase):
             target.write_bytes(b"x")
             self.assertEqual(list_backups(target), [])
             self.assertIsNone(latest_backup(target))
+
+
+class PokemonDataTest(unittest.TestCase):
+    """Sanity-check the generated reference data from
+    ``scripts/fetch_pokeapi_data.py``.
+    """
+
+    EXPECTED_LEN = 1025
+
+    VALID_BUCKETS = (
+        "totalMalePokemonCaptured",
+        "totalFemalePokemonCaptured",
+        "totalGenderlessPokemonCaptured",
+    )
+
+    def test_national_roster_size(self) -> None:
+        self.assertEqual(len(NATIONAL_NAMES), self.EXPECTED_LEN)
+
+    def test_every_name_non_empty(self) -> None:
+        for i, n in enumerate(NATIONAL_NAMES, start=1):
+            self.assertTrue(n, f"empty name at #{i}")
+
+    def test_known_display_names(self) -> None:
+        # Spot-check the special-character species the override table covers.
+        cases = {
+            1:    "Bulbasaur",
+            29:   "Nidoran♀",
+            32:   "Nidoran♂",
+            83:   "Farfetch'd",
+            122:  "Mr. Mime",
+            132:  "Ditto",
+            151:  "Mew",
+            250:  "Ho-Oh",
+            439:  "Mime Jr.",
+            474:  "Porygon-Z",
+            772:  "Type: Null",
+            785:  "Tapu Koko",
+            865:  "Sirfetch'd",
+            1025: "Pecharunt",
+        }
+        for pid, expected in cases.items():
+            self.assertEqual(name_for(pid), expected,
+                             f"name mismatch for #{pid}")
+
+    def test_name_for_handles_float_id(self) -> None:
+        # PokeClicker sometimes serialises ids as floats; the helper must
+        # tolerate that without raising.
+        self.assertEqual(name_for(1.0), "Bulbasaur")
+        self.assertEqual(name_for("1"), "Bulbasaur")
+        self.assertEqual(name_for(None), "?")
+        self.assertEqual(name_for(99999), "?")
+
+    def test_region_for_covers_all_ids(self) -> None:
+        for pid in (1, 151, 152, 251, 252, 386, 387, 493, 494, 649, 650, 721,
+                    722, 809, 810, 905, 906, 1025):
+            self.assertNotEqual(region_for(pid), "?",
+                                f"region missing for #{pid}")
+
+    def test_stat_bucket_returns_valid_label(self) -> None:
+        for pid in range(1, self.EXPECTED_LEN + 1):
+            bucket = stat_bucket_for(pid)
+            self.assertIn(bucket, self.VALID_BUCKETS,
+                          f"invalid bucket for #{pid}: {bucket!r}")
+
+    def test_stat_bucket_known_species(self) -> None:
+        # Genderless legendaries / fossils / Magnemite line.
+        for pid in (132, 137, 144, 145, 146, 150, 151, 250, 251, 374, 375,
+                    376, 377, 378, 379, 382, 383, 384, 385, 386, 1025):
+            self.assertEqual(stat_bucket_for(pid),
+                             "totalGenderlessPokemonCaptured",
+                             f"#{pid} should be genderless")
+        # Female-only species.
+        for pid in (29, 30, 31, 113, 115, 124, 238, 241, 242, 380):
+            self.assertEqual(stat_bucket_for(pid),
+                             "totalFemalePokemonCaptured",
+                             f"#{pid} should be female bucket")
+        # Male-only species.
+        for pid in (32, 33, 34, 106, 107, 128, 236, 237, 313, 381):
+            self.assertEqual(stat_bucket_for(pid),
+                             "totalMalePokemonCaptured",
+                             f"#{pid} should be male bucket")
+
+    def test_stat_bucket_returns_none_outside_range(self) -> None:
+        self.assertIsNone(stat_bucket_for(0))
+        self.assertIsNone(stat_bucket_for(self.EXPECTED_LEN + 1))
+        self.assertIsNone(stat_bucket_for(99999))
 
 
 if __name__ == "__main__":
