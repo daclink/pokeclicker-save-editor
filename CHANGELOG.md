@@ -12,6 +12,31 @@ Release notes.
 ## [Unreleased]
 
 ### Added
+- **Full national-dex names** ([#4](https://github.com/daclink/pokeclicker-save-editor/issues/4)).
+  `pokeclicker_data.py` now ships display names for ids 1–1025 (was
+  Kanto-only). Generated via `scripts/fetch_pokeapi_data.py`, which
+  pulls `pokemon-species/{id}` from PokeAPI, caches each response under
+  `.cache/pokeapi/`, and emits the regenerated module. A small overrides
+  table preserves canonical punctuation/symbols PokeAPI strips
+  (`Nidoran♀/♂`, `Farfetch'd`, `Mr. Mime`, `Type: Null`, `Tapu Koko`,
+  etc.). The Pokédex tab listbox now reads correctly across every region.
+- **Per-gender stat back-fill**
+  ([#26](https://github.com/daclink/pokeclicker-save-editor/issues/26)).
+  When *Also bump capture stats* is on, `PokedexTab._bump_stats` now
+  credits the right `total<Male|Female|Genderless>PokemonCaptured` (and
+  `*Encountered`) bucket per species via `stat_bucket_for(pid)`, derived
+  from each species' `gender_rate`. Sum-of-buckets equals the count of
+  newly-marked ids — invariant verified end-to-end on a real save.
+- **`scripts/fetch_pokeapi_data.py`** — stdlib-only PokeAPI scraper that
+  regenerates the data module. Caches responses; safe to re-run.
+- **About dialog polish.** New `AboutDialog` Toplevel replaces the plain
+  messagebox: prominent v-number heading, *Release notes for this
+  version* / *Source on GitHub* / *Close* buttons. Helpful when users
+  want to confirm what version is actually running.
+- **Test coverage** for the new data module: 9 new assertions in
+  `tests/test_schema.py` (roster size, non-empty names, special-character
+  display names, float-id tolerance, region coverage, bucket validity,
+  per-species spot-checks).
 - **`docs/installer-guide.md`** — practitioner's how-to for the
   PyInstaller pipeline that produces the macOS / Windows / Linux
   binaries. Covers per-platform recipes (with the exact PyInstaller
@@ -38,6 +63,11 @@ Release notes.
   on every push and pull request. Python-only, no Tk/PyInstaller, so
   the job finishes in a few seconds.
 - README "Tests" section documents the workflow.
+
+### Changed
+- `name_for(pid)`, `region_for(pid)`, `stat_bucket_for(pid)` defensively
+  cast to int so saves that serialise `id` as a float don't crash the
+  Caught Pokémon tab on load.
 
 ## [0.6.0] — 2026-05-01
 
