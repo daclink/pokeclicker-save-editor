@@ -210,7 +210,9 @@ def cmd_berry(args: argparse.Namespace) -> int:
     if args.index >= len(arr):
         print(f"index {args.index} out of range (len {len(arr)})")
         return 1
-    arr[args.index] = 0 if args.off else 1
+    # Real saves use bools here; older versions of this command wrote 0/1.
+    # Both round-trip through the game, but bools match the canonical shape.
+    arr[args.index] = False if args.off else True
     out = args.output or args.input
     save(d, out, was_encoded=was_encoded)
     unlocked = sum(1 for v in arr if v)

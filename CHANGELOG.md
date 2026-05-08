@@ -13,6 +13,51 @@ Release notes.
 
 (none)
 
+## [0.8.0] — 2026-05-09
+
+### Added
+- **Berries tab.** New GUI tab covers `save.farming` end-to-end for v0.10.25:
+  the 70-row sortable Treeview (Index / Berry / Count / Unlocked) edits
+  `berryList` and `unlockedBerries` together, with selection-aware actions
+  (*Edit count…*, *Unlock selected*, *Lock selected*) and bulk actions
+  (*Unlock all*, *Lock all*, *Zero counts*, *All counts to 999 / 9999*). A
+  *Show unlocked only* filter narrows the list mid-edit. The frame below
+  exposes the 7-slot `mulchList` (labelled from the canonical
+  ``MulchType`` enum, with extra slots flagged as *Slot N*) plus
+  `shovelAmt` and `mulchShovelAmt`. Out of scope for now: `plotList`,
+  `mutations`, `farmHands` — those are live mid-game state where careless
+  edits are likelier to corrupt a save.
+- **`scripts/fetch_pokeclicker_data.py`.** Supersedes
+  `fetch_pokeapi_data.py`. Same PokeAPI scrape for the 1025-entry national
+  dex (cache untouched), plus a new pass that pulls
+  `BerryType.ts` and `MulchType.ts` from the public PokeClicker source on
+  GitHub and emits `BERRY_NAMES` (length 70, hard-asserts first ==
+  `Cheri`, last == `Hopo`) and `MULCH_NAMES` into `pokeclicker_data.py`.
+  Stdlib only; reproducible against future game versions.
+- **`name_for_berry(idx)` / `name_for_mulch(idx)`** helpers in
+  `pokeclicker_data.py`, parallel to `name_for(pid)`.
+- **Schema tests.** Five new assertions on `save.farming`
+  (`berryList` / `unlockedBerries` lengths match the BerryType roster,
+  `mulchList` length, shovel ints), plus a new `BerryDataTest` class
+  spot-checking the generated berry roster (length, endpoints, `name_for_berry`
+  edge cases) and mulch fallback labels. Test count: 22 → 31.
+- **Click-to-sort on the Caught Pokémon tab.** Every column heading
+  (`ID`, `Name`, `atkBonus`, `pokerus`, `exp`, `in egg`, `resistant`) is
+  now clickable; the first click sorts ascending and a second click on
+  the same heading reverses. Numeric columns sort numerically, so e.g.
+  sorting by `exp` ranks 1 before 250000 (was lexicographic surprise
+  territory if it had ever been wired up).
+
+### Changed
+- `pcedit berry <save> <index>` (CLI) now writes `True`/`False` into
+  `unlockedBerries` instead of `0`/`1`. Both round-trip through the game,
+  but bools match the canonical shape real saves use, so byte-exact
+  diffs are clean.
+- `tests/fixtures/v0.10.25/minimal.txt`: `berryList` and `unlockedBerries`
+  extended to length 70, `unlockedBerries` switched to bools, and a
+  7-slot `mulchList` added — exercises the new Berries-tab code paths in
+  CI without touching anything else.
+
 ## [0.7.0] — 2026-05-05
 
 ### Added
@@ -282,7 +327,8 @@ Release notes.
   - **Caught Pokémon**: editable table with double-click dialog.
 - Round-trip verified byte-exact on the v0.10.25 sample save.
 
-[Unreleased]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.5.0...v0.5.1

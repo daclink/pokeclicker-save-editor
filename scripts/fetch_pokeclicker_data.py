@@ -1,22 +1,33 @@
 #!/usr/bin/env python3
-"""Fetch Pokémon names + gender rates from PokeAPI and (re)generate
-``pokeclicker_data.py``.
+"""Fetch reference data and (re)generate ``pokeclicker_data.py``.
 
-Run once locally; commit the regenerated module. Each species response is
-cached under ``.cache/pokeapi/<id>.json`` so re-runs are instant. The cache
-directory is gitignored (covered by the existing ``.cache`` rule).
+Two upstream sources, both stdlib-only:
 
-The end product:
+1. **PokeAPI** (``https://pokeapi.co``) — display names and gender rates for
+   the 1025-entry national dex. Each species response is cached under
+   ``.cache/pokeapi/<id>.json`` so re-runs are instant. The cache directory
+   is gitignored (covered by the existing ``.cache`` rule).
+
+2. **PokeClicker source** (``BerryType.ts`` on GitHub) — the canonical 70-name
+   ``BerryType`` enum. Fetched verbatim and parsed into a ``BERRY_NAMES``
+   list whose indices match ``save.farming.berryList`` /
+   ``save.farming.unlockedBerries`` positions.
+
+Run once locally; commit the regenerated module. The end product:
+
 - ``NATIONAL_NAMES``: list of 1025 display names, indexed by ``pid - 1``.
 - ``_BUCKET_INDEX`` + ``_BUCKET_LABELS``: compact compressed encoding of which
   ``save.statistics.total<…>PokemonCaptured`` counter to bump per species.
-- ``name_for(pid)``, ``stat_bucket_for(pid)``, ``region_for(pid)`` helpers.
+- ``BERRY_NAMES``: list of 70 berry display names, indexed by BerryType id.
+- ``name_for(pid)``, ``stat_bucket_for(pid)``, ``region_for(pid)``,
+  ``name_for_berry(idx)`` helpers.
 
 Stdlib only — no requests, no toml.
 """
 from __future__ import annotations
 
 import json
+import re
 import sys
 import time
 import urllib.error
@@ -33,6 +44,15 @@ MAX_ID = 1025
 THROTTLE_SEC = 0.05      # ~20 req/s; PokeAPI rate-limits are far more generous
 TIMEOUT_SEC = 10
 USER_AGENT = "pcedit-fetcher/1.0 (+https://github.com/daclink/pokeclicker-save-editor)"
+
+# PokeClicker source — enum modules live here. Default branch is `develop`.
+PC_RAW = "https://raw.githubusercontent.com/pokeclicker/pokeclicker/develop"
+BERRY_TYPE_URL = f"{PC_RAW}/src/modules/enums/BerryType.ts"
+MULCH_TYPE_URL = f"{PC_RAW}/src/modules/enums/MulchType.ts"
+EXPECTED_BERRY_COUNT = 70
+EXPECTED_FIRST_BERRY = "Cheri"
+EXPECTED_LAST_BERRY = "Hopo"
+EXPECTED_MULCH_MIN = 6   # save.farming.mulchList may carry extra slots
 
 # PokeAPI returns kebab-case names that don't always round-trip to the
 # canonical Pokémon-games display name. For most species the optional
@@ -91,13 +111,17 @@ def gender_bucket_index(gender_rate: int) -> int:
     return 1
 
 
-def _fetch_url(url: str) -> dict:
+def _fetch_url(url: str) -> bytes:
     req = urllib.request.Request(url, headers={
         "User-Agent": USER_AGENT,
-        "Accept": "application/json",
+        "Accept": "*/*",
     })
     with urllib.request.urlopen(req, timeout=TIMEOUT_SEC) as resp:
-        return json.loads(resp.read().decode("utf-8"))
+        return resp.read()
+
+
+def _fetch_json(url: str) -> dict:
+    return json.loads(_fetch_url(url).decode("utf-8"))
 
 
 def fetch_species(pid: int, *, retries: int = 3) -> dict:
@@ -109,7 +133,7 @@ def fetch_species(pid: int, *, retries: int = 3) -> dict:
     last_err: Exception | None = None
     for attempt in range(retries):
         try:
-            data = _fetch_url(url)
+            data = _fetch_json(url)
             cache.parent.mkdir(parents=True, exist_ok=True)
             cache.write_text(json.dumps(data), encoding="utf-8")
             time.sleep(THROTTLE_SEC)
@@ -142,6 +166,105 @@ def display_name(species: dict, pid: int) -> str:
     return kebab_to_display(species.get("name") or "?")
 
 
+# --- berry parser -----------------------------------------------------------
+
+# Identifier line inside the BerryType enum body. The enum has section
+# comments interspersed (`// First generation`, `// Fourth Generation
+# (Typed)` — note the parens) that must be stripped. Bare identifiers
+# (optionally followed by `,` or `= -1` for the None sentinel) are the
+# entries we want.
+_ENUM_LINE = re.compile(r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*(?:=\s*-?\d+\s*)?,?\s*$")
+
+
+def _fetch_with_retry(url: str, *, label: str, retries: int = 3) -> str:
+    """Fetch ``url`` with linear-backoff retries; return decoded text."""
+    last_err: Exception | None = None
+    for attempt in range(retries):
+        try:
+            return _fetch_url(url).decode("utf-8")
+        except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError) as e:
+            last_err = e
+            wait = 2 ** attempt
+            sys.stderr.write(f"  {label} attempt {attempt + 1}/{retries}: {e}; "
+                             f"retry in {wait}s\n")
+            time.sleep(wait)
+    raise SystemExit(f"{label} fetch failed: {last_err}")
+
+
+def _parse_enum_idents(src: str, enum_name: str) -> list[str]:
+    """Return identifiers in declaration order from ``enum <name> { ... }``,
+    skipping the ``None = -1`` sentinel and blank/comment lines.
+
+    The parser is permissive: section comments like ``// Fourth Generation
+    (Typed)`` (parens inside the comment) are stripped, and it tolerates
+    optional trailing commas or explicit ``= <int>`` assignments.
+    """
+    m = re.search(r"enum\s+" + re.escape(enum_name) + r"\s*\{(.*?)\}",
+                  src, re.DOTALL)
+    if not m:
+        raise SystemExit(f"could not locate `enum {enum_name} {{ ... }}` in source")
+    body = m.group(1)
+
+    idents: list[str] = []
+    for raw in body.splitlines():
+        line = raw.split("//", 1)[0].strip()
+        if not line:
+            continue
+        match = _ENUM_LINE.match(line)
+        if not match:
+            sys.stderr.write(f"  {enum_name}: skipping unrecognized line: {raw!r}\n")
+            continue
+        ident = match.group(1)
+        if ident == "None":
+            continue
+        idents.append(ident)
+    return idents
+
+
+def fetch_berry_names(*, retries: int = 3) -> list[str]:
+    """Pull BerryType.ts from the PokeClicker repo and parse out the 70 names.
+
+    Hard-asserts length 70, first == 'Cheri', last == 'Hopo' — the cheapest
+    defense against an upstream rename or section reorder.
+    """
+    src = _fetch_with_retry(BERRY_TYPE_URL, label="BerryType.ts", retries=retries)
+    names = _parse_enum_idents(src, "BerryType")
+
+    if len(names) != EXPECTED_BERRY_COUNT:
+        raise SystemExit(
+            f"expected {EXPECTED_BERRY_COUNT} berries from BerryType.ts, "
+            f"got {len(names)}: {names!r}"
+        )
+    if names[0] != EXPECTED_FIRST_BERRY:
+        raise SystemExit(
+            f"first berry should be {EXPECTED_FIRST_BERRY!r}, got {names[0]!r}"
+        )
+    if names[-1] != EXPECTED_LAST_BERRY:
+        raise SystemExit(
+            f"last berry should be {EXPECTED_LAST_BERRY!r}, got {names[-1]!r}"
+        )
+    return names
+
+
+def fetch_mulch_names(*, retries: int = 3) -> list[str]:
+    """Pull MulchType.ts and return display names (``Boost_Mulch`` -> ``Boost``).
+
+    Hard-asserts at least ``EXPECTED_MULCH_MIN`` entries. Real saves often
+    carry one more slot in ``mulchList`` than the enum names; the GUI
+    handles that by labeling extra slots generically.
+    """
+    src = _fetch_with_retry(MULCH_TYPE_URL, label="MulchType.ts", retries=retries)
+    raw = _parse_enum_idents(src, "MulchType")
+    if len(raw) < EXPECTED_MULCH_MIN:
+        raise SystemExit(
+            f"expected at least {EXPECTED_MULCH_MIN} mulch entries, "
+            f"got {len(raw)}: {raw!r}"
+        )
+    # 'Boost_Mulch' -> 'Boost'; if a future entry doesn't end with '_Mulch',
+    # fall back to the raw identifier.
+    return [n[:-len("_Mulch")] if n.endswith("_Mulch") else n for n in raw]
+
+
 # --- output formatter --------------------------------------------------------
 
 REGION_RANGES_LITERAL = """\
@@ -159,14 +282,19 @@ REGION_RANGES: list[tuple[str, int, int]] = [
 """
 
 HEADER = '''\
-"""Static reference data for the editor: regions, species names, gender buckets.
+"""Static reference data for the editor: regions, species names, berries,
+gender buckets.
 
-Generated by ``scripts/fetch_pokeapi_data.py`` from PokeAPI
-(https://pokeapi.co). To regenerate, run that script and commit this file.
+Generated by ``scripts/fetch_pokeclicker_data.py`` from PokeAPI
+(https://pokeapi.co) and the public PokeClicker source on GitHub. To
+regenerate, run that script and commit this file.
 
 The bucket data drives :meth:`pcedit_gui.PokedexTab._bump_stats`: when a user
 opts into stat back-fill while marking pokémon caught, the right
 ``save.statistics.total<…>PokemonCaptured`` counter is incremented per species.
+
+The berry roster drives the Berries tab: the 70-entry order matches
+``save.farming.berryList`` / ``save.farming.unlockedBerries`` positions.
 """
 from __future__ import annotations
 
@@ -221,33 +349,38 @@ def stat_bucket_for(pid: int | float | str) -> str | None:
     return None
 
 
+def name_for_berry(idx: int | float | str) -> str:
+    """Return the BerryType name for an index into ``save.farming.berryList``,
+    or '?' if out of range."""
+    n = _coerce_pid(idx)
+    if n is not None and 0 <= n < len(BERRY_NAMES):
+        return BERRY_NAMES[n]
+    return "?"
+
+
+def name_for_mulch(idx: int | float | str) -> str:
+    """Return the MulchType display name for a ``save.farming.mulchList``
+    position, or 'Slot N' for unnamed extra slots."""
+    n = _coerce_pid(idx)
+    if n is None or n < 0:
+        return "?"
+    if n < len(MULCH_NAMES):
+        return MULCH_NAMES[n]
+    return f"Slot {n}"
+
+
 # Backward-compat alias for callers that still import KANTO_NAMES.
 KANTO_NAMES = NATIONAL_NAMES[:151]
 '''
 
 
-def chunk_names(names: list[str], width: int = 6) -> Iterable[str]:
-    """Yield formatted lines of names, ``width`` per line, with region markers."""
-    region_starts = {1: "Kanto", 152: "Johto", 252: "Hoenn", 387: "Sinnoh",
-                     494: "Unova", 650: "Kalos", 722: "Alola", 810: "Galar",
-                     906: "Paldea"}
-    for i in range(0, len(names), width):
-        chunk = names[i:i + width]
-        first_pid = i + 1
-        if first_pid in region_starts:
-            yield f"    # --- {region_starts[first_pid]} (#{first_pid}–) ---"
-        prefix = f"    "
-        body = ", ".join(repr(n) for n in chunk)
-        suffix = f",  # {first_pid}-{first_pid + len(chunk) - 1}"
-        yield prefix + body + "," + " " * 1 + f"# {first_pid}-{first_pid + len(chunk) - 1}".rstrip(",")
-
-
-def render_module(names: list[str], buckets: list[int]) -> str:
+def render_module(names: list[str], buckets: list[int],
+                  berries: list[str], mulches: list[str]) -> str:
     """Build the full pokeclicker_data.py source from collected data."""
     parts: list[str] = [HEADER, "", REGION_RANGES_LITERAL, ""]
 
     parts.append("# National-dex display names, indexed by pid - 1.")
-    parts.append("# Generated from PokeAPI; see scripts/fetch_pokeapi_data.py.")
+    parts.append("# Generated from PokeAPI; see scripts/fetch_pokeclicker_data.py.")
     parts.append("NATIONAL_NAMES: list[str] = [")
     region_starts = {1: "Kanto", 152: "Johto", 252: "Hoenn", 387: "Sinnoh",
                      494: "Unova", 650: "Kalos", 722: "Alola", 810: "Galar",
@@ -283,6 +416,33 @@ def render_module(names: list[str], buckets: list[int]) -> str:
     parts.append(")")
     parts.append(f'assert len(_BUCKET_INDEX) == {len(buckets)}')
 
+    parts.append("")
+    parts.append("# BerryType enum names, indexed to match save.farming.berryList /")
+    parts.append("# save.farming.unlockedBerries positions. Pulled verbatim from")
+    parts.append("# https://github.com/pokeclicker/pokeclicker BerryType.ts.")
+    parts.append("BERRY_NAMES: list[str] = [")
+    bwidth = 6
+    for i in range(0, len(berries), bwidth):
+        chunk = berries[i:i + bwidth]
+        body = ", ".join(repr(n) for n in chunk)
+        parts.append(f"    {body},  # {i}-{i + len(chunk) - 1}")
+    parts.append("]")
+    parts.append("")
+    parts.append(f"assert len(BERRY_NAMES) == {len(berries)}, "
+                 f'f"berry roster is {len(berries)} names, got {{len(BERRY_NAMES)}}"')
+
+    parts.append("")
+    parts.append("# MulchType enum names with the '_Mulch' suffix stripped, indexed to")
+    parts.append("# match save.farming.mulchList positions. Real saves observed in the")
+    parts.append("# wild may carry one extra slot beyond the enum length; name_for_mulch")
+    parts.append("# falls back to 'Slot N' for those.")
+    parts.append("MULCH_NAMES: list[str] = [")
+    for i, n in enumerate(mulches):
+        parts.append(f"    {n!r},  # {i}")
+    parts.append("]")
+    parts.append("")
+    parts.append(f"assert len(MULCH_NAMES) >= {len(mulches)}")
+
     parts.append(HELPERS)
     return "\n".join(parts) + "\n"
 
@@ -302,7 +462,13 @@ def main() -> int:
         if pid % 50 == 0 or pid == MAX_ID:
             print(f"  {pid:4d}/{MAX_ID}  {names[-1]}")
 
-    src = render_module(names, buckets)
+    print(f"\nFetching BerryType + MulchType enums from PokeClicker source...")
+    berries = fetch_berry_names()
+    print(f"  {len(berries)} berries: {berries[0]} ... {berries[-1]}")
+    mulches = fetch_mulch_names()
+    print(f"  {len(mulches)} mulches: {', '.join(mulches)}")
+
+    src = render_module(names, buckets, berries, mulches)
     OUTPUT.write_text(src, encoding="utf-8")
     print(f"\nOK wrote {OUTPUT.relative_to(REPO_ROOT)}  ({OUTPUT.stat().st_size} bytes)")
     return 0
