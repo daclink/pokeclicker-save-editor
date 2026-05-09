@@ -95,6 +95,10 @@ def main() -> int:
         "--onefile",
         "--windowed",
         "--name", bin_name,
+        # data/*.json are runtime resources read by pokeclicker_data.py.
+        # Without this flag the bundle ships without them and crashes on
+        # first launch with FileNotFoundError. Colon separator on Linux.
+        "--add-data", "data:data",
         str(ENTRY),
     ]
     run(args)

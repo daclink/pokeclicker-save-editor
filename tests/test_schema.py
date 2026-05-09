@@ -231,6 +231,36 @@ class BackupHelperTest(unittest.TestCase):
             self.assertIsNone(latest_backup(target))
 
 
+class ResourcePathTest(unittest.TestCase):
+    """``pokeclicker_data._resource_path`` underpins the data/*.json loader.
+
+    Dev runs must resolve to ``<repo>/data/<name>``; PyInstaller bundles must
+    pick up ``sys._MEIPASS/data/<name>``. CI is Python-only, so this is the
+    only place the frozen-mode branch is exercised.
+    """
+
+    def test_dev_mode_uses_module_dir(self) -> None:
+        from pokeclicker_data import _resource_path
+        p = _resource_path("data", "berry-names.json")
+        self.assertTrue(p.exists(), f"expected file: {p}")
+        self.assertEqual(p.parent.name, "data")
+
+    def test_frozen_mode_uses_meipass(self) -> None:
+        from pokeclicker_data import _resource_path
+        sentinel = "/tmp/pcedit-meipass-fixture"
+        had = hasattr(sys, "_MEIPASS")
+        old = getattr(sys, "_MEIPASS", None)
+        sys._MEIPASS = sentinel
+        try:
+            p = _resource_path("data", "berry-names.json")
+            self.assertEqual(str(p), f"{sentinel}/data/berry-names.json")
+        finally:
+            if had:
+                sys._MEIPASS = old
+            else:
+                del sys._MEIPASS
+
+
 class BerryDataTest(unittest.TestCase):
     """Sanity-check BERRY_NAMES + name_for_berry from
     ``scripts/fetch_pokeclicker_data.py``.

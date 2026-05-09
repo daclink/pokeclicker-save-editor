@@ -57,6 +57,10 @@ def main() -> int:
         "--onefile",       # single .exe (slower startup but easy to ship)
         "--windowed",      # no console window
         "--name", APP_NAME,
+        # data/*.json are runtime resources read by pokeclicker_data.py.
+        # Without this flag the bundle ships without them and crashes on
+        # first launch with FileNotFoundError. Semicolon separator on Windows.
+        "--add-data", "data;data",
         str(ENTRY),
     ]
     if ICON.exists():
