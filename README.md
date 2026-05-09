@@ -133,19 +133,21 @@ python3 pcedit_gui.py path/to/save.txt             # auto-load on launch
 
 #### Opening a save
 
-![PokeClicker Save Editor on first launch — top bar with Browse/Reload/Save/Undo, the Currencies & Multipliers tab visible, and "open a save file to begin" in the status bar.](screenshots/clicker-editor-ui.png)
+![PokeClicker Save Editor v0.8.0 with a save loaded — top bar shows the save path and Browse/Reload/Save/Undo, the six-tab notebook (Currencies & Multipliers, Eggs, Shards, Berries, Caught Pokémon, Pokédex) is visible, and the Currencies tab is populated with real Pokédollar / Dungeon Token / Quest Point / Diamond / Farm Point values.](screenshots/clicker-editor-ui.png)
 
-On first launch the window looks like the screenshot above:
+After loading a save, the window looks like the screenshot above:
 
-1. **Row 1** of the top bar shows `Save: (no file)` — that's where the
-   loaded path will appear.
-2. **Row 2** has four action buttons. Only **Browse…** is enabled until a
-   save is loaded; **Reload**, **Save**, and **Undo (.bak)** are greyed out
-   on purpose.
+1. **Row 1** of the top bar shows the loaded save path. Before any file is
+   open it reads `Save: (no file)`.
+2. **Row 2** has four action buttons. **Browse…** is always enabled;
+   **Reload**, **Save**, and **Undo (.bak)** activate once a save is open
+   and grey out otherwise.
 3. The notebook below has six tabs (Currencies & Multipliers, Eggs,
-   Shards, Berries, Caught Pokémon, Pokédex). Their fields are empty until a
+   Shards, Berries, Caught Pokémon, Pokédex). Tab fields populate from the
+   loaded save.
+4. The status bar at the bottom shows what just happened — `loaded …`,
+   `saved …`, `restored …` — or `open a save file to begin` before any
    file is open.
-4. The status bar at the bottom reads `open a save file to begin`.
 
 To open a save:
 
@@ -180,6 +182,8 @@ re-loads — handy if a save you just wrote causes the game to misbehave.
 
 The status bar at the bottom of the window shows what just happened
 (`loaded …`, `saved …`, `restored …`, etc.).
+
+![Berries tab — sortable Treeview listing all 70 BerryType entries with their inventory counts and unlocked checkboxes; below it is the mulch + shovels frame with one cell per MulchType slot.](screenshots/berries-tab.png)
 
 #### Menubar
 
