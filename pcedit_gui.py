@@ -23,7 +23,14 @@ from typing import Any
 
 from _version import __version__
 from pokeclicker_save import decode_file, encode_file
-from pokeclicker_data import REGION_RANGES, name_for, stat_bucket_for
+from pokeclicker_data import (
+    BERRY_NAMES,
+    MULCH_NAMES,
+    REGION_RANGES,
+    name_for,
+    name_for_mulch,
+    stat_bucket_for,
+)
 from pcedit_backup import (
     LAYOUT_FOLDER,
     LAYOUT_SIDECAR,
@@ -226,11 +233,13 @@ class PCEditGUI(tk.Tk):
         self.tab_curr = CurrenciesTab(nb, self)
         self.tab_eggs = EggsTab(nb, self)
         self.tab_shards = ShardsTab(nb, self)
+        self.tab_berries = BerriesTab(nb, self)
         self.tab_caught = CaughtTab(nb, self)
         self.tab_dex = PokedexTab(nb, self)
         nb.add(self.tab_curr, text="Currencies & Multipliers")
         nb.add(self.tab_eggs, text="Eggs")
         nb.add(self.tab_shards, text="Shards")
+        nb.add(self.tab_berries, text="Berries")
         nb.add(self.tab_caught, text="Caught Pokémon")
         nb.add(self.tab_dex, text="Pokédex")
 
@@ -255,6 +264,7 @@ class PCEditGUI(tk.Tk):
             self.tab_curr.commit()
             self.tab_eggs.commit()
             self.tab_shards.commit()
+            self.tab_berries.commit()
             self.tab_caught.commit()
             self.tab_dex.commit()
         except ValueError as e:
@@ -311,6 +321,7 @@ class PCEditGUI(tk.Tk):
         self.tab_curr.refresh()
         self.tab_eggs.refresh()
         self.tab_shards.refresh()
+        self.tab_berries.refresh()
         self.tab_caught.refresh()
         self.tab_dex.refresh()
         self.status_var.set(f"loaded {path.name}")
@@ -799,6 +810,349 @@ class ShardsTab(ttk.Frame):
             v.set(str(n))
 
 
+class BerriesTab(ttk.Frame):
+    """Edit ``save.farming.berryList`` (counts), ``unlockedBerries`` (bools),
+    ``mulchList`` (counts), and the two shovel scalars.
+
+    The 70-row Treeview lists every BerryType. Selection-aware buttons
+    operate on the currently-highlighted rows, and bulk buttons act on the
+    whole roster. Unlocked entries are written as ``True``/``False`` to match
+    real saves; counts can exceed 1000 (the game tracks larger inventories).
+
+    Out of scope for v1: ``plotList``, ``mutations``, ``farmHands`` — those are
+    live mid-game state where careless edits are likelier to corrupt a save.
+    """
+
+    COLS = [
+        ("idx",      "#",        40),
+        ("name",     "Berry",   140),
+        ("count",    "Count",    90),
+        ("unlocked", "Unlocked", 80),
+    ]
+
+    def __init__(self, master, app: PCEditGUI) -> None:
+        super().__init__(master, padding=12)
+        self.app = app
+        # Tk vars for the scalar entries (mulch, shovels). Built lazily on
+        # first refresh because mulchList length isn't fixed by the schema.
+        self.mulch_vars: list[tk.StringVar] = []
+        self.shovel_var = tk.StringVar(value="0")
+        self.mulch_shovel_var = tk.StringVar(value="0")
+        self._show_unlocked_only = tk.BooleanVar(value=False)
+
+        ttk.Label(self,
+                  text="Edit per-berry inventory counts and unlock flags. "
+                       "Click headings to sort. Select rows and use the "
+                       "buttons below for bulk edits.",
+                  foreground="#666", wraplength=700, justify="left").pack(anchor="w")
+
+        # --- filter row ---
+        filt = ttk.Frame(self)
+        filt.pack(fill="x", pady=(6, 0))
+        ttk.Checkbutton(filt, text="Show unlocked only",
+                        variable=self._show_unlocked_only,
+                        command=self.refresh).pack(side="left")
+
+        # --- treeview ---
+        body = ttk.Frame(self)
+        body.pack(fill="both", expand=True, pady=(6, 0))
+        cols = [c[0] for c in self.COLS]
+        self.tree = ttk.Treeview(body, columns=cols, show="headings",
+                                 height=14, selectmode="extended")
+        for k, lbl, w in self.COLS:
+            self.tree.heading(k, text=lbl,
+                              command=lambda c=k: self._sort_by(c))
+            anchor = "w" if k == "name" else "center"
+            self.tree.column(k, width=w, anchor=anchor)
+        sb = ttk.Scrollbar(body, orient="vertical", command=self.tree.yview)
+        self.tree.configure(yscrollcommand=sb.set)
+        self.tree.pack(side="left", fill="both", expand=True)
+        sb.pack(side="left", fill="y")
+        self.tree.bind("<Double-1>", self._on_edit_count)
+
+        # --- selection-aware row actions ---
+        bar1 = ttk.Frame(self)
+        bar1.pack(fill="x", pady=(8, 0))
+        ttk.Button(bar1, text="Edit count…",
+                   command=self._on_edit_count).pack(side="left")
+        ttk.Button(bar1, text="Unlock selected",
+                   command=lambda: self._toggle_selected(True)).pack(side="left", padx=4)
+        ttk.Button(bar1, text="Lock selected",
+                   command=lambda: self._toggle_selected(False)).pack(side="left")
+
+        # --- bulk actions ---
+        bar2 = ttk.Frame(self)
+        bar2.pack(fill="x", pady=(4, 0))
+        ttk.Button(bar2, text="Unlock all",
+                   command=lambda: self._unlock_all(True)).pack(side="left")
+        ttk.Button(bar2, text="Lock all",
+                   command=lambda: self._unlock_all(False)).pack(side="left", padx=4)
+        ttk.Button(bar2, text="Zero counts",
+                   command=lambda: self._fill_counts(0)).pack(side="left")
+        ttk.Button(bar2, text="All counts to 999",
+                   command=lambda: self._fill_counts(999)).pack(side="left", padx=4)
+        ttk.Button(bar2, text="All counts to 9999",
+                   command=lambda: self._fill_counts(9999)).pack(side="left")
+
+        # --- mulch + shovels frame (built on first refresh) ---
+        self.mulch_box = ttk.LabelFrame(self,
+            text="Mulch & shovels", padding=8)
+        self.mulch_box.pack(fill="x", pady=(12, 0))
+
+        # Internal sort state.
+        self._sort_col: str | None = "idx"
+        self._sort_reverse: bool = False
+
+    # --- lifecycle -----------------------------------------------------------
+
+    def refresh(self) -> None:
+        d = self.app.data
+        if d is None:
+            return
+        farming = d["save"].get("farming")
+        if not isinstance(farming, dict):
+            return
+        # The Treeview is rebuilt from scratch each refresh; cheap for 70 rows
+        # and avoids state drift after bulk edits.
+        for iid in self.tree.get_children():
+            self.tree.delete(iid)
+
+        berry_list = farming.get("berryList") or []
+        unlocked   = farming.get("unlockedBerries") or []
+        # Iterate over the BerryType length (the schema authority), not the
+        # save's list length. If a save is short, missing slots show count 0
+        # / locked; commit() pads back out.
+        only_unlocked = self._show_unlocked_only.get()
+        for i, name in enumerate(BERRY_NAMES):
+            count = berry_list[i] if i < len(berry_list) else 0
+            is_on = bool(unlocked[i]) if i < len(unlocked) else False
+            if only_unlocked and not is_on:
+                continue
+            self.tree.insert("", "end", iid=str(i), values=(
+                i, name, fnum(count), "✓" if is_on else "",
+            ))
+        self._apply_sort()
+
+        # Mulch grid + shovels.
+        for child in self.mulch_box.winfo_children():
+            child.destroy()
+        mulch_list = farming.get("mulchList") or []
+        self.mulch_vars = []
+        row = ttk.Frame(self.mulch_box)
+        row.pack(fill="x")
+        ttk.Label(row, text="Mulch:", width=8, anchor="w").pack(side="left")
+        for i, n in enumerate(mulch_list):
+            cell = ttk.Frame(row)
+            cell.pack(side="left", padx=(0, 8))
+            ttk.Label(cell, text=name_for_mulch(i), anchor="w").pack(anchor="w")
+            v = tk.StringVar(value=fnum(n))
+            ttk.Entry(cell, textvariable=v, width=8).pack()
+            self.mulch_vars.append(v)
+
+        srow = ttk.Frame(self.mulch_box)
+        srow.pack(fill="x", pady=(8, 0))
+        ttk.Label(srow, text="Shovels", width=8, anchor="w").pack(side="left")
+        ttk.Label(srow, text="Regular:").pack(side="left")
+        self.shovel_var.set(fnum(farming.get("shovelAmt", 0)))
+        ttk.Entry(srow, textvariable=self.shovel_var, width=8).pack(side="left", padx=(4, 12))
+        ttk.Label(srow, text="Mulch:").pack(side="left")
+        self.mulch_shovel_var.set(fnum(farming.get("mulchShovelAmt", 0)))
+        ttk.Entry(srow, textvariable=self.mulch_shovel_var, width=8).pack(side="left", padx=4)
+
+    def commit(self) -> None:
+        d = self.app.data
+        if d is None:
+            return
+        farming = d["save"].setdefault("farming", {})
+
+        # Pad lists to BERRY_NAMES length so we never write a short list back.
+        berry_list = farming.setdefault("berryList", [])
+        unlocked   = farming.setdefault("unlockedBerries", [])
+        n = len(BERRY_NAMES)
+        if len(berry_list) < n:
+            berry_list.extend([0] * (n - len(berry_list)))
+        if len(unlocked) < n:
+            unlocked.extend([False] * (n - len(unlocked)))
+
+        # Apply Treeview state. Each row id is the berry index (string).
+        for iid in self.tree.get_children():
+            i = int(iid)
+            count_str, mark = self.tree.item(iid, "values")[2:4]
+            count = parse_int(count_str, name=f"berry[{i}].count")
+            if count < 0:
+                raise ValueError(f"berry[{i}] count must be ≥ 0")
+            berry_list[i] = count
+            unlocked[i] = bool(mark)
+
+        # If the filter was on, hidden rows aren't in the Treeview — preserve
+        # their existing state by leaving them untouched (already in lists).
+
+        # Mulch list: only update slots we built entries for.
+        mulch_list = farming.setdefault("mulchList", [])
+        if len(mulch_list) < len(self.mulch_vars):
+            mulch_list.extend([0] * (len(self.mulch_vars) - len(mulch_list)))
+        for i, v in enumerate(self.mulch_vars):
+            n_v = parse_int(v.get(), name=f"mulch[{i}]")
+            if n_v < 0:
+                raise ValueError(f"mulch[{i}] must be ≥ 0")
+            mulch_list[i] = n_v
+
+        # Shovels.
+        shovel = parse_int(self.shovel_var.get(), name="shovelAmt")
+        mulch_shovel = parse_int(self.mulch_shovel_var.get(), name="mulchShovelAmt")
+        if shovel < 0 or mulch_shovel < 0:
+            raise ValueError("shovel counts must be ≥ 0")
+        farming["shovelAmt"] = shovel
+        farming["mulchShovelAmt"] = mulch_shovel
+
+    # --- selection actions ---------------------------------------------------
+
+    def _selected_indices(self) -> list[int]:
+        return [int(iid) for iid in self.tree.selection()]
+
+    def _farming_lists(self) -> tuple[list, list] | None:
+        """Return (berryList, unlockedBerries) from app.data, padded to BERRY_NAMES length."""
+        d = self.app.data
+        if d is None:
+            return None
+        farming = d["save"].setdefault("farming", {})
+        berry_list = farming.setdefault("berryList", [])
+        unlocked   = farming.setdefault("unlockedBerries", [])
+        n = len(BERRY_NAMES)
+        if len(berry_list) < n:
+            berry_list.extend([0] * (n - len(berry_list)))
+        if len(unlocked) < n:
+            unlocked.extend([False] * (n - len(unlocked)))
+        return berry_list, unlocked
+
+    def _on_edit_count(self, _evt=None) -> None:
+        sel = self._selected_indices()
+        if not sel:
+            return
+        n = simple_int_dialog(self, title="Set count",
+                              prompt=f"Set count for {len(sel)} selected berr"
+                                     f"{'y' if len(sel) == 1 else 'ies'}:")
+        if n is None:
+            return
+        if n < 0:
+            messagebox.showerror("Invalid value", "Count must be ≥ 0", parent=self)
+            return
+        lists = self._farming_lists()
+        if lists is None:
+            return
+        berry_list, _unlocked = lists
+        for i in sel:
+            berry_list[i] = n
+        self.refresh()
+        # Re-select rows so the user can chain edits.
+        keep = [str(i) for i in sel if str(i) in self.tree.get_children("")]
+        if keep:
+            self.tree.selection_set(*keep)
+
+    def _toggle_selected(self, on: bool) -> None:
+        sel = self._selected_indices()
+        if not sel:
+            return
+        lists = self._farming_lists()
+        if lists is None:
+            return
+        _berry_list, unlocked = lists
+        for i in sel:
+            unlocked[i] = bool(on)
+        self.refresh()
+        keep = [str(i) for i in sel if str(i) in self.tree.get_children("")]
+        if keep:
+            self.tree.selection_set(*keep)
+
+    # --- bulk actions --------------------------------------------------------
+
+    def _unlock_all(self, on: bool) -> None:
+        # Bulk acts on the entire roster, not just the visible rows. Mutate
+        # the underlying save then refresh so the filter and treeview agree.
+        lists = self._farming_lists()
+        if lists is None:
+            return
+        _berry_list, unlocked = lists
+        for i in range(len(BERRY_NAMES)):
+            unlocked[i] = bool(on)
+        self.refresh()
+
+    def _fill_counts(self, n: int) -> None:
+        lists = self._farming_lists()
+        if lists is None:
+            return
+        berry_list, _unlocked = lists
+        for i in range(len(BERRY_NAMES)):
+            berry_list[i] = n
+        self.refresh()
+
+    # --- sort ---------------------------------------------------------------
+
+    def _sort_by(self, col: str) -> None:
+        if self._sort_col == col:
+            self._sort_reverse = not self._sort_reverse
+        else:
+            self._sort_col = col
+            self._sort_reverse = False
+        self._apply_sort()
+
+    def _apply_sort(self) -> None:
+        col = self._sort_col
+        if col is None:
+            return
+        rows = [(self.tree.set(iid, col), iid) for iid in self.tree.get_children("")]
+        # Numeric sort for idx and count; string sort otherwise.
+        def keyfn(item):
+            v = item[0]
+            if col in ("idx", "count"):
+                try:
+                    return (0, int(v))
+                except ValueError:
+                    return (1, v)
+            return (0, v)
+        rows.sort(key=keyfn, reverse=self._sort_reverse)
+        for pos, (_v, iid) in enumerate(rows):
+            self.tree.move(iid, "", pos)
+
+
+def simple_int_dialog(parent, *, title: str, prompt: str) -> int | None:
+    """Tiny modal that asks for a single integer. Returns None on cancel."""
+    top = tk.Toplevel(parent)
+    top.title(title)
+    top.transient(parent)
+    top.resizable(False, False)
+    ttk.Label(top, text=prompt).grid(row=0, column=0, columnspan=2,
+                                       sticky="w", padx=10, pady=(10, 4))
+    var = tk.StringVar(value="0")
+    entry = ttk.Entry(top, textvariable=var, width=18)
+    entry.grid(row=1, column=0, columnspan=2, padx=10, pady=4)
+    entry.focus_set()
+    entry.select_range(0, "end")
+
+    out: dict[str, int | None] = {"value": None}
+
+    def ok() -> None:
+        try:
+            out["value"] = parse_int(var.get(), name="value")
+        except ValueError as e:
+            messagebox.showerror("Invalid value", str(e), parent=top)
+            return
+        top.destroy()
+
+    def cancel() -> None:
+        top.destroy()
+
+    bar = ttk.Frame(top)
+    bar.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(8, 10), padx=10)
+    ttk.Button(bar, text="OK", command=ok).pack(side="right", padx=(4, 0))
+    ttk.Button(bar, text="Cancel", command=cancel).pack(side="right")
+    top.bind("<Return>", lambda _e: ok())
+    top.bind("<Escape>", lambda _e: cancel())
+    top.grab_set()
+    parent.wait_window(top)
+    return out["value"]
+
+
 class CaughtTab(ttk.Frame):
     # Column "name" is a read-only friendly species name for the row's id.
     # Falls back to "?" for IDs outside Kanto until the full national-dex
@@ -813,13 +1167,20 @@ class CaughtTab(ttk.Frame):
         ("5",         "resistant",    80),
     ]
 
+    # Columns whose values should sort numerically. Everything else sorts as
+    # strings (name, "yes"/"" flags).
+    NUMERIC_COLS = {"id", "0", "1", "3"}
+
     def __init__(self, master, app: PCEditGUI) -> None:
         super().__init__(master, padding=12)
         self.app = app
+        self._sort_col: str = "id"
+        self._sort_reverse: bool = False
 
         ttk.Label(self,
-                  text="Double-click a row to edit. atkBonus increments by 25 per hatch.",
-                  foreground="#666").pack(anchor="w")
+                  text="Click a column heading to sort (click again to reverse). "
+                       "Double-click a row to edit. atkBonus increments by 25 per hatch.",
+                  foreground="#666", wraplength=700, justify="left").pack(anchor="w")
 
         body = ttk.Frame(self)
         body.pack(fill="both", expand=True, pady=(6, 0))
@@ -827,7 +1188,8 @@ class CaughtTab(ttk.Frame):
         cols = [c[0] for c in self.COLS]
         self.tree = ttk.Treeview(body, columns=cols, show="headings", height=18)
         for k, lbl, w in self.COLS:
-            self.tree.heading(k, text=lbl)
+            self.tree.heading(k, text=lbl,
+                              command=lambda c=k: self._sort_by(c))
             anchor = "w" if k == "name" else "center"
             self.tree.column(k, width=w, anchor=anchor)
         sb = ttk.Scrollbar(body, orient="vertical", command=self.tree.yview)
@@ -849,7 +1211,7 @@ class CaughtTab(ttk.Frame):
         d = self.app.data
         if d is None:
             return
-        for entry in sorted(d["save"]["party"]["caughtPokemon"], key=lambda e: e.get("id", 0)):
+        for entry in d["save"]["party"]["caughtPokemon"]:
             if not isinstance(entry, dict):
                 continue
             self.tree.insert("", "end", iid=str(entry.get("id")), values=(
@@ -861,6 +1223,33 @@ class CaughtTab(ttk.Frame):
                 "yes" if entry.get("4") else "",
                 "yes" if entry.get("5") else "",
             ))
+        self._apply_sort()
+
+    def _sort_by(self, col: str) -> None:
+        if self._sort_col == col:
+            self._sort_reverse = not self._sort_reverse
+        else:
+            self._sort_col = col
+            self._sort_reverse = False
+        self._apply_sort()
+
+    def _apply_sort(self) -> None:
+        col = self._sort_col
+        rows = [(self.tree.set(iid, col), iid)
+                for iid in self.tree.get_children("")]
+
+        def keyfn(item):
+            v = item[0]
+            if col in self.NUMERIC_COLS:
+                try:
+                    return (0, int(float(v)))   # tolerate "1.0" / "1e6"
+                except ValueError:
+                    return (1, v)
+            return (0, v)
+
+        rows.sort(key=keyfn, reverse=self._sort_reverse)
+        for pos, (_v, iid) in enumerate(rows):
+            self.tree.move(iid, "", pos)
 
     def commit(self) -> None:
         # Edits go straight into self.app.data via the dialog, so nothing to do.

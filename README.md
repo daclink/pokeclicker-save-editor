@@ -142,9 +142,9 @@ On first launch the window looks like the screenshot above:
 2. **Row 2** has four action buttons. Only **Browse…** is enabled until a
    save is loaded; **Reload**, **Save**, and **Undo (.bak)** are greyed out
    on purpose.
-3. The notebook below has five tabs (Currencies & Multipliers, Eggs,
-   Shards, Caught Pokémon, Pokédex). Their fields are empty until a file
-   is open.
+3. The notebook below has six tabs (Currencies & Multipliers, Eggs,
+   Shards, Berries, Caught Pokémon, Pokédex). Their fields are empty until a
+   file is open.
 4. The status bar at the bottom reads `open a save file to begin`.
 
 To open a save:
@@ -174,7 +174,8 @@ re-loads — handy if a save you just wrote causes the game to misbehave.
 | **Currencies & Multipliers** | PokéDollars, Dungeon Tokens, Quest Points, Diamonds, Farm Points, plus four price multipliers from `player._itemMultipliers`: **Protein**, **Calcium**, **Carbos** (`<vitamin>\|money`) and **Master Ball** (`Masterball\|farmPoint`). Each row has a *Reset to 1.0* button; **Reset all vitamins to 1.0** zeros the three vitamins in one click. Rows left at exactly 1.0 are dropped from the save instead of being written, so the editor never adds spurious keys for shop items the user has never bought. |
 | **Eggs** | The breeding `eggList` (one row per slot). *Edit selected* opens a form. *Hatch now* sets `steps = totalSteps`. *Make empty* clears a slot back to `{type: -1, pokemon: 0}`. *Add egg* / *Remove* manage entries. **Quick-add** buttons drop a Grass / Fire / Water / Dragon / Mystery egg into the first empty slot (or append, bumping `eggSlots`). The `eggSlots` field above the table controls how many slots the game shows. |
 | **Shards** | Counts for the 16 type-shard colors (Red/Yellow/Green/Blue, Black/Grey, Purple/Crimson, Pink/White, Cyan/Lime, Rose/Ochre, Beige/Indigo). Editing a color you haven't unlocked yet is fine — it appears once you reach the right region. Buttons set the whole grid to 999 / 9999 / 0 in one click. Any unrecognised `*_shard` items in the save show up in the "Other" panel below the grid. |
-| **Caught Pokémon** | All caught pokémon, sortable by ID. The `Name` column shows the species (Kanto names today; later regions show `?` until [#4](https://github.com/daclink/pokeclicker-save-editor/issues/4) lands). Double-click a row (or *Edit selected…*) to change `atkBonus` (`.0`, increments by 25 per hatch), `pokerus` (`.1`), `exp` (`.3`), and toggle the in-egg (`.4`) and resistant (`.5`) flags. Quick-action buttons set common values without opening a dialog. |
+| **Berries** | All 70 BerryType entries from the v0.10.25 enum, sortable by index / name / count / unlocked state. Multi-select rows and use *Edit count…*, *Unlock selected*, or *Lock selected* for targeted edits; bulk buttons fill the whole roster (*Unlock/Lock all*, *Zero counts*, *All counts to 999 / 9999*). The *Show unlocked only* filter hides locked rows during edits. Below: the 7-slot `mulchList` (labelled from the `MulchType` enum, with the extra slot flagged as *Slot 6*) and the two shovel scalars (`shovelAmt`, `mulchShovelAmt`). `plotList`, `mutations`, and `farmHands` are not exposed — those are live mid-game state best touched in the game itself. |
+| **Caught Pokémon** | All caught pokémon. Click any column heading to sort by that field (click again to reverse) — useful for finding the lowest-exp entries, the resistant ones, or the highest atkBonus. The `Name` column shows the species across every region (full national-dex roster shipped in v0.7.0). Double-click a row (or *Edit selected…*) to change `atkBonus` (`.0`, increments by 25 per hatch), `pokerus` (`.1`), `exp` (`.3`), and toggle the in-egg (`.4`) and resistant (`.5`) flags. Quick-action buttons set common values without opening a dialog. |
 | **Pokédex** | Region dropdown (Kanto … Paldea) over a listbox of every pokémon in that range. Caught entries are marked with `✓` and dimmed; uncaught are blank. Multi-select rows and click *Mark selected caught*, or *Mark all uncaught in region* to fill the entire region in one click. *Show uncaught only* hides the already-caught rows. **Also bump capture stats** (off by default) extends the action to credit the gender-neutral `totalPokemonCaptured` / `totalPokemonEncountered` counters and the per-id `pokemonCaptured.<id>` / `pokemonEncountered.<id>` entries so the Trainer Card numbers match the dex; per-gender totals are deferred ([#26](https://github.com/daclink/pokeclicker-save-editor/issues/26)). |
 
 The status bar at the bottom of the window shows what just happened
@@ -440,7 +441,7 @@ scripts/build_macos.py   PyInstaller .app + .dmg builder (run on macOS)
 scripts/build_windows.py PyInstaller .exe builder (run on Windows)
 scripts/build_linux.py   PyInstaller ELF + tarball builder (run on Linux)
 scripts/make_icons.py    Rebuild assets/icon/* from pokeball.svg
-scripts/fetch_pokeapi_data.py  Regenerate pokeclicker_data.py from PokeAPI
+scripts/fetch_pokeclicker_data.py  Regenerate pokeclicker_data.py from PokeAPI + PokeClicker source
 tests/                Schema-diff unittest suite + checked-in fixtures
 docs/                 Long-form guides (currently: installer-guide.md)
 .github/workflows/    CI: tests on every push, installers on release/** and tags

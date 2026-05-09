@@ -30,9 +30,13 @@ from pokeclicker_save import (  # noqa: E402
 )
 from pcedit_backup import latest_backup, list_backups  # noqa: E402
 from pokeclicker_data import (  # noqa: E402
+    BERRY_NAMES,
+    MULCH_NAMES,
     NATIONAL_NAMES,
     REGION_RANGES,
     name_for,
+    name_for_berry,
+    name_for_mulch,
     region_for,
     stat_bucket_for,
 )
@@ -141,8 +145,33 @@ class SchemaTest(unittest.TestCase):
     def test_farming_unlocked_berries(self) -> None:
         b = self.save["save"]["farming"]["unlockedBerries"]
         self.assertIsInstance(b, list)
+        # The Berries tab assumes the BerryType enum length (70 in v0.10.25).
+        self.assertEqual(len(b), len(BERRY_NAMES),
+                         "unlockedBerries length should match BerryType enum")
         for v in b:
             self.assertIn(v, (0, 1, True, False), f"unexpected unlock value: {v!r}")
+
+    def test_farming_berry_list(self) -> None:
+        counts = self.save["save"]["farming"]["berryList"]
+        self.assertIsInstance(counts, list)
+        self.assertEqual(len(counts), len(BERRY_NAMES),
+                         "berryList length should match BerryType enum")
+        for v in counts:
+            self.assertIsInstance(v, int)
+            self.assertGreaterEqual(v, 0)
+
+    def test_farming_mulch_list(self) -> None:
+        mulch = self.save["save"]["farming"]["mulchList"]
+        self.assertIsInstance(mulch, list)
+        # PokeClicker has 7 mulch types in v0.10.25.
+        self.assertEqual(len(mulch), 7)
+        for v in mulch:
+            self.assertIsInstance(v, int)
+
+    def test_farming_shovels(self) -> None:
+        f = self.save["save"]["farming"]
+        self.assertIsInstance(f["shovelAmt"], int)
+        self.assertIsInstance(f["mulchShovelAmt"], int)
 
     def test_key_items_are_bools(self) -> None:
         ki = self.save["save"]["keyItems"]
@@ -202,9 +231,50 @@ class BackupHelperTest(unittest.TestCase):
             self.assertIsNone(latest_backup(target))
 
 
+class BerryDataTest(unittest.TestCase):
+    """Sanity-check BERRY_NAMES + name_for_berry from
+    ``scripts/fetch_pokeclicker_data.py``.
+    """
+
+    EXPECTED_LEN = 70
+
+    def test_roster_size(self) -> None:
+        self.assertEqual(len(BERRY_NAMES), self.EXPECTED_LEN)
+
+    def test_endpoints(self) -> None:
+        # The fetcher hard-asserts these too — duplicated here so a hand-edit
+        # to pokeclicker_data.py also fails CI.
+        self.assertEqual(BERRY_NAMES[0], "Cheri")
+        self.assertEqual(BERRY_NAMES[-1], "Hopo")
+
+    def test_every_berry_non_empty(self) -> None:
+        for i, n in enumerate(BERRY_NAMES):
+            self.assertTrue(n, f"empty berry name at index {i}")
+
+    def test_name_for_berry_handles_edges(self) -> None:
+        self.assertEqual(name_for_berry(0), BERRY_NAMES[0])
+        self.assertEqual(name_for_berry(self.EXPECTED_LEN - 1),
+                         BERRY_NAMES[-1])
+        self.assertEqual(name_for_berry(-1), "?")
+        self.assertEqual(name_for_berry(self.EXPECTED_LEN), "?")
+        self.assertEqual(name_for_berry("0"), BERRY_NAMES[0])
+        self.assertEqual(name_for_berry(None), "?")
+
+    def test_mulch_roster(self) -> None:
+        # Mulch enum is shorter than the actual mulchList in v0.10.25 saves;
+        # we just guard the lower bound and the first/last names.
+        self.assertGreaterEqual(len(MULCH_NAMES), 6)
+        self.assertEqual(MULCH_NAMES[0], "Boost")
+        # Slots beyond the enum get a 'Slot N' label.
+        self.assertEqual(name_for_mulch(len(MULCH_NAMES)),
+                         f"Slot {len(MULCH_NAMES)}")
+        self.assertEqual(name_for_mulch(0), MULCH_NAMES[0])
+        self.assertEqual(name_for_mulch(-1), "?")
+
+
 class PokemonDataTest(unittest.TestCase):
     """Sanity-check the generated reference data from
-    ``scripts/fetch_pokeapi_data.py``.
+    ``scripts/fetch_pokeclicker_data.py``.
     """
 
     EXPECTED_LEN = 1025

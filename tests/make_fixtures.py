@@ -134,9 +134,13 @@ def minimal_save() -> dict:
                 "autoSearchMineType": 0,
                 "undergroundExp": 0,
             },
+            # 70-entry berry arrays match the v0.10.25 BerryType enum length;
+            # unlockedBerries stores bools the way real saves do (the editor
+            # writes True/False, not 0/1).
             "farming": {
-                "berryList":        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                "unlockedBerries":  [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                "berryList":        [0] * 70,
+                "unlockedBerries":  [True, True, True] + [False] * 67,
+                "mulchList":        [0] * 7,
                 "mutations":        [],
                 "plotList":         [],
                 "farmHands":        [],
