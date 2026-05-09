@@ -62,6 +62,10 @@ def build_app() -> Path:
         "--windowed",                      # no terminal window
         "--name", APP_NAME,
         "--osx-bundle-identifier", BUNDLE_ID,
+        # data/*.json are runtime resources read by pokeclicker_data.py.
+        # Without this flag the bundle ships without them and crashes on
+        # first launch with FileNotFoundError. Colon separator on macOS.
+        "--add-data", "data:data",
     ]
     if ICON.exists():
         pyinstaller_args += ["--icon", str(ICON)]

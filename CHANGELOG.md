@@ -11,7 +11,28 @@ Release notes.
 
 ## [Unreleased]
 
-(none)
+### Changed
+- **Reference data extracted to `data/*.json`** as the first step of the
+  upcoming browser-based companion app. `pokeclicker_data.py` is now a
+  thin shim that loads `data/region-ranges.json`,
+  `data/pokemon-names.json`, `data/gender-buckets.json`,
+  `data/berry-names.json`, and `data/mulch-names.json` at import time,
+  re-asserting the same length/endpoint invariants the previous module
+  baked in. **Public Python surface is unchanged** — every existing
+  caller (`NATIONAL_NAMES`, `BERRY_NAMES`, `name_for(pid)`, etc.)
+  resolves identically. The web port will read the same files.
+- **`scripts/fetch_pokeclicker_data.py`** now writes `data/*.json`
+  instead of regenerating `pokeclicker_data.py`. Same upstream sources
+  (PokeAPI for species + PokeClicker source for `BerryType`/`MulchType`),
+  same hard-asserts (70 berries Cheri…Hopo, ≥6 mulches, 1025 species),
+  cleaner diffs.
+- **Installer build scripts** (`scripts/build_{macos,windows,linux}.py`)
+  now pass `--add-data data:data` (`;` separator on Windows) so the
+  PyInstaller bundle ships the JSON. `pokeclicker_data._resource_path`
+  resolves to `sys._MEIPASS/data/<name>` in frozen runs and
+  `<repo>/data/<name>` in dev. New `ResourcePathTest` covers the
+  `_MEIPASS` branch in CI; smoke-tested locally against an `--onedir`
+  bundle. Test count: 31 → 33.
 
 ## [0.8.0] — 2026-05-09
 
