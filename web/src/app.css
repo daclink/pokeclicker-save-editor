@@ -1,0 +1,15 @@
+/* Minimal reset — App.svelte owns the rest. */
+:root {
+  font-size: 16px;
+  line-height: 1.5;
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  background: white;
+}
+
+* {
+  box-sizing: border-box;
+}

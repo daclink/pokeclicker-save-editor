@@ -11,6 +11,27 @@ Release notes.
 
 ## [Unreleased]
 
+### Added
+- **Browser companion app skeleton (`web/`).** Vite + Svelte 5 + TypeScript
+  scaffold. `web/src/lib/save.ts` is a port of `pokeclicker_save.py` —
+  base64 ↔ Latin-1 ↔ JSON decode/encode and the dot-path `get`/`set`
+  selectors. `web/src/lib/latin1.ts` covers the Latin-1 round-trip
+  (the format quirk that costs PCEdit its byte-exact guarantee in
+  JavaScript: see the contract note in `save.ts`). `web/tests/save.spec.ts`
+  reads **the same fixture the Python suite reads** (`tests/fixtures/
+  v0.10.25/minimal.txt`) and asserts byte-exact + semantic round-trip;
+  the Python and TS implementations are pinned to the same shape from
+  one source. A minimal `App.svelte` shell picks a file, decodes it,
+  and shows decoded summary state — enough to prove the toolchain
+  works end-to-end. **No tabs yet** — each tab lands as its own PR.
+- **`web-tests` CI workflow** runs `npm run check`, `npm run test`, and
+  `npm run build` on every push that touches `web/`, `tests/fixtures/`,
+  or `data/`.
+- **GitHub Pages base path** baked into `vite.config.ts` as
+  `/pokeclicker-save-editor/` so the production bundle's asset URLs
+  resolve correctly when the deploy workflow lands. `VITE_BASE=/`
+  overrides for local builds or forks under a different repo name.
+
 ### Changed
 - **Reference data extracted to `data/*.json`** as the first step of the
   upcoming browser-based companion app. `pokeclicker_data.py` is now a

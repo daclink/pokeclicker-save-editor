@@ -17,8 +17,11 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+# Anchor to repo root — Python's dist-packaging `lib/` collides with
+# `web/src/lib/` and any other src tree convention, so we only match
+# the top-level ones here.
+/lib/
+/lib64/
 parts/
 sdist/
 var/
