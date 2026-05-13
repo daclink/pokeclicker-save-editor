@@ -1,122 +1,24 @@
 <script lang="ts">
-  // Skeleton shell for the browser-based companion to the desktop editor.
-  // First milestone: prove the toolchain works end-to-end — load a save
-  // entirely client-side and show enough decoded state to confirm we read
-  // it correctly. Subsequent PRs add the tabs from the desktop editor one
-  // at a time. The save never leaves this tab.
-  import { decodeBytes } from './lib/save'
-  import { REGION_RANGES, nameFor } from './lib/data'
-
-  type SaveSummary = {
-    fileName: string
-    bytes: number
-    townName: string
-    region: string
-    caughtCount: number
-    money: number
-    sampleCaught: string
-  }
-
-  let status = $state(
-    'Drop a PokeClicker save export (.txt) here or click to browse.',
-  )
-  let summary: SaveSummary | null = $state(null)
-  let errorDetail = $state('')
-
-  async function handleFile(file: File): Promise<void> {
-    summary = null
-    errorDetail = ''
-    try {
-      const text = await file.text()
-      const data = decodeBytes(text)
-      const player = (data.player ?? {}) as Record<string, unknown>
-      const save = (data.save ?? {}) as Record<string, unknown>
-      const party = ((save.party as Record<string, unknown>)?.caughtPokemon ??
-        []) as Array<Record<string, unknown>>
-      const wallet = (save.wallet as Record<string, unknown>)?.currencies as
-        | number[]
-        | undefined
-      const regionIdx = (player._region as number) ?? -1
-      const regionLabel =
-        regionIdx >= 0 && regionIdx < REGION_RANGES.length
-          ? REGION_RANGES[regionIdx].label
-          : `region #${regionIdx}`
-      // First three caught species by name — proves the dex roster wired up.
-      const sampleCaught = party
-        .slice(0, 3)
-        .map((p) => `${nameFor(p.id)} (#${p.id})`)
-        .join(', ')
-      summary = {
-        fileName: file.name,
-        bytes: text.length,
-        townName: (player._townName as string) ?? '?',
-        region: regionLabel,
-        caughtCount: party.length,
-        money: wallet?.[0] ?? 0,
-        sampleCaught: sampleCaught || '(none)',
-      }
-      status = `loaded ${file.name}`
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e)
-      status = `failed to decode ${file.name}`
-      errorDetail = msg
-    }
-  }
-
-  function onPick(evt: Event): void {
-    const input = evt.target as HTMLInputElement
-    if (input.files?.[0]) void handleFile(input.files[0])
-  }
-
-  function onDrop(evt: DragEvent): void {
-    evt.preventDefault()
-    const file = evt.dataTransfer?.files?.[0]
-    if (file) void handleFile(file)
-  }
-
-  function onDragOver(evt: DragEvent): void {
-    evt.preventDefault()
-  }
+  // Top-level shell. TopBar handles browse + save + status. Below it,
+  // the active tab. Right now only Currencies & Multipliers exists;
+  // additional tabs (Eggs, Shards, Berries, Caught, Pokédex) land in
+  // subsequent PRs and will replace the single-tab section with a
+  // notebook then.
+  import TopBar from './components/TopBar.svelte'
+  import CurrenciesTab from './tabs/CurrenciesTab.svelte'
 </script>
 
 <main>
   <header>
     <h1>PokeClicker Save Editor — Browser</h1>
     <p class="tagline">
-      Work in progress. Your save never leaves this tab —
-      everything happens client-side.
+      Your save never leaves this tab — everything happens client-side.
     </p>
   </header>
 
-  <section
-    class="drop"
-    ondrop={onDrop}
-    ondragover={onDragOver}
-    aria-label="Save file drop zone"
-  >
-    <label>
-      <input type="file" accept=".txt" onchange={onPick} />
-      <span class="button">Pick a save…</span>
-    </label>
-    <p class="status">{status}</p>
-    {#if errorDetail}
-      <pre class="error">{errorDetail}</pre>
-    {/if}
-  </section>
+  <TopBar />
 
-  {#if summary}
-    <section class="summary">
-      <h2>Decoded</h2>
-      <dl>
-        <dt>File</dt><dd>{summary.fileName} ({summary.bytes} bytes)</dd>
-        <dt>Town</dt><dd>{summary.townName}</dd>
-        <dt>Region</dt><dd>{summary.region}</dd>
-        <dt>Caught pokémon</dt><dd>{summary.caughtCount}</dd>
-        <dt>Sample caught</dt><dd>{summary.sampleCaught}</dd>
-        <dt>PokéDollars</dt><dd>{summary.money}</dd>
-      </dl>
-    </section>
-  {/if}
+  <CurrenciesTab />
 
   <footer>
     <p>
@@ -132,7 +34,7 @@
 <style>
   main {
     max-width: 720px;
-    margin: 2rem auto;
+    margin: 1.5rem auto;
     padding: 0 1rem;
     font-family:
       system-ui,
@@ -149,65 +51,9 @@
     font-size: 1.5rem;
   }
   .tagline {
-    margin: 0 0 1.5rem;
+    margin: 0 0 1rem;
     color: #666;
-  }
-  .drop {
-    border: 2px dashed #888;
-    border-radius: 8px;
-    padding: 1.5rem;
-    text-align: center;
-    background: #fafafa;
-  }
-  .drop input[type='file'] {
-    display: none;
-  }
-  .button {
-    display: inline-block;
-    padding: 0.5rem 1rem;
-    background: #2563eb;
-    color: white;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  .button:hover {
-    background: #1d4ed8;
-  }
-  .status {
-    margin: 1rem 0 0;
-    color: #444;
-  }
-  .error {
-    margin: 0.75rem 0 0;
-    padding: 0.5rem;
-    background: #fee;
-    color: #900;
-    text-align: left;
-    white-space: pre-wrap;
-    border-radius: 4px;
-    font-size: 0.85em;
-  }
-  .summary {
-    margin-top: 2rem;
-    padding: 1rem 1.5rem;
-    background: #f5f5f5;
-    border-radius: 8px;
-  }
-  .summary h2 {
-    margin: 0 0 0.5rem;
-    font-size: 1.1rem;
-  }
-  dl {
-    display: grid;
-    grid-template-columns: max-content 1fr;
-    gap: 0.25rem 1rem;
-    margin: 0;
-  }
-  dt {
-    color: #666;
-  }
-  dd {
-    margin: 0;
+    font-size: 0.95em;
   }
   footer {
     margin-top: 3rem;
