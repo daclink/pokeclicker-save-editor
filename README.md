@@ -17,6 +17,8 @@ A small Python CLI for inspecting and editing [PokeClicker](https://www.pokeclic
 
 All three downloads are at the **Assets** section of every release on the [Releases page](https://github.com/daclink/pokeclicker-save-editor/releases).
 
+A **browser version** is in early development under `web/`. Once enough tabs land it'll deploy to GitHub Pages so you can edit a save without installing anything; in the meantime see [`web/README.md`](web/README.md) for the current state and dev instructions. Your save still never leaves your machine — the browser app is purely client-side.
+
 If you want the source instead of a binary, see [Build](#build).
 
 ## Save format
