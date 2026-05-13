@@ -1,11 +1,18 @@
 <script lang="ts">
-  // Top-level shell. TopBar handles browse + save + status. Below it,
-  // the active tab. Right now only Currencies & Multipliers exists;
-  // additional tabs (Eggs, Shards, Berries, Caught, Pokédex) land in
-  // subsequent PRs and will replace the single-tab section with a
-  // notebook then.
+  // Top-level shell: top bar + tab notebook + active tab's component.
+  // Tabs render conditionally — unmount on switch — which keeps state
+  // (e.g. open dialogs) from leaking across.
   import TopBar from './components/TopBar.svelte'
+  import TabsBar, { type Tab } from './components/TabsBar.svelte'
   import CurrenciesTab from './tabs/CurrenciesTab.svelte'
+  import EggsTab from './tabs/EggsTab.svelte'
+
+  const tabs: readonly Tab[] = [
+    { id: 'currencies', label: 'Currencies & Multipliers' },
+    { id: 'eggs', label: 'Eggs' },
+  ]
+
+  let active = $state(tabs[0].id)
 </script>
 
 <main>
@@ -18,7 +25,13 @@
 
   <TopBar />
 
-  <CurrenciesTab />
+  <TabsBar {tabs} {active} onSelect={(id) => (active = id)} />
+
+  {#if active === 'currencies'}
+    <CurrenciesTab />
+  {:else if active === 'eggs'}
+    <EggsTab />
+  {/if}
 
   <footer>
     <p>
@@ -33,7 +46,7 @@
 
 <style>
   main {
-    max-width: 720px;
+    max-width: 760px;
     margin: 1.5rem auto;
     padding: 0 1rem;
     font-family:
