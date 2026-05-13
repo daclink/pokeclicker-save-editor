@@ -49,6 +49,25 @@ Release notes.
   via `REGION_RANGES` and shows the first three caught species by
   name via `nameFor(pid)` — minimal end-to-end exercise of the new
   helpers from the production bundle, not just tree-shaken-out code.
+- **Currencies & Multipliers tab** in the SPA — first ported tab.
+  `web/src/lib/currencies.ts` exposes pure `readCurrencies` /
+  `writeCurrencies` / `readMultipliers` / `writeMultipliers` helpers
+  matching the desktop editor's semantics (positional wallet, drop
+  multipliers at exactly 1.0 to avoid spurious entries for shop items
+  the user never bought). `web/src/lib/store.svelte.ts` holds the
+  reactive app state (`{fileName, data, isDirty, status, errorDetail}`)
+  via a Svelte 5 class with `$state` fields. New `TopBar` component
+  with Browse / Save (download) + dirty marker, new `NumberField`
+  component for the editable rows (text input with paste-friendly
+  parsing on commit), new `CurrenciesTab.svelte` wiring it all up.
+  Save = download a fresh `.txt` with the original filename, since the
+  browser can't overwrite the source file in place. 10 new pure-helper
+  tests; test count 24 → 34. Bundle: 20 KB → 18.5 KB gzipped (slight
+  shrink, the old placeholder summary code went away).
+- **Roadmap entry: Gems tab.** Recorded as a post-web-port follow-up.
+  Data shape (`save.gems.gemWallet`, 18-entry int list) is already
+  locked by the schema test; the tab itself will mirror Shards in
+  both runtimes once the SPA stabilises.
 
 ### Changed
 - **Reference data extracted to `data/*.json`** as the first step of the
