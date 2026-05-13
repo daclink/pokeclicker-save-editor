@@ -5,14 +5,16 @@
   // it correctly. Subsequent PRs add the tabs from the desktop editor one
   // at a time. The save never leaves this tab.
   import { decodeBytes } from './lib/save'
+  import { REGION_RANGES, nameFor } from './lib/data'
 
   type SaveSummary = {
     fileName: string
     bytes: number
     townName: string
-    region: number
+    region: string
     caughtCount: number
     money: number
+    sampleCaught: string
   }
 
   let status = $state(
@@ -30,17 +32,28 @@
       const player = (data.player ?? {}) as Record<string, unknown>
       const save = (data.save ?? {}) as Record<string, unknown>
       const party = ((save.party as Record<string, unknown>)?.caughtPokemon ??
-        []) as unknown[]
+        []) as Array<Record<string, unknown>>
       const wallet = (save.wallet as Record<string, unknown>)?.currencies as
         | number[]
         | undefined
+      const regionIdx = (player._region as number) ?? -1
+      const regionLabel =
+        regionIdx >= 0 && regionIdx < REGION_RANGES.length
+          ? REGION_RANGES[regionIdx].label
+          : `region #${regionIdx}`
+      // First three caught species by name — proves the dex roster wired up.
+      const sampleCaught = party
+        .slice(0, 3)
+        .map((p) => `${nameFor(p.id)} (#${p.id})`)
+        .join(', ')
       summary = {
         fileName: file.name,
         bytes: text.length,
         townName: (player._townName as string) ?? '?',
-        region: (player._region as number) ?? -1,
+        region: regionLabel,
         caughtCount: party.length,
         money: wallet?.[0] ?? 0,
+        sampleCaught: sampleCaught || '(none)',
       }
       status = `loaded ${file.name}`
     } catch (e) {
@@ -97,8 +110,9 @@
       <dl>
         <dt>File</dt><dd>{summary.fileName} ({summary.bytes} bytes)</dd>
         <dt>Town</dt><dd>{summary.townName}</dd>
-        <dt>Region id</dt><dd>{summary.region}</dd>
+        <dt>Region</dt><dd>{summary.region}</dd>
         <dt>Caught pokémon</dt><dd>{summary.caughtCount}</dd>
+        <dt>Sample caught</dt><dd>{summary.sampleCaught}</dd>
         <dt>PokéDollars</dt><dd>{summary.money}</dd>
       </dl>
     </section>

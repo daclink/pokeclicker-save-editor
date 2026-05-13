@@ -31,6 +31,24 @@ Release notes.
   `/pokeclicker-save-editor/` so the production bundle's asset URLs
   resolve correctly when the deploy workflow lands. `VITE_BASE=/`
   overrides for local builds or forks under a different repo name.
+- **`web/src/lib/data.ts`** — TypeScript counterpart to
+  `pokeclicker_data.py`. Reads the same `data/*.json` files the Python
+  shim reads via Vite's static JSON imports (no runtime fetch); exposes
+  `NATIONAL_NAMES`, `BERRY_NAMES`, `MULCH_NAMES`, `REGION_RANGES`,
+  `KANTO_NAMES`, plus `nameFor`/`regionFor`/`statBucketFor`/
+  `nameForBerry`/`nameForMulch` helpers. Import-time invariants mirror
+  the Python module's (`length === 1025`, `BERRY_NAMES` endpoints are
+  `Cheri`…`Hopo`, etc.) so a regenerated `data/` that drifts shape
+  fails the build instead of silently shipping a wrong roster.
+- **`web/tests/data.spec.ts`** — 18 new tests covering roster sizes,
+  special-character display names (Nidoran♀/♂, Farfetch'd, Mr. Mime,
+  Tapu Koko, Type: Null, …), region boundary coverage, gender-bucket
+  spot-checks (legendaries, female-only, male-only species), berry
+  endpoints, and mulch fallback labels. Test count: 6 → 24.
+- **`App.svelte` summary** now resolves `player._region` to its label
+  via `REGION_RANGES` and shows the first three caught species by
+  name via `nameFor(pid)` — minimal end-to-end exercise of the new
+  helpers from the production bundle, not just tree-shaken-out code.
 
 ### Changed
 - **Reference data extracted to `data/*.json`** as the first step of the
