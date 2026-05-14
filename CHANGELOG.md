@@ -68,6 +68,20 @@ Release notes.
   Data shape (`save.gems.gemWallet`, 18-entry int list) is already
   locked by the schema test; the tab itself will mirror Shards in
   both runtimes once the SPA stabilises.
+- **Tab notebook + Eggs tab in the SPA.** New `TabsBar` component
+  switches between named tabs (parent owns the active state; panels
+  unmount on switch so nothing leaks across). `web/src/lib/breeding.ts`
+  ports `pcedit_gui.EggsTab`'s semantics:
+  `EGG_TYPE_LABELS`, `EMPTY_EGG` / `DEFAULT_NEW_EGG` templates, five
+  `QUICK_ADD_PRESETS` (Grass/Fire/Water/Dragon/Mystery), and pure
+  mutators (`hatchEgg`, `clearEgg`, `setEgg`, `addEgg`, `removeEgg`,
+  `quickAddEgg`, `writeEggSlots`). `quickAddEgg` mirrors the desktop
+  rule of filling the first empty slot or appending + bumping
+  `eggSlots`. `web/src/tabs/EggsTab.svelte` builds the table with
+  per-row Hatch / Empty / Remove / Edit actions, an Edit dialog using
+  the native `<dialog>` element (focus trap + Escape-to-close built
+  in), and a quick-add bar. 17 new pure-helper tests; test count
+  34 → 51.
 
 ### Changed
 - **Reference data extracted to `data/*.json`** as the first step of the
