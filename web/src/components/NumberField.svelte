@@ -20,6 +20,10 @@
     suffix?: string
     /** Greys out the row. */
     disabled?: boolean
+    /** CSS length for the label column. Defaults to 14rem (room for the
+     *  longest Currencies-tab label). Pass a smaller value inside narrow
+     *  containers like dialogs. */
+    labelWidth?: string
   }
 
   let {
@@ -31,6 +35,7 @@
     integer = true,
     suffix,
     disabled = false,
+    labelWidth = '14rem',
   }: Props = $props()
 
   // Mirror `value` into a local string the input is bound to. The effect
@@ -74,7 +79,7 @@
   }
 </script>
 
-<div class="row" class:disabled>
+<div class="row" class:disabled style="--field-label-width: {labelWidth}">
   <label>
     <span class="label">{label}</span>
     <input
@@ -109,7 +114,7 @@
     flex: 1;
   }
   .label {
-    flex: 0 0 14rem;
+    flex: 0 0 var(--field-label-width, 14rem);
     color: #444;
   }
   input {
