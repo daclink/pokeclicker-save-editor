@@ -11,6 +11,19 @@ Release notes.
 
 ## [Unreleased]
 
+### Fixed
+- **Eggs tab edit dialog was clipping fields** on shorter viewports —
+  native `<dialog>` was getting capped at viewport height without a
+  scrollbar, and the NumberField label column (sized for the wider
+  Currencies tab) crowded the input column. Dialog is now an explicit
+  `min(38rem, 92vw)` wide with `max-height: 85vh; overflow-y: auto`,
+  and `NumberField` got an optional `labelWidth` prop the dialog
+  passes as `10rem` so labels and inputs each get enough room.
+- **Favicon is now a pokeball with a floppy-disk save badge in the
+  bottom-right corner.** Pure SVG, no thin strokes, designed to read
+  at 16-32 px tab-icon sizes. Replaces the leftover Vite-scaffold
+  purple lightning bolt.
+
 ### Added
 - **Browser companion app skeleton (`web/`).** Vite + Svelte 5 + TypeScript
   scaffold. `web/src/lib/save.ts` is a port of `pokeclicker_save.py` —

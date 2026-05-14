@@ -182,7 +182,11 @@
     </div>
   </section>
 
-  <!-- Edit modal. Native <dialog> handles focus trap + Escape-to-close. -->
+  <!-- Edit modal. Native <dialog> handles focus trap + Escape-to-close.
+       Width is explicit so the form doesn't squish; max-height + overflow
+       keep it usable on shorter viewports without clipping. NumberFields
+       use a compact 10rem label column so the input column gets enough
+       room inside the dialog. -->
   <dialog bind:this={dialogEl} aria-labelledby="egg-dialog-title">
     <h3 id="egg-dialog-title">Edit egg {editIndex !== null ? `#${editIndex}` : ''}</h3>
 
@@ -190,6 +194,7 @@
       label="Pokémon ID"
       value={draft.pokemon}
       onCommit={(n) => (draft.pokemon = n)}
+      labelWidth="10rem"
     />
     <label class="row">
       <span class="label">Type</span>
@@ -206,17 +211,20 @@
       label="Current steps"
       value={draft.steps}
       onCommit={(n) => (draft.steps = n)}
+      labelWidth="10rem"
     />
     <NumberField
       label="Total steps to hatch"
       value={draft.totalSteps}
       onCommit={(n) => (draft.totalSteps = n)}
+      labelWidth="10rem"
     />
     <NumberField
       label="Shiny chance"
       value={draft.shinyChance}
       onCommit={(n) => (draft.shinyChance = n)}
       suffix="(lower = more likely)"
+      labelWidth="10rem"
     />
     <label class="row checkbox">
       <input
@@ -309,11 +317,16 @@
   }
 
   /* Dialog --------------------------------------------------------- */
+  /* Explicit width so the form doesn't squish on small viewports;
+     max-height + overflow keep all fields reachable when the viewport
+     is shorter than the content. */
   dialog {
     border: 1px solid #ccc;
     border-radius: 8px;
     padding: 1.25rem;
-    max-width: 28rem;
+    width: min(38rem, 92vw);
+    max-height: 85vh;
+    overflow-y: auto;
     background: white;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   }
@@ -330,7 +343,7 @@
     padding: 0.25rem 0;
   }
   .row .label {
-    flex: 0 0 11rem;
+    flex: 0 0 10rem;
     color: #444;
   }
   .row.checkbox {
