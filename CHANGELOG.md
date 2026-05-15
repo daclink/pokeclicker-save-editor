@@ -81,6 +81,21 @@ Release notes.
   Data shape (`save.gems.gemWallet`, 18-entry int list) is already
   locked by the schema test; the tab itself will mirror Shards in
   both runtimes once the SPA stabilises.
+- **Shards tab in the SPA.** Third ported tab. `web/src/lib/shards.ts`
+  exposes `KNOWN_SHARD_COLORS` (the 16 canonical colours, same as the
+  desktop tab), plus pure `readKnownShards` / `writeKnownShards` /
+  `readExtraShards` / `writeExtraShards` helpers. Shares the
+  "delete-at-0" discipline with `_itemMultipliers` — counts of 0 are
+  removed from `player._itemList` rather than written, matching the
+  game's never-persist-zero-counts convention. `ShardsTab.svelte` is
+  a responsive 4-col grid (2-col on narrow viewports) with bulk
+  buttons (*All known to 999 / 9999 / Zero all*) and an *Other shard
+  items in this save* panel that surfaces any unrecognised `*_shard`
+  keys for editing. NumberField was too horizontally chunky for grid
+  cells, so the cells use a compact inline input with the same
+  commit-on-blur semantics. 8 new pure-helper tests covering
+  round-trip, delete-at-0, no-clobber-of-non-shard-items, extras
+  detection, validation; test count 51 → 59.
 - **Tab notebook + Eggs tab in the SPA.** New `TabsBar` component
   switches between named tabs (parent owns the active state; panels
   unmount on switch so nothing leaks across). `web/src/lib/breeding.ts`
