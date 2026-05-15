@@ -81,6 +81,31 @@ Release notes.
   Data shape (`save.gems.gemWallet`, 18-entry int list) is already
   locked by the schema test; the tab itself will mirror Shards in
   both runtimes once the SPA stabilises.
+- **Berries tab in the SPA.** Fourth ported tab — meatiest port so far.
+  `web/src/lib/berries.ts` covers `save.farming` end-to-end:
+  `readBerryRows` (one row per `BerryType` entry, missing slots default
+  to count=0/unlocked=false), `readMulch`, `readShovels`, plus pure
+  mutators (`setBerryCount` / `setBerryCounts` / `setBerryUnlocked` /
+  `setBerryUnlockedMany` / `fillAllBerryCounts` /
+  `setAllBerriesUnlocked` / `setMulchCount` / `setShovels`). All
+  writers pad short arrays up to length 70 (or `MULCH_NAMES.length`+)
+  and write real booleans for unlocked flags. `BerriesTab.svelte`
+  delivers a sortable 70-row HTML table with per-row checkboxes for
+  multi-select, sticky headers, the `Show unlocked only` filter,
+  selection-aware actions (*Edit count…* opens a one-question
+  modal, *Unlock/Lock selected*, *Clear selection*), and bulk
+  actions (*Unlock/Lock all*, *Zero counts*, *All counts to
+  999/9999*). Below: a responsive mulch grid using `nameForMulch`
+  (canonical names through `MULCH_NAMES.length`, then `Slot N`) and
+  the two shovel scalars. New reusable `SimpleIntDialog.svelte`
+  component — promise-returning one-question modal that the Caught
+  tab will reuse later. 16 new pure-helper tests; test count
+  59 → 75.
+- **Roadmap entry: refresh installed-app icon (post-web-port).**
+  Replace `assets/icon/pokeball.svg` with the new pokeball + floppy
+  design that landed as the SPA favicon, then re-run
+  `scripts/make_icons.py`. Tracked on the roadmap so brand
+  consistency lands once the SPA is shipped.
 - **Shards tab in the SPA.** Third ported tab. `web/src/lib/shards.ts`
   exposes `KNOWN_SHARD_COLORS` (the 16 canonical colours, same as the
   desktop tab), plus pure `readKnownShards` / `writeKnownShards` /
