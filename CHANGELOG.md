@@ -81,6 +81,24 @@ Release notes.
   Data shape (`save.gems.gemWallet`, 18-entry int list) is already
   locked by the schema test; the tab itself will mirror Shards in
   both runtimes once the SPA stabilises.
+- **Caught Pokémon tab in the SPA.** Fifth ported tab. `web/src/lib/caught.ts`
+  exposes `readCaughtRows` (one row per entry with `nameFor` lookup),
+  `setCaughtEntry` (patch + numeric validation), plus bulk helpers
+  `setCaughtAtkBonus`, `setCaughtResistant`, `setCaughtInEgg`. The
+  helpers preserve the **key-present-iff-true** rule from the desktop
+  tab: setting `inEgg` or `resistant` to `false` *removes* the
+  optional `"4"` / `"5"` keys from the entry rather than writing
+  `false`, matching how real saves serialise those flags and keeping
+  byte-clean round-trips. `CaughtTab.svelte` mirrors the desktop's
+  single-select Treeview: sortable columns (numeric for ID /
+  atkBonus / pokerus / exp; string for Name; bool for the two flags),
+  click-to-select, double-click to edit, action bar with *Edit
+  selected…* / *Mark resistant* / *Clear resistant* /
+  *Set atkBonus 100*. Edit dialog uses an inline native `<dialog>`
+  with the existing `NumberField` (in compact 11-rem mode) plus the
+  two checkboxes. 13 new pure-helper tests; test count 75 → 88.
+  Bundle 33 → 35 KB gzipped — the Caught tab reuses sort and
+  NumberField, so it adds less than Berries did.
 - **Berries tab in the SPA.** Fourth ported tab — meatiest port so far.
   `web/src/lib/berries.ts` covers `save.farming` end-to-end:
   `readBerryRows` (one row per `BerryType` entry, missing slots default
