@@ -8,12 +8,14 @@
   import EggsTab from './tabs/EggsTab.svelte'
   import ShardsTab from './tabs/ShardsTab.svelte'
   import BerriesTab from './tabs/BerriesTab.svelte'
+  import CaughtTab from './tabs/CaughtTab.svelte'
 
   const tabs: readonly Tab[] = [
     { id: 'currencies', label: 'Currencies & Multipliers' },
     { id: 'eggs', label: 'Eggs' },
     { id: 'shards', label: 'Shards' },
     { id: 'berries', label: 'Berries' },
+    { id: 'caught', label: 'Caught Pokémon' },
   ]
 
   let active = $state(tabs[0].id)
@@ -39,6 +41,8 @@
     <ShardsTab />
   {:else if active === 'berries'}
     <BerriesTab />
+  {:else if active === 'caught'}
+    <CaughtTab />
   {/if}
 
   <footer>
