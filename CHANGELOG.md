@@ -81,6 +81,22 @@ Release notes.
   Data shape (`save.gems.gemWallet`, 18-entry int list) is already
   locked by the schema test; the tab itself will mirror Shards in
   both runtimes once the SPA stabilises.
+- **Gems tab in the SPA.** Sixth ported tab. `web/src/lib/gems.ts` exposes
+  `readKnownGems` / `writeKnownGems` against the 18-position
+  `save.gems.gemWallet` array (PokemonType enum order: Normal, Fighting,
+  Flying, Poison, Ground, Rock, Bug, Ghost, Steel, Fire, Water, Grass,
+  Electric, Psychic, Ice, Dragon, Dark, Fairy). Unlike Shards (keyed dict,
+  delete-at-0 discipline), gems are a fixed-positional array — a 0 stays
+  a 0 at its index rather than being removed. `readExtraGems` /
+  `writeExtraGems` surface any wallet positions beyond index 17 as
+  `Type #N` cells so future PokeClicker types (Stellar et al.) round-trip
+  verbatim instead of being truncated — `tests/test_schema.py::
+  test_gem_wallet` already allows `len >= 18` for exactly this. The tab
+  itself ports the ShardsTab layout: 4-col grid of named cells, bulk-fill
+  buttons (`All to 999` / `9999` / `Zero all`), commit-on-blur, optional
+  extras panel for forward-compat slots. 12 new pure-helper tests
+  covering canonical reads, positional zero preservation, sibling-key
+  safety under `save.gems`, and forward-compat extras growth.
 - **Caught Pokémon tab in the SPA.** Fifth ported tab. `web/src/lib/caught.ts`
   exposes `readCaughtRows` (one row per entry with `nameFor` lookup),
   `setCaughtEntry` (patch + numeric validation), plus bulk helpers
