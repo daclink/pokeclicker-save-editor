@@ -81,6 +81,24 @@ Release notes.
   Data shape (`save.gems.gemWallet`, 18-entry int list) is already
   locked by the schema test; the tab itself will mirror Shards in
   both runtimes once the SPA stabilises.
+- **Flutes tab in the SPA.** Seventh ported tab. `web/src/lib/flutes.ts`
+  exposes `readKnownFlutes` / `writeKnownFlutes` over the 6 canonical
+  flutes (`Yellow`, `Black`, `Time`, `Red`, `White`, `Blue` — matching
+  `FluteItemType` in PokeClicker's `GameConstants.ts`), with boolean
+  ownership semantics on top of the underlying `<Name>_Flute` int in
+  `player._itemList`. `writeKnownFlutes(true)` writes `1`; `false`
+  deletes the key — same delete-at-0 discipline as shards / berries /
+  the `_itemList` convention in the game. `readExtraFlutes` /
+  `writeExtraFlutes` surface any `*_Flute` keys outside the canonical
+  six as numeric extras, so the six commented-out flutes in source
+  (`Poke`, `Azure`, `Eon`, `Sun`, `Moon`, `Grass`) would round-trip
+  cleanly without code changes if PokeClicker ever enables them. The
+  tab UI mirrors `ShardsTab`'s 2-column grid but with checkboxes
+  (since `FluteItem` declares `maxAmount: 1` — flutes are conceptually
+  owned-or-not) plus a `Give all` / `Drop all` pair. Sits next to the
+  Gems tab in the bar because each active flute consumes one gem/sec
+  from the wallet I just shipped. 9 new pure-helper tests; total web
+  test count 100 → 109.
 - **Gems tab in the SPA.** Sixth ported tab. `web/src/lib/gems.ts` exposes
   `readKnownGems` / `writeKnownGems` against the 18-position
   `save.gems.gemWallet` array (PokemonType enum order: Normal, Fighting,
