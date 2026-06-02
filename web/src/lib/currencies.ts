@@ -1,32 +1,43 @@
 /**
  * Read/write helpers for the Currencies & Multipliers tab.
  *
- * Mirrors `pcedit_gui.CurrenciesTab` (read on load, write on save) so the
- * Python and browser editors keep the same semantics — particularly:
+ * Mirrors `pcedit_gui.CurrenciesTab` and matches PokeClicker's
+ * `enum Currency` in `src/modules/GameConstants.ts`:
  *
- *   - Wallet positions are positional (`currencies[0]` = money,
- *     `[1]` = dungeon tokens, `[2]` = quest points, `[3]` = diamonds,
- *     `[4]` = farm points). Untouched higher slots stay intact.
- *   - Multipliers at exactly 1.0 are **dropped** from
- *     `player._itemMultipliers` rather than written, so we never add
- *     spurious entries for shop items the user has never bought.
+ *   0 money, 1 questPoint, 2 dungeonToken, 3 diamond, 4 farmPoint,
+ *   5 battlePoint, 6 contestToken.
  *
- * All functions are pure on the input shape — easy to unit-test without
- * touching the DOM or the file picker.
+ * (PCEdit had `tokens` and `quest` slugs pointing at the wrong indices
+ * before v0.9.0 — see the Fixed entry in CHANGELOG. The slug names
+ * stayed the same so CLI invocations like `pcedit tokens` keep working,
+ * but they now write the right slot.)
+ *
+ * Multipliers at exactly 1.0 are **dropped** from `player._itemMultipliers`
+ * rather than written, so we never add spurious entries for shop items
+ * the user has never bought.
  */
 import type { SaveData } from './save'
 
 // --- wallet -----------------------------------------------------------------
 
-export type CurrencyKey = 'money' | 'tokens' | 'quest' | 'diamonds' | 'farm'
+export type CurrencyKey =
+  | 'money'
+  | 'quest'
+  | 'tokens'
+  | 'diamonds'
+  | 'farm'
+  | 'battle'
+  | 'contest'
 
 /** Positional indices into `save.wallet.currencies`. Stable across saves. */
 export const CURRENCY_INDEX: Record<CurrencyKey, number> = {
-  money: 0,
-  tokens: 1,
-  quest: 2,
+  money:    0,
+  quest:    1,
+  tokens:   2,
   diamonds: 3,
-  farm: 4,
+  farm:     4,
+  battle:   5,
+  contest:  6,
 }
 
 export type Currencies = Record<CurrencyKey, number>
@@ -44,11 +55,13 @@ function getWallet(data: SaveData): number[] {
 export function readCurrencies(data: SaveData): Currencies {
   const arr = getWallet(data)
   return {
-    money: arr[CURRENCY_INDEX.money] ?? 0,
-    tokens: arr[CURRENCY_INDEX.tokens] ?? 0,
-    quest: arr[CURRENCY_INDEX.quest] ?? 0,
+    money:    arr[CURRENCY_INDEX.money] ?? 0,
+    quest:    arr[CURRENCY_INDEX.quest] ?? 0,
+    tokens:   arr[CURRENCY_INDEX.tokens] ?? 0,
     diamonds: arr[CURRENCY_INDEX.diamonds] ?? 0,
-    farm: arr[CURRENCY_INDEX.farm] ?? 0,
+    farm:     arr[CURRENCY_INDEX.farm] ?? 0,
+    battle:   arr[CURRENCY_INDEX.battle] ?? 0,
+    contest:  arr[CURRENCY_INDEX.contest] ?? 0,
   }
 }
 
@@ -64,6 +77,7 @@ export function writeCurrencies(data: SaveData, edits: Currencies): void {
     if (!Number.isInteger(v) || v < 0) {
       throw new RangeError(`${k}: expected non-negative integer, got ${v}`)
     }
+    while (arr.length <= idx) arr.push(0)   // pad short wallets up to contest (6)
     arr[idx] = v
   }
 }
