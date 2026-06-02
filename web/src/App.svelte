@@ -10,12 +10,14 @@
   import BerriesTab from './tabs/BerriesTab.svelte'
   import CaughtTab from './tabs/CaughtTab.svelte'
   import GemsTab from './tabs/GemsTab.svelte'
+  import FlutesTab from './tabs/FlutesTab.svelte'
 
   const tabs: readonly Tab[] = [
     { id: 'currencies', label: 'Currencies & Multipliers' },
     { id: 'eggs', label: 'Eggs' },
     { id: 'shards', label: 'Shards' },
     { id: 'gems', label: 'Gems' },
+    { id: 'flutes', label: 'Flutes' },
     { id: 'berries', label: 'Berries' },
     { id: 'caught', label: 'Caught Pokémon' },
   ]
@@ -43,6 +45,8 @@
     <ShardsTab />
   {:else if active === 'gems'}
     <GemsTab />
+  {:else if active === 'flutes'}
+    <FlutesTab />
   {:else if active === 'berries'}
     <BerriesTab />
   {:else if active === 'caught'}
