@@ -192,3 +192,6 @@ yarn-error.log*
 *.txt.bak
 *PokeClicker*.txt
 *pokeclicker*.txt
+
+# Brainstorming visual companion
+.superpowers/
