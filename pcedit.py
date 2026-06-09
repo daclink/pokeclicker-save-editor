@@ -31,7 +31,20 @@ REGIONS = [
 ]
 
 # Indices into the player's wallet currencies array. Stable across saves.
-CURRENCY = {"money": 0, "tokens": 1, "quest": 2, "diamonds": 3, "farm": 4, "battle": 5}
+# Matches PokeClicker's `enum Currency` in src/modules/GameConstants.ts:
+#   0 money, 1 questPoint, 2 dungeonToken, 3 diamond, 4 farmPoint,
+#   5 battlePoint, 6 contestToken.
+# (PCEdit had indices 1 and 2 swapped before v0.9.0 — "tokens" mapped to
+#  index 1 and "quest" to index 2 — see the Fixed entry in CHANGELOG.)
+CURRENCY = {
+    "money":    0,
+    "quest":    1,
+    "tokens":   2,
+    "diamonds": 3,
+    "farm":     4,
+    "battle":   5,
+    "contest":  6,
+}
 
 
 # --- IO helpers --------------------------------------------------------------
@@ -101,9 +114,12 @@ def cmd_summary(args: argparse.Namespace) -> int:
     print(f"pokémon:       {len(party)} caught, {sum(1 for x in party if isinstance(x, dict) and x.get('shiny'))} shiny in party")
     print(f"play time:     {_fmt_seconds(stats.get('secondsPlayed', 0))}")
     print(f"money:         {currencies[0] if len(currencies)>0 else '-'}")
-    print(f"dungeon tok:   {currencies[1] if len(currencies)>1 else '-'}")
-    print(f"quest pts:     {currencies[2] if len(currencies)>2 else '-'}")
+    print(f"quest pts:     {currencies[1] if len(currencies)>1 else '-'}")
+    print(f"dungeon tok:   {currencies[2] if len(currencies)>2 else '-'}")
+    print(f"diamonds:      {currencies[3] if len(currencies)>3 else '-'}")
     print(f"farm pts:      {currencies[4] if len(currencies)>4 else '-'}")
+    print(f"battle pts:    {currencies[5] if len(currencies)>5 else '-'}")
+    print(f"contest tok:   {currencies[6] if len(currencies)>6 else '-'}")
     print(f"quests done:   {stats.get('questsCompleted', 0)}  (xp {s.get('quests',{}).get('xp')})")
     print(f"hatched:       {stats.get('totalPokemonHatched', 0)}")
     print(f"shinies caught:{stats.get('totalShinyPokemonCaptured', 0)}")
@@ -151,6 +167,18 @@ def cmd_quest_pts(args: argparse.Namespace) -> int:
 
 def cmd_farm_pts(args: argparse.Namespace) -> int:
     return _set_currency(args, CURRENCY["farm"])
+
+
+def cmd_diamonds(args: argparse.Namespace) -> int:
+    return _set_currency(args, CURRENCY["diamonds"])
+
+
+def cmd_battle_pts(args: argparse.Namespace) -> int:
+    return _set_currency(args, CURRENCY["battle"])
+
+
+def cmd_contest_tokens(args: argparse.Namespace) -> int:
+    return _set_currency(args, CURRENCY["contest"])
 
 
 def _set_currency(args: argparse.Namespace, idx: int) -> int:
@@ -302,6 +330,9 @@ def main(argv: list[str] | None = None) -> int:
         ("tokens", cmd_tokens),
         ("quest-points", cmd_quest_pts),
         ("farm-points", cmd_farm_pts),
+        ("diamonds", cmd_diamonds),
+        ("battle-points", cmd_battle_pts),
+        ("contest-tokens", cmd_contest_tokens),
     ]:
         p = sub.add_parser(name, help=f"set/add {name.replace('-',' ')}")
         p.add_argument("input")

@@ -25,7 +25,7 @@
   // user loads a new save (store.data identity changes).
   let currencies = $derived.by<Currencies>(() => {
     if (!store.data) {
-      return { money: 0, tokens: 0, quest: 0, diamonds: 0, farm: 0 }
+      return { money: 0, quest: 0, tokens: 0, diamonds: 0, farm: 0, battle: 0, contest: 0 }
     }
     return readCurrencies(store.data)
   })
@@ -81,12 +81,16 @@
     store.markDirty()
   }
 
+  // Row order matches PokeClicker's `enum Currency` (and the desktop
+  // CURRENCY_LABELS in pcedit_gui.py), not the legacy PCEdit swap.
   const CURRENCY_ROWS: Array<{ key: CurrencyKey; label: string }> = [
-    { key: 'money', label: 'PokéDollars' },
-    { key: 'tokens', label: 'Dungeon Tokens' },
-    { key: 'quest', label: 'Quest Points' },
+    { key: 'money',    label: 'PokéDollars' },
+    { key: 'quest',    label: 'Quest Points' },
+    { key: 'tokens',   label: 'Dungeon Tokens' },
     { key: 'diamonds', label: 'Diamonds' },
-    { key: 'farm', label: 'Farm Points' },
+    { key: 'farm',     label: 'Farm Points' },
+    { key: 'battle',   label: 'Battle Points' },
+    { key: 'contest',  label: 'Contest Tokens' },
   ]
 </script>
 

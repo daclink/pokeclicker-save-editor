@@ -39,7 +39,7 @@ Top-level shape:
 
 A few observed conventions worth knowing:
 
-- **`save.wallet.currencies`** is positional: `[money, dungeonTokens, questPoints, diamonds, farmPoints, battlePoints]`.
+- **`save.wallet.currencies`** is positional, matching PokeClicker's `enum Currency`: `[money, questPoints, dungeonTokens, diamonds, farmPoints, battlePoints, contestTokens]`.
 - **`save.party.caughtPokemon[i]`** is a dict whose keys are integer-strings:
   - `"0"` — attack bonus from hatching (25 = first hatch tier).
   - `"1"` — pokerus state.
@@ -175,7 +175,7 @@ re-loads — handy if a save you just wrote causes the game to misbehave.
 
 | tab | what you can change |
 |---|---|
-| **Currencies & Multipliers** | PokéDollars, Dungeon Tokens, Quest Points, Diamonds, Farm Points, plus four price multipliers from `player._itemMultipliers`: **Protein**, **Calcium**, **Carbos** (`<vitamin>\|money`) and **Master Ball** (`Masterball\|farmPoint`). Each row has a *Reset to 1.0* button; **Reset all vitamins to 1.0** zeros the three vitamins in one click. Rows left at exactly 1.0 are dropped from the save instead of being written, so the editor never adds spurious keys for shop items the user has never bought. |
+| **Currencies & Multipliers** | PokéDollars, Quest Points, Dungeon Tokens, Diamonds, Farm Points, Battle Points, Contest Tokens, plus four price multipliers from `player._itemMultipliers`: **Protein**, **Calcium**, **Carbos** (`<vitamin>\|money`) and **Master Ball** (`Masterball\|farmPoint`). Each row has a *Reset to 1.0* button; **Reset all vitamins to 1.0** zeros the three vitamins in one click. Rows left at exactly 1.0 are dropped from the save instead of being written, so the editor never adds spurious keys for shop items the user has never bought. |
 | **Eggs** | The breeding `eggList` (one row per slot). *Edit selected* opens a form. *Hatch now* sets `steps = totalSteps`. *Make empty* clears a slot back to `{type: -1, pokemon: 0}`. *Add egg* / *Remove* manage entries. **Quick-add** buttons drop a Grass / Fire / Water / Dragon / Mystery egg into the first empty slot (or append, bumping `eggSlots`). The `eggSlots` field above the table controls how many slots the game shows. |
 | **Shards** | Counts for the 16 type-shard colors (Red/Yellow/Green/Blue, Black/Grey, Purple/Crimson, Pink/White, Cyan/Lime, Rose/Ochre, Beige/Indigo). Editing a color you haven't unlocked yet is fine — it appears once you reach the right region. Buttons set the whole grid to 999 / 9999 / 0 in one click. Any unrecognised `*_shard` items in the save show up in the "Other" panel below the grid. |
 | **Berries** | All 70 BerryType entries from the v0.10.25 enum, sortable by index / name / count / unlocked state. Multi-select rows and use *Edit count…*, *Unlock selected*, or *Lock selected* for targeted edits; bulk buttons fill the whole roster (*Unlock/Lock all*, *Zero counts*, *All counts to 999 / 9999*). The *Show unlocked only* filter hides locked rows during edits. Below: the 7-slot `mulchList` (labelled from the `MulchType` enum, with the extra slot flagged as *Slot 6*) and the two shovel scalars (`shovelAmt`, `mulchShovelAmt`). `plotList`, `mutations`, and `farmHands` are not exposed — those are live mid-game state best touched in the game itself. |
@@ -213,9 +213,12 @@ Reference:
 | `get <save> <path>` | Read any field by [path](#path-syntax). |
 | `set <save> <path> <value> [-o out]` | Write any field. Value parsed as JSON literal first, then scalar. |
 | `money <save> <amount> [--add]` | Set/add PokéDollars (`currencies[0]`). |
-| `tokens <save> <amount> [--add]` | Set/add Dungeon Tokens (`currencies[1]`). |
-| `quest-points <save> <amount> [--add]` | Set/add Quest Points (`currencies[2]`). |
+| `quest-points <save> <amount> [--add]` | Set/add Quest Points (`currencies[1]`). |
+| `tokens <save> <amount> [--add]` | Set/add Dungeon Tokens (`currencies[2]`). |
+| `diamonds <save> <amount> [--add]` | Set/add Diamonds (`currencies[3]`). |
 | `farm-points <save> <amount> [--add]` | Set/add Farm Points (`currencies[4]`). |
+| `battle-points <save> <amount> [--add]` | Set/add Battle Points (`currencies[5]`). |
+| `contest-tokens <save> <amount> [--add]` | Set/add Contest Tokens (`currencies[6]`). |
 | `give <save> <item> <amount> [--set]` | Add (or `--set`) an inventory item count in `player._itemList`. |
 | `keyitem <save> <name> [--off]` | Toggle a key item under `save.keyItems`. |
 | `berry <save> <index> [--off]` | Unlock/lock a berry by index. |
@@ -234,13 +237,13 @@ python3 pcedit.py get     save.txt save.statistics.totalMoney
 python3 pcedit.py get     save.txt 'save.party.caughtPokemon[id=25]'
 
 # Currencies
-python3 pcedit.py money        save.txt 9999999
-python3 pcedit.py tokens       save.txt 1000000 --add
-python3 pcedit.py quest-points save.txt 50000
-python3 pcedit.py farm-points  save.txt 10000
-
-# Diamonds (no shortcut — use raw set)
-python3 pcedit.py set save.txt 'save.wallet.currencies[3]' 500
+python3 pcedit.py money          save.txt 9999999
+python3 pcedit.py quest-points   save.txt 50000
+python3 pcedit.py tokens         save.txt 1000000 --add
+python3 pcedit.py diamonds       save.txt 500
+python3 pcedit.py farm-points    save.txt 10000
+python3 pcedit.py battle-points  save.txt 1000
+python3 pcedit.py contest-tokens save.txt 200
 
 # Protein price multiplier
 python3 pcedit.py set save.txt 'player._itemMultipliers.Protein|money' 1.0

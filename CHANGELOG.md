@@ -12,6 +12,22 @@ Release notes.
 ## [Unreleased]
 
 ### Fixed
+- **Wallet currency indices 1 and 2 were swapped vs canonical PokeClicker.**
+  PCEdit's `CURRENCY` constant historically mapped the slug `tokens`
+  to index 1 and `quest` to index 2, but PokeClicker's
+  `enum Currency` in `src/modules/GameConstants.ts` has `questPoint`
+  at 1 and `dungeonToken` at 2. Both the desktop summary print
+  (`pcedit.py` lines 103–106), the desktop `CurrenciesTab` row labels
+  (`pcedit_gui.py` `CURRENCY_LABELS`), the web `currencies.ts`
+  `CURRENCY_INDEX`, the web `CurrenciesTab.svelte` `CURRENCY_ROWS`,
+  the CLI subcommand wrappers (`cmd_tokens` / `cmd_quest_pts`), and
+  the README's positional-array doc all suffered from the swap. The
+  fix changes only the mapping, not the slugs — `pcedit tokens` /
+  `pcedit quest-points` continue to work, but now write the right
+  slot. Saves you previously edited with the buggy semantics still
+  load fine (storage is positional, only labels are interpretive)
+  but the displayed/edited values will appear under the corrected
+  labels going forward.
 - **Eggs tab edit dialog was clipping fields** on shorter viewports —
   native `<dialog>` was getting capped at viewport height without a
   scrollbar, and the NumberField label column (sized for the wider
@@ -81,6 +97,20 @@ Release notes.
   Data shape (`save.gems.gemWallet`, 18-entry int list) is already
   locked by the schema test; the tab itself will mirror Shards in
   both runtimes once the SPA stabilises.
+- **Battle Points and Contest Tokens — currency slots 5 and 6.**
+  Both runtimes now surface the two trailing slots in
+  `save.wallet.currencies` that the editor previously left untouched:
+  `currencies[5]` (battlePoint, earned at the Battle Frontier) and
+  `currencies[6]` (contestToken, used in BattleCafe). Web shows them
+  as two new rows in the Currencies & Multipliers tab; desktop adds
+  them to `CURRENCY_LABELS` and the summary print. CLI gets three
+  new subcommands: `battle-points` / `contest-tokens` (the two newly
+  surfaced) and `diamonds` (filling a long-standing gap — index 3
+  had no shortcut before). `writeCurrencies` now pads short wallets
+  up to the contest-token slot before writing, so a save predating
+  these positions still round-trips cleanly. Web tests updated
+  (fixture expectations now cover all 7 slots, plus a pad-and-write
+  test).
 - **Flutes tab in the SPA.** Seventh ported tab. `web/src/lib/flutes.ts`
   exposes `readKnownFlutes` / `writeKnownFlutes` over the 6 canonical
   flutes (`Yellow`, `Black`, `Time`, `Red`, `White`, `Blue` — matching

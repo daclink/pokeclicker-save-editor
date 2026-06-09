@@ -2,8 +2,9 @@
 """pcedit_gui — Tkinter GUI for editing PokeClicker saves.
 
 Tabs:
-- Currencies & Multipliers: PokéDollars, dungeon tokens, quest points,
-  diamonds, farm points, plus the Protein price multiplier.
+- Currencies & Multipliers: PokéDollars, quest points, dungeon tokens,
+  diamonds, farm points, battle points, contest tokens, plus the
+  Protein price multiplier.
 - Eggs: edit/add/remove the 4-slot breeding egg list.
 - Caught Pokémon: scrollable table; double-click a row to edit.
 
@@ -48,14 +49,17 @@ from pcedit_updates import (
 )
 
 
-# Index → label for save.wallet.currencies. Position 5 is BattlePoints in some
-# versions; we leave it untouched.
+# Index → label for save.wallet.currencies. Matches PokeClicker's
+# `enum Currency` (see CURRENCY in pcedit.py for the canonical mapping
+# and the Fixed entry in CHANGELOG for the historical swap fix).
 CURRENCY_LABELS = [
-    ("PokéDollars",   0),
-    ("Dungeon Tokens", 1),
-    ("Quest Points",   2),
-    ("Diamonds",       3),
-    ("Farm Points",    4),
+    ("PokéDollars",     0),
+    ("Quest Points",    1),
+    ("Dungeon Tokens",  2),
+    ("Diamonds",        3),
+    ("Farm Points",     4),
+    ("Battle Points",   5),
+    ("Contest Tokens",  6),
 ]
 
 # Multipliers in player._itemMultipliers we expose as named rows.

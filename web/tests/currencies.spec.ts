@@ -32,66 +32,63 @@ const loadFixture = () => decodeBytes(readFileSync(FIXTURE, 'utf8').trim())
 describe('currencies', () => {
   test('readCurrencies pulls positional values from save.wallet.currencies', () => {
     const data = loadFixture()
+    // Fixture array is [10000, 1000, 100, 10, 50, 0, 0] — canonical order:
+    // money / questPoint / dungeonToken / diamond / farmPoint / battlePoint
+    // / contestToken.
     expect(readCurrencies(data)).toEqual({
-      money: 10000,
-      tokens: 1000,
-      quest: 100,
+      money:    10000,
+      quest:    1000,
+      tokens:   100,
       diamonds: 10,
-      farm: 50,
+      farm:     50,
+      battle:   0,
+      contest:  0,
     })
   })
 
   test('writeCurrencies round-trips through readCurrencies', () => {
     const data = loadFixture()
     writeCurrencies(data, {
-      money: 9999999,
-      tokens: 500000,
-      quest: 250000,
+      money:    9999999,
+      quest:    250000,
+      tokens:   500000,
       diamonds: 2500,
-      farm: 75000,
+      farm:     75000,
+      battle:   1234,
+      contest:  567,
     })
     expect(readCurrencies(data)).toEqual({
-      money: 9999999,
-      tokens: 500000,
-      quest: 250000,
+      money:    9999999,
+      quest:    250000,
+      tokens:   500000,
       diamonds: 2500,
-      farm: 75000,
+      farm:     75000,
+      battle:   1234,
+      contest:  567,
     })
   })
 
-  test('writeCurrencies preserves higher slots (battle points, etc.)', () => {
+  test('writeCurrencies pads short wallets up to the contest-token slot', () => {
     const data = loadFixture()
-    const before = ((data.save as any).wallet.currencies as number[])[5]
+    // Truncate the fixture wallet to simulate an older save without BP/contest.
+    ;(data.save as any).wallet.currencies = [10000, 1000, 100, 10, 50]
     writeCurrencies(data, {
-      money: 1,
-      tokens: 2,
-      quest: 3,
-      diamonds: 4,
-      farm: 5,
+      money: 1, quest: 2, tokens: 3, diamonds: 4, farm: 5, battle: 6, contest: 7,
     })
-    expect(((data.save as any).wallet.currencies as number[])[5]).toBe(before)
+    const arr = (data.save as any).wallet.currencies as number[]
+    expect(arr).toHaveLength(7)
+    expect(arr).toEqual([1, 2, 3, 4, 5, 6, 7])
   })
 
   test('writeCurrencies rejects negative and non-integer inputs', () => {
     const data = loadFixture()
-    expect(() =>
-      writeCurrencies(data, {
-        money: -1,
-        tokens: 0,
-        quest: 0,
-        diamonds: 0,
-        farm: 0,
-      }),
-    ).toThrow(/non-negative integer/)
-    expect(() =>
-      writeCurrencies(data, {
-        money: 1.5,
-        tokens: 0,
-        quest: 0,
-        diamonds: 0,
-        farm: 0,
-      }),
-    ).toThrow(/non-negative integer/)
+    const zeroed = {
+      money: 0, quest: 0, tokens: 0, diamonds: 0, farm: 0, battle: 0, contest: 0,
+    }
+    expect(() => writeCurrencies(data, { ...zeroed, money: -1 })).toThrow(/non-negative integer/)
+    expect(() => writeCurrencies(data, { ...zeroed, money: 1.5 })).toThrow(/non-negative integer/)
+    expect(() => writeCurrencies(data, { ...zeroed, battle: -5 })).toThrow(/non-negative integer/)
+    expect(() => writeCurrencies(data, { ...zeroed, contest: 1.1 })).toThrow(/non-negative integer/)
   })
 })
 
