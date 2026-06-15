@@ -12,6 +12,16 @@ Release notes.
 ## [Unreleased]
 
 ### Fixed
+- **Caught Pokémon: pokérus and shiny read the wrong save keys (web).**
+  The Caught tab read pokérus from key `"1"` (which is actually
+  `attackBonusAmount`), so the column showed large numbers instead of the
+  Pokérus state. Pokérus lives at key `"8"` (the canonical
+  `PartyPokemonSaveKeys` enum). The "resistant" column/flag was reading and
+  writing key `"5"`, which is actually the **shiny** flag — so "Mark
+  resistant" silently toggled shiny. Pokérus now reads/writes key `"8"` and
+  is edited via a named dropdown (0 Uninfected / 1 Infected / 2 Contagious /
+  3 Resistant); the column is relabeled **Shiny** to reflect what key `"5"`
+  really is. Desktop is unchanged (being discontinued).
 - **Wallet currency indices 1 and 2 were swapped vs canonical PokeClicker.**
   PCEdit's `CURRENCY` constant historically mapped the slug `tokens`
   to index 1 and `quest` to index 2, but PokeClicker's

@@ -10,23 +10,27 @@
     readCaughtRows,
     setCaughtAtkBonus,
     setCaughtEntry,
-    setCaughtResistant,
+    setCaughtShiny,
     type CaughtPatch,
     type CaughtRow,
   } from '../lib/caught'
   import NumberField from '../components/NumberField.svelte'
+
+  // PokeClicker Pokerus enum (key "8"): 0 Uninfected … 3 Resistant.
+  const POKERUS_LABELS = ['Uninfected', 'Infected', 'Contagious', 'Resistant'] as const
+  const pokerusLabel = (n: number): string => POKERUS_LABELS[n] ?? String(n)
 
   // --- reactive state ----------------------------------------------------
 
   let tick = $state(0)
   let selectedId = $state<number | null>(null)
 
-  type SortCol = 'id' | 'name' | 'atkBonus' | 'pokerus' | 'exp' | 'inEgg' | 'resistant'
+  type SortCol = 'id' | 'name' | 'atkBonus' | 'pokerus' | 'exp' | 'inEgg' | 'shiny'
   let sortCol = $state<SortCol>('id')
   let sortReverse = $state(false)
 
   const NUMERIC_COLS: ReadonlySet<SortCol> = new Set(['id', 'atkBonus', 'pokerus', 'exp'])
-  const BOOL_COLS: ReadonlySet<SortCol> = new Set(['inEgg', 'resistant'])
+  const BOOL_COLS: ReadonlySet<SortCol> = new Set(['inEgg', 'shiny'])
 
   let rows = $derived.by<CaughtRow[]>(() => {
     void tick
@@ -92,15 +96,15 @@
 
   // --- quick actions -----------------------------------------------------
 
-  function onMarkResistant(): void {
+  function onMarkShiny(): void {
     if (selectedId === null) return
     const id = selectedId
-    refreshAfter(() => setCaughtResistant(store.data!, [id], true))
+    refreshAfter(() => setCaughtShiny(store.data!, [id], true))
   }
-  function onClearResistant(): void {
+  function onClearShiny(): void {
     if (selectedId === null) return
     const id = selectedId
-    refreshAfter(() => setCaughtResistant(store.data!, [id], false))
+    refreshAfter(() => setCaughtShiny(store.data!, [id], false))
   }
   function onAtkBonus100(): void {
     if (selectedId === null) return
@@ -120,7 +124,7 @@
       pokerus: selectedRow.pokerus,
       exp: selectedRow.exp,
       inEgg: selectedRow.inEgg,
-      resistant: selectedRow.resistant,
+      shiny: selectedRow.shiny,
     }
     dialogEl?.showModal()
   }
@@ -164,7 +168,7 @@
             <th><button type="button" onclick={() => toggleSort('pokerus')}>pokerus{sortIndicator('pokerus')}</button></th>
             <th><button type="button" onclick={() => toggleSort('exp')}>exp{sortIndicator('exp')}</button></th>
             <th><button type="button" onclick={() => toggleSort('inEgg')}>in egg{sortIndicator('inEgg')}</button></th>
-            <th><button type="button" onclick={() => toggleSort('resistant')}>resistant{sortIndicator('resistant')}</button></th>
+            <th><button type="button" onclick={() => toggleSort('shiny')}>shiny{sortIndicator('shiny')}</button></th>
           </tr>
         </thead>
         <tbody>
@@ -177,10 +181,10 @@
               <td>{row.id}</td>
               <td class="name-col">{row.name}</td>
               <td>{row.atkBonus}</td>
-              <td>{row.pokerus}</td>
+              <td>{pokerusLabel(row.pokerus)}</td>
               <td>{row.exp}</td>
               <td>{row.inEgg ? 'yes' : ''}</td>
-              <td>{row.resistant ? 'yes' : ''}</td>
+              <td>{row.shiny ? 'yes' : ''}</td>
             </tr>
           {:else}
             <tr><td colspan="7" class="muted">(no caught pokémon)</td></tr>
@@ -193,11 +197,11 @@
       <button type="button" onclick={openEdit} disabled={selectedRow === null}>
         Edit selected…
       </button>
-      <button type="button" onclick={onMarkResistant} disabled={selectedRow === null}>
-        Mark resistant
+      <button type="button" onclick={onMarkShiny} disabled={selectedRow === null}>
+        Mark shiny
       </button>
-      <button type="button" onclick={onClearResistant} disabled={selectedRow === null}>
-        Clear resistant
+      <button type="button" onclick={onClearShiny} disabled={selectedRow === null}>
+        Clear shiny
       </button>
       <button type="button" onclick={onAtkBonus100} disabled={selectedRow === null}>
         Set atkBonus 100
@@ -217,12 +221,17 @@
         onCommit={(n) => (draft.atkBonus = n)}
         labelWidth="11rem"
       />
-      <NumberField
-        label="pokerus (0=none, 1–4)"
-        value={draft.pokerus ?? 0}
-        onCommit={(n) => (draft.pokerus = n)}
-        labelWidth="11rem"
-      />
+      <label class="row select-row">
+        <span class="select-label">pokerus</span>
+        <select
+          value={String(draft.pokerus ?? 0)}
+          onchange={(e) => (draft.pokerus = Number((e.target as HTMLSelectElement).value))}
+        >
+          {#each POKERUS_LABELS as label, value (value)}
+            <option value={String(value)}>{value} — {label}</option>
+          {/each}
+        </select>
+      </label>
       <NumberField
         label="exp"
         value={draft.exp ?? 0}
@@ -241,10 +250,10 @@
       <label class="row checkbox">
         <input
           type="checkbox"
-          checked={draft.resistant ?? false}
-          onchange={(e) => (draft.resistant = (e.target as HTMLInputElement).checked)}
+          checked={draft.shiny ?? false}
+          onchange={(e) => (draft.shiny = (e.target as HTMLInputElement).checked)}
         />
-        <span>resistant</span>
+        <span>shiny</span>
       </label>
 
       <div class="dialog-actions">
@@ -379,6 +388,21 @@
   }
   .row.checkbox {
     margin-top: 0.25rem;
+  }
+  .select-row {
+    gap: 0.75rem;
+  }
+  .select-label {
+    width: 11rem;
+    flex: none;
+  }
+  .select-row select {
+    flex: 1;
+    padding: 0.3rem 0.4rem;
+    font: inherit;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: white;
   }
   .dialog-actions {
     display: flex;
