@@ -11,6 +11,15 @@ Release notes.
 
 ## [Unreleased]
 
+### Added
+- **Web: Pokédex tab.** Ports the desktop Pokédex feature to the browser app —
+  pick a region, view its dex with caught marks (with a "show uncaught only"
+  filter), and mark uncaught pokémon caught (selected rows or the whole
+  region). Already-caught entries are left untouched. An optional "Also bump
+  capture stats" toggle (off by default) keeps the Trainer Card counters
+  (`totalPokemonCaptured`, `pokemonCaptured.<id>`, gender buckets, …)
+  consistent with the dex.
+
 ### Fixed
 - **Wallet currency indices 1 and 2 were swapped vs canonical PokeClicker.**
   PCEdit's `CURRENCY` constant historically mapped the slug `tokens`
