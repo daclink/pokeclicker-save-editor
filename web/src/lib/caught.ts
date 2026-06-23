@@ -1,27 +1,32 @@
 /**
- * Read/write helpers for the Caught Pokémon tab — port of
- * pcedit_gui.CaughtTab and CaughtDialog.
+ * Read/write helpers for the Caught Pokémon tab.
  *
- * Save shape (under `save.party.caughtPokemon`):
+ * Save shape (under `save.party.caughtPokemon`). Numeric keys are the
+ * canonical PokeClicker `PartyPokemonSaveKeys` enum — only the ones the
+ * editor touches are listed; the rest are preserved untouched:
  *
  *   [
  *     {
  *       id:  pokédex id (int),
- *       "0": attack bonus from hatching (25 = first hatch tier),
- *       "1": pokerus state (0..4),
- *       "2": EVs by attack type (dict; the editor does not touch this),
- *       "3": total exp,
- *       "4": (optional bool) currently in egg / breeding-pending,
- *       "5": (optional bool) resistant flag,
+ *       "0": attackBonusPercent — hatch bonus (25 = first hatch tier),
+ *       "1": attackBonusAmount  — flat attack bonus (NOT edited; preserved),
+ *       "2": vitaminsUsed       — dict (NOT edited; preserved),
+ *       "3": exp                — total exp,
+ *       "4": (optional bool) breeding — currently in the hatchery/egg,
+ *       "5": (optional bool) shiny,
+ *       "8": pokerus state — Pokerus enum 0..3
+ *            (0 Uninfected, 1 Infected, 2 Contagious, 3 Resistant),
  *     },
  *     ...
  *   ]
  *
- * The desktop tab preserves the "key absent" vs "value false" distinction
- * for the `4` and `5` flags: setting either to false **removes** the key.
- * That matches what real saves look like (the game writes the keys only
- * when the flags are true) and keeps round-trips clean. We mirror that
- * here.
+ * Pokerus lives at key "8" — earlier versions of this editor read it from
+ * "1" (attackBonusAmount), which surfaced large numbers as "pokerus".
+ *
+ * The "4" (breeding/in-egg) and "5" (shiny) flags follow the "key absent"
+ * vs "value false" distinction: setting either to false **removes** the
+ * key. That matches what real saves look like (the game writes the keys
+ * only when true) and keeps byte-identical round-trips clean.
  */
 import { nameFor } from './data'
 import type { SaveData } from './save'
@@ -31,11 +36,11 @@ import type { SaveData } from './save'
 export type CaughtRow = {
   id: number
   name: string
-  atkBonus: number   // "0"
-  pokerus: number    // "1"
-  exp: number        // "3"
-  inEgg: boolean     // "4" — true iff key present and truthy
-  resistant: boolean // "5" — true iff key present and truthy
+  atkBonus: number // "0"
+  pokerus: number  // "8" — Pokerus enum 0..3
+  exp: number      // "3"
+  inEgg: boolean   // "4" (breeding) — true iff key present and truthy
+  shiny: boolean   // "5" — true iff key present and truthy
 }
 
 /** Patch shape applied by the edit dialog. Optional fields are skipped. */
@@ -44,7 +49,7 @@ export type CaughtPatch = {
   pokerus?: number
   exp?: number
   inEgg?: boolean
-  resistant?: boolean
+  shiny?: boolean
 }
 
 // --- accessors --------------------------------------------------------------
@@ -87,6 +92,13 @@ function ensureNonNegInt(name: string, v: number): void {
   }
 }
 
+/** Pokerus is the PokeClicker Pokerus enum: 0..3. */
+function ensurePokerus(v: number): void {
+  if (!Number.isInteger(v) || v < 0 || v > 3) {
+    throw new RangeError(`pokerus: expected integer 0..3 (Uninfected..Resistant), got ${v}`)
+  }
+}
+
 // --- public reads -----------------------------------------------------------
 
 export function readCaughtRows(data: SaveData): CaughtRow[] {
@@ -99,10 +111,10 @@ export function readCaughtRows(data: SaveData): CaughtRow[] {
       id,
       name: nameFor(id),
       atkBonus: asInt(entry['0']),
-      pokerus: asInt(entry['1']),
+      pokerus: asInt(entry['8']),
       exp: asInt(entry['3']),
       inEgg: Boolean(entry['4']),
-      resistant: Boolean(entry['5']),
+      shiny: Boolean(entry['5']),
     })
   }
   return out
@@ -126,8 +138,8 @@ export function setCaughtEntry(
     entry['0'] = patch.atkBonus
   }
   if (patch.pokerus !== undefined) {
-    ensureNonNegInt('pokerus', patch.pokerus)
-    entry['1'] = patch.pokerus
+    ensurePokerus(patch.pokerus)
+    entry['8'] = patch.pokerus
   }
   if (patch.exp !== undefined) {
     ensureNonNegInt('exp', patch.exp)
@@ -137,14 +149,14 @@ export function setCaughtEntry(
     if (patch.inEgg) entry['4'] = true
     else delete entry['4']
   }
-  if (patch.resistant !== undefined) {
-    if (patch.resistant) entry['5'] = true
+  if (patch.shiny !== undefined) {
+    if (patch.shiny) entry['5'] = true
     else delete entry['5']
   }
 }
 
-/** Bulk: set `resistant` on multiple ids. Off → delete the key (no `false`). */
-export function setCaughtResistant(
+/** Bulk: set `shiny` (key "5") on multiple ids. Off → delete the key (no `false`). */
+export function setCaughtShiny(
   data: SaveData,
   ids: number[],
   on: boolean,

@@ -1,9 +1,14 @@
 /**
  * Pure-function tests for the caught-pokémon helpers.
  *
- * Particular focus on the key-present-iff-true rule for inEgg/resistant —
- * a regression here would break byte-identity round-trips against real
- * saves that have never had those flags set.
+ * Key mapping is the canonical PokeClicker PartyPokemonSaveKeys:
+ *   0 attackBonusPercent, 1 attackBonusAmount, 2 vitaminsUsed, 3 exp,
+ *   4 breeding, 5 shiny, 8 pokerus, 9 effortPoints.
+ *
+ * Particular focus on (a) pokerus living at key "8" (NOT "1"), (b) shiny at
+ * key "5", and (c) the key-present-iff-true rule for inEgg/shiny — a
+ * regression there would break byte-identity round-trips against real saves
+ * that have never had those flags set.
  */
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
@@ -15,7 +20,7 @@ import {
   setCaughtAtkBonus,
   setCaughtEntry,
   setCaughtInEgg,
-  setCaughtResistant,
+  setCaughtShiny,
 } from '../src/lib/caught'
 
 const FIXTURE = resolve(
@@ -48,9 +53,10 @@ describe('readCaughtRows', () => {
       expect(typeof r.name).toBe('string')
       expect(r.name.length).toBeGreaterThan(0)
       expect(typeof r.atkBonus).toBe('number')
+      expect(typeof r.pokerus).toBe('number')
       expect(typeof r.exp).toBe('number')
       expect(typeof r.inEgg).toBe('boolean')
-      expect(typeof r.resistant).toBe('boolean')
+      expect(typeof r.shiny).toBe('boolean')
     }
   })
 
@@ -61,16 +67,44 @@ describe('readCaughtRows', () => {
     expect(byId.get(4)?.name).toBe('Charmander')
     expect(byId.get(25)?.name).toBe('Pikachu')
   })
+
+  test('pokerus reads key "8" (state), never "1" (attackBonusAmount)', () => {
+    // Regression: the editor previously read pokerus from key "1", surfacing
+    // large attackBonusAmount values as "pokerus". Pokerus lives at key "8".
+    const data = loadFixture()
+    const e = rawEntry(data, 4)
+    e['1'] = 2046 // attackBonusAmount — a big number that must NOT be pokerus
+    e['8'] = 2 // real pokerus = Contagious
+    const row = readCaughtRows(data).find((r) => r.id === 4)!
+    expect(row.pokerus).toBe(2)
+  })
+
+  test('shiny reads key "5"', () => {
+    const data = loadFixture()
+    rawEntry(data, 25)['5'] = true
+    const row = readCaughtRows(data).find((r) => r.id === 25)!
+    expect(row.shiny).toBe(true)
+  })
 })
 
 describe('setCaughtEntry', () => {
-  test('numeric fields round-trip', () => {
+  test('numeric fields round-trip to canonical keys', () => {
     const data = loadFixture()
     setCaughtEntry(data, 4, { atkBonus: 100, pokerus: 3, exp: 1234567 })
+    expect(rawEntry(data, 4)['0']).toBe(100) // attackBonusPercent
+    expect(rawEntry(data, 4)['8']).toBe(3) // pokerus -> key "8", not "1"
+    expect(rawEntry(data, 4)['3']).toBe(1234567)
     const row = readCaughtRows(data).find((r) => r.id === 4)!
     expect(row.atkBonus).toBe(100)
     expect(row.pokerus).toBe(3)
     expect(row.exp).toBe(1234567)
+  })
+
+  test('pokerus rejects values outside 0..3', () => {
+    const data = loadFixture()
+    expect(() => setCaughtEntry(data, 4, { pokerus: 4 })).toThrow(/pokerus/)
+    expect(() => setCaughtEntry(data, 4, { pokerus: -1 })).toThrow(/pokerus/)
+    expect(() => setCaughtEntry(data, 4, { pokerus: 1.5 })).toThrow(/pokerus/)
   })
 
   test('inEgg=true sets the "4" key; inEgg=false deletes it', () => {
@@ -81,21 +115,21 @@ describe('setCaughtEntry', () => {
     expect('4' in rawEntry(data, 4)).toBe(false)
   })
 
-  test('resistant=true sets the "5" key; resistant=false deletes it', () => {
+  test('shiny=true sets the "5" key; shiny=false deletes it', () => {
     const data = loadFixture()
-    setCaughtEntry(data, 25, { resistant: true })
+    setCaughtEntry(data, 25, { shiny: true })
     expect(rawEntry(data, 25)['5']).toBe(true)
-    setCaughtEntry(data, 25, { resistant: false })
+    setCaughtEntry(data, 25, { shiny: false })
     expect('5' in rawEntry(data, 25)).toBe(false)
   })
 
-  test('preserves untouched fields and the EVs sub-dict', () => {
+  test('preserves untouched fields and the vitamins sub-dict', () => {
     const data = loadFixture()
     const before = { ...rawEntry(data, 4) }
     setCaughtEntry(data, 4, { atkBonus: 50 })
     const after = rawEntry(data, 4)
-    expect(after['1']).toBe(before['1']) // pokerus untouched
-    expect(after['2']).toEqual(before['2']) // EVs untouched
+    expect(after['1']).toBe(before['1']) // attackBonusAmount untouched
+    expect(after['2']).toEqual(before['2']) // vitamins untouched
     expect(after['3']).toBe(before['3']) // exp untouched
   })
 
@@ -112,12 +146,12 @@ describe('setCaughtEntry', () => {
 })
 
 describe('quick-action bulk helpers', () => {
-  test('setCaughtResistant true sets the key, false deletes it', () => {
+  test('setCaughtShiny true sets key "5", false deletes it', () => {
     const data = loadFixture()
-    setCaughtResistant(data, [4, 25], true)
+    setCaughtShiny(data, [4, 25], true)
     expect(rawEntry(data, 4)['5']).toBe(true)
     expect(rawEntry(data, 25)['5']).toBe(true)
-    setCaughtResistant(data, [4, 25], false)
+    setCaughtShiny(data, [4, 25], false)
     expect('5' in rawEntry(data, 4)).toBe(false)
     expect('5' in rawEntry(data, 25)).toBe(false)
   })
