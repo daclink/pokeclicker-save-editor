@@ -422,7 +422,7 @@ import { describe, expect, test } from 'vitest'
 import { SECTIONS } from '../src/lib/sections'
 
 describe('SECTIONS', () => {
-  test('lists the seven editor sections in order', () => {
+  test('lists the eight editor sections in order', () => {
     expect(SECTIONS.map((s) => s.id)).toEqual([
       'currencies',
       'eggs',
@@ -431,6 +431,7 @@ describe('SECTIONS', () => {
       'flutes',
       'berries',
       'caught',
+      'pokedex',
     ])
   })
 
@@ -466,6 +467,7 @@ export type SectionId =
   | 'flutes'
   | 'berries'
   | 'caught'
+  | 'pokedex'
 
 export type Section = {
   id: SectionId
@@ -482,6 +484,7 @@ export const SECTIONS: readonly Section[] = [
   { id: 'flutes', label: 'Flutes', icon: '🎵' },
   { id: 'berries', label: 'Berries', icon: '🫐' },
   { id: 'caught', label: 'Caught Pokémon', icon: '⛺' },
+  { id: 'pokedex', label: 'Pokédex', icon: '📕' },
 ]
 ```
 
@@ -1076,6 +1079,7 @@ describe('App shell', () => {
       'Flutes',
       'Berries',
       'Caught Pokémon',
+      'Pokédex',
     ]) {
       expect(getByText(label)).toBeTruthy()
     }
@@ -1116,6 +1120,7 @@ Replace the entire contents of `web/src/App.svelte`:
   import FlutesTab from './tabs/FlutesTab.svelte'
   import BerriesTab from './tabs/BerriesTab.svelte'
   import CaughtTab from './tabs/CaughtTab.svelte'
+  import PokedexTab from './tabs/PokedexTab.svelte'
 
   let active = $state<SectionId>(SECTIONS[0].id)
 </script>
@@ -1142,6 +1147,8 @@ Replace the entire contents of `web/src/App.svelte`:
       <BerriesTab />
     {:else if active === 'caught'}
       <CaughtTab />
+    {:else if active === 'pokedex'}
+      <PokedexTab />
     {/if}
 
     <footer>
@@ -1297,7 +1304,7 @@ Expected: succeeds with 0 errors. If `svelte-check` is not part of `build`, also
 Run: `npm run dev`, then verify against a real save from `../pokeclicker`:
 - [ ] Empty state shows on first load, privacy line visible
 - [ ] Browse loads a save; the active section renders
-- [ ] Sidebar switches all 7 sections; active item shows the red left border
+- [ ] Sidebar switches all 8 sections (incl. Pokédex); active item shows the red left border
 - [ ] Save (download) produces a `.txt`; dirty dot appears after an edit
 - [ ] Theme toggle flips dark ↔ light and persists across reload (no FOUC)
 - [ ] At <720px width: hamburger opens the drawer; picking a section closes it
