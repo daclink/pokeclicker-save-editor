@@ -77,16 +77,59 @@ describe('happy-dom env', () => {
 })
 ```
 
-- [ ] **Step 3: Run it**
+- [ ] **Step 3: Bridge `localStorage` for Node ≥25 (setup file)**
+
+Node 25 exposes a native `localStorage`/`sessionStorage` global that throws
+`SecurityError` unless the process is launched with `--localstorage-file`, and
+vitest's happy-dom env does not override it. Add a setup file that points the
+bare globals at happy-dom's `window` storage (no-op under the `node` env, which
+has no `window`).
+
+Create `web/tests/setup-dom.ts`:
+```ts
+// Node ≥25 ships a native localStorage/sessionStorage global that throws
+// without --localstorage-file. Under happy-dom, window has working in-memory
+// storage — point the bare globals at it. No-op in the 'node' environment.
+if (typeof window !== 'undefined') {
+  for (const key of ['localStorage', 'sessionStorage'] as const) {
+    try {
+      Object.defineProperty(globalThis, key, {
+        configurable: true,
+        value: window[key],
+      })
+    } catch {
+      // global not redefinable on this runtime — happy-dom's window[key]
+      // is still usable directly by tests.
+    }
+  }
+}
+```
+
+Wire it into `web/vite.config.ts` `test`:
+```ts
+  test: {
+    environment: 'node',
+    include: ['tests/**/*.spec.ts'],
+    setupFiles: ['tests/setup-dom.ts'],
+  },
+```
+
+- [ ] **Step 4: Run it**
 
 Run: `npm run test -- dom-env`
-Expected: PASS (1 test). If it errors with "document is not defined", the docblock is missing or misspelled.
+Expected: PASS (1 test). If `localStorage` still throws `SecurityError`, the
+setup file isn't registered or `window[key]` is itself non-configurable — in
+that case have the test use `window.localStorage` directly and report back.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
-git add web/package.json web/package-lock.json web/tests/dom-env.spec.ts
+git add web/package.json web/package-lock.json web/tests/dom-env.spec.ts web/tests/setup-dom.ts web/vite.config.ts
 git commit -m "test: add happy-dom + testing-library for component tests
+
+Adds a setup file bridging localStorage/sessionStorage for Node >=25, which
+exposes a native (throwing) storage global that vitest's happy-dom env does
+not override. No-op under the 'node' environment.
 
 Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ```
