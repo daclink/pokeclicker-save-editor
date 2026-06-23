@@ -11,6 +11,15 @@ Release notes.
 
 ## [Unreleased]
 
+### Added
+- **Web: Pokédex tab.** Ports the desktop Pokédex feature to the browser app —
+  pick a region, view its dex with caught marks (with a "show uncaught only"
+  filter), and mark uncaught pokémon caught (selected rows or the whole
+  region). Already-caught entries are left untouched. An optional "Also bump
+  capture stats" toggle (off by default) keeps the Trainer Card counters
+  (`totalPokemonCaptured`, `pokemonCaptured.<id>`, gender buckets, …)
+  consistent with the dex.
+
 ### Fixed
 - **Caught Pokémon: pokérus and shiny read the wrong save keys (web).**
   The Caught tab read pokérus from key `"1"` (which is actually

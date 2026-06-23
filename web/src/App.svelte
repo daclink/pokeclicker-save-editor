@@ -11,6 +11,7 @@
   import CaughtTab from './tabs/CaughtTab.svelte'
   import GemsTab from './tabs/GemsTab.svelte'
   import FlutesTab from './tabs/FlutesTab.svelte'
+  import PokedexTab from './tabs/PokedexTab.svelte'
 
   const tabs: readonly Tab[] = [
     { id: 'currencies', label: 'Currencies & Multipliers' },
@@ -20,6 +21,7 @@
     { id: 'flutes', label: 'Flutes' },
     { id: 'berries', label: 'Berries' },
     { id: 'caught', label: 'Caught Pokémon' },
+    { id: 'pokedex', label: 'Pokédex' },
   ]
 
   let active = $state(tabs[0].id)
@@ -51,6 +53,8 @@
     <BerriesTab />
   {:else if active === 'caught'}
     <CaughtTab />
+  {:else if active === 'pokedex'}
+    <PokedexTab />
   {/if}
 
   <footer>
