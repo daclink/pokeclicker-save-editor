@@ -10,11 +10,11 @@ import { describe, expect, test } from 'vitest'
 
 import { decodeBytes } from '../src/lib/save'
 import {
-  MULTIPLIERS,
+  multiplierLabel,
   readCurrencies,
   readMultipliers,
+  setMultiplier,
   writeCurrencies,
-  writeMultipliers,
 } from '../src/lib/currencies'
 
 const FIXTURE = resolve(
@@ -93,75 +93,55 @@ describe('currencies', () => {
 })
 
 describe('multipliers', () => {
-  test('readMultipliers falls back to 1.0 for missing entries', () => {
+  test('always shows the three vitamins, defaulting to 1.0', () => {
     const data = loadFixture()
-    const m = readMultipliers(data)
-    // Fixture has Protein|money = 3.5 and Masterball|farmPoint = 1.4 set;
-    // Calcium and Carbos are unset and should read as 1.0.
-    expect(m['Protein|money']).toBe(3.5)
-    expect(m['Calcium|money']).toBe(1.0)
-    expect(m['Carbos|money']).toBe(1.0)
-    expect(m['Masterball|farmPoint']).toBe(1.4)
+    const byKey = new Map(readMultipliers(data).map((r) => [r.key, r.value]))
+    expect(byKey.get('Protein|money')).toBe(3.5) // present in fixture
+    expect(byKey.get('Calcium|money')).toBe(1.0) // absent → default
+    expect(byKey.get('Carbos|money')).toBe(1.0)
   })
 
-  test('writeMultipliers drops keys at exactly 1.0', () => {
+  test('surfaces every entry actually present in the save (dynamic)', () => {
     const data = loadFixture()
-    writeMultipliers(data, {
-      'Protein|money': 1.0,
-      'Calcium|money': 1.0,
-      'Carbos|money': 1.0,
-      'Masterball|farmPoint': 1.0,
-    })
-    const bag = (data.player as any)._itemMultipliers as Record<string, number>
-    for (const { key } of MULTIPLIERS) {
-      expect(bag[key], `${key} should be absent after write of 1.0`).toBeUndefined()
-    }
+    // Fixture also has Masterball|farmPoint = 1.4 — must appear dynamically.
+    const row = readMultipliers(data).find((r) => r.key === 'Masterball|farmPoint')
+    expect(row?.value).toBe(1.4)
   })
 
-  test('writeMultipliers preserves non-1.0 values', () => {
-    const data = loadFixture()
-    writeMultipliers(data, {
-      'Protein|money': 2.0,
-      'Calcium|money': 1.0, // dropped
-      'Carbos|money': 3.5,
-      'Masterball|farmPoint': 1.7,
-    })
-    const bag = (data.player as any)._itemMultipliers as Record<string, number>
-    expect(bag['Protein|money']).toBe(2.0)
-    expect(bag['Calcium|money']).toBeUndefined()
-    expect(bag['Carbos|money']).toBe(3.5)
-    expect(bag['Masterball|farmPoint']).toBe(1.7)
-  })
-
-  test('writeMultipliers does not clobber unrelated _itemMultipliers entries', () => {
+  test('surfaces real per-currency Master Ball keys (the bug being fixed)', () => {
     const data = loadFixture()
     const bag = (data.player as any)._itemMultipliers as Record<string, number>
-    bag['Unknown|extra'] = 7.0 // simulate an unrelated entry the editor doesn't expose
-    writeMultipliers(data, {
-      'Protein|money': 1.0,
-      'Calcium|money': 1.0,
-      'Carbos|money': 1.0,
-      'Masterball|farmPoint': 1.0,
-    })
-    expect(bag['Unknown|extra']).toBe(7.0)
+    bag['Masterball|questPoint'] = 27
+    const row = readMultipliers(data).find((r) => r.key === 'Masterball|questPoint')
+    expect(row?.value).toBe(27)
   })
 
-  test('writeMultipliers rejects negative inputs', () => {
-    const data = loadFixture()
-    expect(() =>
-      writeMultipliers(data, {
-        'Protein|money': -0.5,
-        'Calcium|money': 1.0,
-        'Carbos|money': 1.0,
-        'Masterball|farmPoint': 1.0,
-      }),
-    ).toThrow(/non-negative/)
+  test('multiplierLabel formats Item|currency keys', () => {
+    expect(multiplierLabel('Masterball|questPoint')).toBe(
+      'Master Ball price multiplier (questPoint)',
+    )
+    expect(multiplierLabel('Protein|money')).toBe('Protein price multiplier (money)')
   })
 
-  test('round-trip: read → write → read returns same values', () => {
+  test('setMultiplier writes a value and drops at exactly 1.0', () => {
     const data = loadFixture()
-    const m = readMultipliers(data)
-    writeMultipliers(data, m)
-    expect(readMultipliers(data)).toEqual(m)
+    setMultiplier(data, 'Calcium|money', 2.5)
+    const bag = (data.player as any)._itemMultipliers as Record<string, number>
+    expect(bag['Calcium|money']).toBe(2.5)
+    setMultiplier(data, 'Calcium|money', 1.0)
+    expect('Calcium|money' in bag).toBe(false)
+  })
+
+  test('setMultiplier does not clobber unrelated entries', () => {
+    const data = loadFixture()
+    setMultiplier(data, 'Calcium|money', 2.0)
+    const bag = (data.player as any)._itemMultipliers as Record<string, number>
+    expect(bag['Protein|money']).toBe(3.5)
+    expect(bag['Masterball|farmPoint']).toBe(1.4)
+  })
+
+  test('setMultiplier rejects negative inputs', () => {
+    const data = loadFixture()
+    expect(() => setMultiplier(data, 'Protein|money', -0.5)).toThrow(/non-negative/)
   })
 })

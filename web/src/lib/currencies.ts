@@ -84,31 +84,36 @@ export function writeCurrencies(data: SaveData, edits: Currencies): void {
 
 // --- multipliers ------------------------------------------------------------
 
-export type MultiplierKey =
-  | 'Protein|money'
-  | 'Calcium|money'
-  | 'Carbos|money'
-  | 'Masterball|farmPoint'
+/** A single editable price-multiplier row from `player._itemMultipliers`. */
+export type MultiplierRow = { key: string; label: string; value: number }
 
-export type MultiplierSpec = {
-  key: MultiplierKey
-  label: string
-  kind: 'vitamin' | 'ball'
-}
-
-/** Rows the tab exposes. Order matches the desktop editor for muscle memory. */
-export const MULTIPLIERS: readonly MultiplierSpec[] = [
-  { key: 'Protein|money', label: 'Protein price multiplier', kind: 'vitamin' },
-  { key: 'Calcium|money', label: 'Calcium price multiplier', kind: 'vitamin' },
-  { key: 'Carbos|money', label: 'Carbos price multiplier', kind: 'vitamin' },
-  {
-    key: 'Masterball|farmPoint',
-    label: 'Master Ball price multiplier',
-    kind: 'ball',
-  },
+/**
+ * Vitamin multipliers (bought with money) are always shown — even when absent
+ * — so they can be set on a fresh save. Everything else is surfaced
+ * dynamically from whatever the save actually contains. Items like Master Ball
+ * have a SEPARATE multiplier per currency they're buyable with
+ * (`Masterball|questPoint`, `|money`, `|dungeonToken`, …), so there is no
+ * single hardcoded key for them — listing the live entries is the only
+ * correct approach.
+ */
+export const VITAMIN_MULTIPLIER_KEYS: readonly string[] = [
+  'Protein|money',
+  'Calcium|money',
+  'Carbos|money',
 ]
 
-export type Multipliers = Record<MultiplierKey, number>
+/** "Masterball" → "Master Ball"; otherwise split PascalCase into words. */
+function prettyItem(item: string): string {
+  const special: Record<string, string> = { Masterball: 'Master Ball' }
+  return special[item] ?? item.replace(/([a-z])([A-Z])/g, '$1 $2')
+}
+
+/** Human label for an `Item|currency` multiplier key. */
+export function multiplierLabel(key: string): string {
+  const [item, currency] = key.split('|')
+  const base = `${prettyItem(item)} price multiplier`
+  return currency ? `${base} (${currency})` : base
+}
 
 function getOrCreateMultiplierBag(data: SaveData): Record<string, number> {
   const player = (data.player ?? {}) as Record<string, unknown>
@@ -121,32 +126,37 @@ function getOrCreateMultiplierBag(data: SaveData): Record<string, number> {
   return bag
 }
 
-/** Default-to-1.0 read across the canonical multiplier rows. */
-export function readMultipliers(data: SaveData): Multipliers {
+/**
+ * All multiplier rows to show: the always-shown vitamins first (at their
+ * stored value or 1.0), then every other entry actually present in
+ * `player._itemMultipliers`, sorted for a stable order.
+ */
+export function readMultipliers(data: SaveData): MultiplierRow[] {
   const player = (data.player ?? {}) as Record<string, unknown>
   const bag = (player._itemMultipliers as Record<string, number>) ?? {}
-  const out = {} as Multipliers
-  for (const { key } of MULTIPLIERS) out[key] = bag[key] ?? 1.0
-  return out
+  const rows: MultiplierRow[] = []
+  const seen = new Set<string>()
+  for (const key of VITAMIN_MULTIPLIER_KEYS) {
+    rows.push({ key, label: multiplierLabel(key), value: bag[key] ?? 1.0 })
+    seen.add(key)
+  }
+  for (const key of Object.keys(bag).sort()) {
+    if (seen.has(key)) continue
+    rows.push({ key, label: multiplierLabel(key), value: bag[key] })
+    seen.add(key)
+  }
+  return rows
 }
 
 /**
- * Mutate `data` to apply the edited multiplier values, dropping keys whose
- * value is exactly 1.0 (the game treats absent and 1.0 identically, and
- * not writing a 1.0 entry keeps fresh saves clean — matches the desktop
- * editor's behaviour since v0.5.1).
+ * Set a single multiplier. A value of exactly 1.0 deletes the key (the game
+ * treats absent and 1.0 identically; not writing 1.0 keeps fresh saves clean).
  */
-export function writeMultipliers(data: SaveData, edits: Multipliers): void {
-  const bag = getOrCreateMultiplierBag(data)
-  for (const { key } of MULTIPLIERS) {
-    const v = edits[key]
-    if (!Number.isFinite(v) || v < 0) {
-      throw new RangeError(`${key}: expected non-negative number, got ${v}`)
-    }
-    if (v === 1.0) {
-      delete bag[key]
-    } else {
-      bag[key] = v
-    }
+export function setMultiplier(data: SaveData, key: string, value: number): void {
+  if (!Number.isFinite(value) || value < 0) {
+    throw new RangeError(`${key}: expected non-negative number, got ${value}`)
   }
+  const bag = getOrCreateMultiplierBag(data)
+  if (value === 1.0) delete bag[key]
+  else bag[key] = value
 }
