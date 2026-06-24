@@ -12,6 +12,16 @@ Release notes.
 ## [Unreleased]
 
 ### Added
+- **Web redesign (Phase 1): product-grade shell + theming.** A design-token
+  system (CSS custom properties) replaces the scattered hardcoded colors;
+  warm-dark is the default theme with a persisted light/dark toggle (honors
+  `prefers-color-scheme` on first visit, no flash of the wrong theme on load).
+  A sidebar navigation shell (with a mobile drawer) replaces the horizontal
+  tab strip, and a first-run empty state leads with the client-side privacy
+  promise. New pokéball + floppy-disk brand mark applied to the in-app logo,
+  the web favicon, and the regenerated desktop app icons. Shared UI primitives
+  (`Card`, `SectionHeader`, `FieldRow`) land as the foundation for the Phase 2
+  tab migration. (Tab internals are restyled in Phase 2.)
 - **Web: Pokédex tab.** Ports the desktop Pokédex feature to the browser app —
   pick a region, view its dex with caught marks (with a "show uncaught only"
   filter), and mark uncaught pokémon caught (selected rows or the whole

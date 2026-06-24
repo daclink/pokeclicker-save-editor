@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitest/config'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
+import { svelteTesting } from '@testing-library/svelte/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -7,9 +8,10 @@ export default defineConfig({
   // root. Override with VITE_BASE=/ for local builds or forks under a
   // different repo name.
   base: process.env.VITE_BASE ?? '/pokeclicker-save-editor/',
-  plugins: [svelte()],
+  plugins: [svelte(), svelteTesting()],
   test: {
     environment: 'node',
     include: ['tests/**/*.spec.ts'],
+    setupFiles: ['tests/setup-dom.ts'],
   },
 })

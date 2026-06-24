@@ -1,36 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- PCEdit browser app favicon: pokeball + floppy-disk "save" badge.
-       The pokeball occupies the upper-left ~3/4 of the canvas; the floppy
-       sits in the bottom-right as a small badge so the icon still reads
-       as "save editor for PokeClicker" when squashed to 16px. -->
-
-  <title>PCEdit — pokeball + floppy save icon</title>
-
-  <!-- Pokeball top (red) -->
-  <circle cx="14" cy="14" r="12" fill="#ef4444" stroke="#0f172a" stroke-width="1.5"/>
-  <!-- Pokeball bottom (white half) -->
-  <path d="M 2 14 a 12 12 0 0 0 24 0 Z" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/>
-  <!-- Center band -->
-  <rect x="2" y="13" width="24" height="2" fill="#0f172a"/>
-  <!-- Button outer ring -->
-  <circle cx="14" cy="14" r="4" fill="#0f172a"/>
-  <!-- Button inner white -->
-  <circle cx="14" cy="14" r="2.5" fill="#ffffff"/>
-
-  <!-- Floppy-disk badge, bottom-right corner. Explicit fills (no thin
-       strokes) so the shape survives anti-aliasing at 16-32 px. -->
-  <g transform="translate(20, 20)">
-    <!-- Outer disk body -->
-    <rect x="0" y="0" width="11" height="11" rx="0.8" fill="#2563eb" stroke="#0f172a" stroke-width="0.8"/>
-    <!-- Top metal slider strip -->
-    <rect x="1.8" y="0" width="7.4" height="3.2" fill="#1e40af"/>
-    <!-- Slider window -->
-    <rect x="6.4" y="0.5" width="2" height="2.2" fill="#e2e8f0"/>
-    <!-- Paper label area -->
-    <rect x="1.6" y="5" width="7.8" height="4.8" fill="#f8fafc"/>
-    <!-- Label lines -->
-    <rect x="2.5" y="6" width="6" height="0.6" fill="#64748b"/>
-    <rect x="2.5" y="7.2" width="6" height="0.6" fill="#64748b"/>
-    <rect x="2.5" y="8.4" width="4" height="0.6" fill="#64748b"/>
-  </g>
+<svg width="1024" height="1024" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <path d="M5 3h18l4 4v22a0 0 0 0 1 0 0H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" fill="#2f2a26" stroke="#f2ece3" stroke-width="1.5"/>
+  <rect x="9" y="3" width="12" height="7" rx="1" fill="#f2ece3"/>
+  <rect x="16" y="4" width="3" height="5" fill="#8a8178"/>
+  <circle cx="16" cy="20" r="6.5" fill="#fff" stroke="#1a1a1a" stroke-width="1.2"/>
+  <path d="M9.7 20a6.5 6.5 0 0 1 12.6 0z" fill="#ee1515" stroke="#1a1a1a" stroke-width="1.2"/>
+  <line x1="9.5" y1="20" x2="22.5" y2="20" stroke="#1a1a1a" stroke-width="1.2"/>
+  <circle cx="16" cy="20" r="2" fill="#fff" stroke="#1a1a1a" stroke-width="1.2"/>
 </svg>

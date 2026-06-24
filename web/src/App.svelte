@@ -1,104 +1,95 @@
 <script lang="ts">
-  // Top-level shell: top bar + tab notebook + active tab's component.
-  // Tabs render conditionally — unmount on switch — which keeps state
-  // (e.g. open dialogs) from leaking across.
-  import TopBar from './components/TopBar.svelte'
-  import TabsBar, { type Tab } from './components/TabsBar.svelte'
+  // App shell: sidebar nav + main column (save bar, active section, footer).
+  // Sections render conditionally — unmounting on switch keeps per-tab state
+  // (open dialogs, drafts) from leaking across.
+  import Sidebar from './components/Sidebar.svelte'
+  import SaveBar from './components/SaveBar.svelte'
+  import EmptyState from './components/EmptyState.svelte'
+  import { store } from './lib/store.svelte'
+  import { SECTIONS, type SectionId } from './lib/sections'
+
   import CurrenciesTab from './tabs/CurrenciesTab.svelte'
   import EggsTab from './tabs/EggsTab.svelte'
   import ShardsTab from './tabs/ShardsTab.svelte'
-  import BerriesTab from './tabs/BerriesTab.svelte'
-  import CaughtTab from './tabs/CaughtTab.svelte'
   import GemsTab from './tabs/GemsTab.svelte'
   import FlutesTab from './tabs/FlutesTab.svelte'
+  import BerriesTab from './tabs/BerriesTab.svelte'
+  import CaughtTab from './tabs/CaughtTab.svelte'
   import PokedexTab from './tabs/PokedexTab.svelte'
 
-  const tabs: readonly Tab[] = [
-    { id: 'currencies', label: 'Currencies & Multipliers' },
-    { id: 'eggs', label: 'Eggs' },
-    { id: 'shards', label: 'Shards' },
-    { id: 'gems', label: 'Gems' },
-    { id: 'flutes', label: 'Flutes' },
-    { id: 'berries', label: 'Berries' },
-    { id: 'caught', label: 'Caught Pokémon' },
-    { id: 'pokedex', label: 'Pokédex' },
-  ]
-
-  let active = $state(tabs[0].id)
+  let active = $state<SectionId>(SECTIONS[0].id)
 </script>
 
-<main>
-  <header>
-    <h1>PokeClicker Save Editor — Browser</h1>
-    <p class="tagline">
-      Your save never leaves this tab — everything happens client-side.
-    </p>
-  </header>
+<div class="app">
+  <Sidebar {active} onSelect={(id) => (active = id)} />
 
-  <TopBar />
+  <main>
+    <SaveBar />
 
-  <TabsBar {tabs} {active} onSelect={(id) => (active = id)} />
+    {#if store.data === null}
+      <EmptyState />
+    {:else if active === 'currencies'}
+      <CurrenciesTab />
+    {:else if active === 'eggs'}
+      <EggsTab />
+    {:else if active === 'shards'}
+      <ShardsTab />
+    {:else if active === 'gems'}
+      <GemsTab />
+    {:else if active === 'flutes'}
+      <FlutesTab />
+    {:else if active === 'berries'}
+      <BerriesTab />
+    {:else if active === 'caught'}
+      <CaughtTab />
+    {:else if active === 'pokedex'}
+      <PokedexTab />
+    {/if}
 
-  {#if active === 'currencies'}
-    <CurrenciesTab />
-  {:else if active === 'eggs'}
-    <EggsTab />
-  {:else if active === 'shards'}
-    <ShardsTab />
-  {:else if active === 'gems'}
-    <GemsTab />
-  {:else if active === 'flutes'}
-    <FlutesTab />
-  {:else if active === 'berries'}
-    <BerriesTab />
-  {:else if active === 'caught'}
-    <CaughtTab />
-  {:else if active === 'pokedex'}
-    <PokedexTab />
-  {/if}
-
-  <footer>
-    <p>
-      Source: <a
-        href="https://github.com/daclink/pokeclicker-save-editor"
-        target="_blank"
-        rel="noreferrer">github.com/daclink/pokeclicker-save-editor</a
-      >. Use at your own risk.
-    </p>
-  </footer>
-</main>
+    <footer>
+      <p>
+        Source: <a
+          href="https://github.com/daclink/pokeclicker-save-editor"
+          target="_blank"
+          rel="noreferrer">github.com/daclink/pokeclicker-save-editor</a
+        >. Use at your own risk.
+      </p>
+    </footer>
+  </main>
+</div>
 
 <style>
+  .app {
+    display: grid;
+    grid-template-columns: minmax(180px, 230px) 1fr;
+    min-height: 100vh;
+  }
   main {
-    max-width: 760px;
-    margin: 1.5rem auto;
-    padding: 0 1rem;
-    font-family:
-      system-ui,
-      -apple-system,
-      'Segoe UI',
-      Roboto,
-      Helvetica,
-      Arial,
-      sans-serif;
-    color: #222;
-  }
-  header h1 {
-    margin: 0 0 0.25rem;
-    font-size: 1.5rem;
-  }
-  .tagline {
-    margin: 0 0 1rem;
-    color: #666;
-    font-size: 0.95em;
+    padding: var(--space-5);
+    max-width: 860px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
   }
   footer {
-    margin-top: 3rem;
-    color: #888;
-    font-size: 0.85em;
+    margin-top: auto;
+    padding-top: var(--space-5);
+    color: var(--text-muted);
+    font-size: 0.8rem;
     text-align: center;
   }
   footer a {
     color: inherit;
+  }
+
+  @media (max-width: 720px) {
+    .app {
+      grid-template-columns: 1fr;
+    }
+    main {
+      padding: var(--space-5) var(--space-4);
+      padding-top: var(--space-6);
+    }
   }
 </style>

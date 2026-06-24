@@ -3,6 +3,24 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <script>
+      // Set the theme attribute before first paint to avoid a flash of the
+      // wrong theme. Mirrors resolveInitial() in src/lib/theme.svelte.ts.
+      ;(function () {
+        try {
+          var s = localStorage.getItem('theme')
+          var t =
+            s === 'dark' || s === 'light'
+              ? s
+              : window.matchMedia('(prefers-color-scheme: light)').matches
+                ? 'light'
+                : 'dark'
+          document.documentElement.setAttribute('data-theme', t)
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'dark')
+        }
+      })()
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
