@@ -15,6 +15,12 @@
     type CaughtRow,
   } from '../lib/caught'
   import NumberField from '../components/NumberField.svelte'
+  import {
+    POKEMON_TYPE_NAMES,
+    REGION_RANGES,
+    regionFor,
+    typeNamesFor,
+  } from '../lib/data'
 
   // PokeClicker Pokerus enum (key "8"): 0 Uninfected … 3 Resistant.
   const POKERUS_LABELS = ['Uninfected', 'Infected', 'Contagious', 'Resistant'] as const
@@ -32,13 +38,32 @@
   const NUMERIC_COLS: ReadonlySet<SortCol> = new Set(['id', 'atkBonus', 'pokerus', 'exp'])
   const BOOL_COLS: ReadonlySet<SortCol> = new Set(['inEgg', 'shiny'])
 
+  // Filters ('' = no filter). Region by dex range; type1/type2 each match if
+  // the species' type set contains the chosen type.
+  let filterRegion = $state('')
+  let filterType1 = $state('')
+  let filterType2 = $state('')
+
   let rows = $derived.by<CaughtRow[]>(() => {
     void tick
     return store.data ? readCaughtRows(store.data) : []
   })
 
+  let filteredRows = $derived.by<CaughtRow[]>(() => {
+    if (!filterRegion && !filterType1 && !filterType2) return rows
+    return rows.filter((r) => {
+      if (filterRegion && regionFor(r.id) !== filterRegion) return false
+      if (filterType1 || filterType2) {
+        const types = typeNamesFor(r.id)
+        if (filterType1 && !types.includes(filterType1)) return false
+        if (filterType2 && !types.includes(filterType2)) return false
+      }
+      return true
+    })
+  })
+
   let viewRows = $derived.by<CaughtRow[]>(() => {
-    const out = rows.slice()
+    const out = filteredRows.slice()
     out.sort((a, b) => {
       let av: number | string
       let bv: number | string
@@ -157,6 +182,42 @@
     <p class="note">
       Click a row to select. Double-click to edit. atkBonus increments by 25 per hatch.
     </p>
+
+    <div class="filters">
+      <label>
+        Region
+        <select bind:value={filterRegion}>
+          <option value="">All</option>
+          {#each REGION_RANGES as r (r.label)}
+            <option value={r.label}>{r.label}</option>
+          {/each}
+        </select>
+      </label>
+      <label>
+        Type 1
+        <select bind:value={filterType1}>
+          <option value="">Any</option>
+          {#each POKEMON_TYPE_NAMES as t (t)}
+            <option value={t}>{t}</option>
+          {/each}
+        </select>
+      </label>
+      <label>
+        Type 2
+        <select bind:value={filterType2}>
+          <option value="">Any</option>
+          {#each POKEMON_TYPE_NAMES as t (t)}
+            <option value={t}>{t}</option>
+          {/each}
+        </select>
+      </label>
+      {#if filterRegion || filterType1 || filterType2}
+        <button type="button" class="clear" onclick={() => { filterRegion = ''; filterType1 = ''; filterType2 = '' }}>
+          Clear
+        </button>
+        <span class="count">{viewRows.length} of {rows.length}</span>
+      {/if}
+    </div>
 
     <div class="table-wrap">
       <table>
@@ -282,6 +343,41 @@
     margin: 0 0 0.75rem;
     color: #666;
     font-size: 0.9em;
+  }
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.85em;
+    color: #444;
+  }
+  .filters label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .filters select {
+    font: inherit;
+    padding: 0.2rem 0.35rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  .filters .clear {
+    padding: 0.25rem 0.6rem;
+    border: 1px solid #ccc;
+    background: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.9em;
+  }
+  .filters .clear:hover {
+    background: #f0f0f0;
+  }
+  .filters .count {
+    color: #888;
   }
 
   /* Table ------------------------------------------------------ */

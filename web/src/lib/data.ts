@@ -17,6 +17,7 @@ import berryNamesJson from '../../../data/berry-names.json'
 import genderBucketsJson from '../../../data/gender-buckets.json'
 import mulchNamesJson from '../../../data/mulch-names.json'
 import pokemonNamesJson from '../../../data/pokemon-names.json'
+import pokemonTypesJson from '../../../data/pokemon-types.json'
 import regionRangesJson from '../../../data/region-ranges.json'
 
 // --- types -----------------------------------------------------------------
@@ -39,6 +40,20 @@ type GenderBucketsJson = { labels: readonly string[]; index: string }
 export const NATIONAL_NAMES: readonly string[] = pokemonNamesJson as readonly string[]
 export const BERRY_NAMES: readonly string[] = berryNamesJson as readonly string[]
 export const MULCH_NAMES: readonly string[] = mulchNamesJson as readonly string[]
+
+/** Canonical PokeClicker `PokemonType` enum order (0 Normal … 17 Fairy). */
+export const POKEMON_TYPE_NAMES: readonly string[] = [
+  'Normal', 'Fire', 'Water', 'Electric', 'Grass', 'Ice', 'Fighting',
+  'Poison', 'Ground', 'Flying', 'Psychic', 'Bug', 'Rock', 'Ghost',
+  'Dragon', 'Dark', 'Steel', 'Fairy',
+]
+
+/**
+ * Per-species type indices, parallel to `NATIONAL_NAMES` (id-1 → type list).
+ * Each entry is one or two `PokemonType` indices, e.g. `[4, 7]` = Grass/Poison.
+ */
+export const POKEMON_TYPES: readonly (readonly number[])[] =
+  pokemonTypesJson as unknown as readonly (readonly number[])[]
 
 // TS sees JSON arrays as `(string | number)[]` rather than tuples, so we
 // cast through `unknown` and trust the shape (the import-time invariants
@@ -66,6 +81,15 @@ if (BUCKET_INDEX.length !== NATIONAL_NAMES.length) {
     `_BUCKET_INDEX length (${BUCKET_INDEX.length}) must match ` +
       `NATIONAL_NAMES (${NATIONAL_NAMES.length})`,
   )
+}
+if (POKEMON_TYPES.length !== NATIONAL_NAMES.length) {
+  throw new Error(
+    `POKEMON_TYPES length (${POKEMON_TYPES.length}) must match ` +
+      `NATIONAL_NAMES (${NATIONAL_NAMES.length})`,
+  )
+}
+if (POKEMON_TYPE_NAMES.length !== 18) {
+  throw new Error(`expected 18 PokemonType names, got ${POKEMON_TYPE_NAMES.length}`)
 }
 if (BERRY_NAMES.length !== 70) {
   throw new Error(`berry roster is 70 names, got ${BERRY_NAMES.length}`)
@@ -108,6 +132,20 @@ export function regionFor(pid: unknown): string {
     if (idx >= lo && idx <= hi) return label
   }
   return '?'
+}
+
+/** Type indices for a national-dex id (1-based), or `[]` if out of range. */
+export function typesFor(pid: unknown): readonly number[] {
+  const idx = coerceId(pid)
+  if (idx !== null && idx >= 1 && idx <= POKEMON_TYPES.length) {
+    return POKEMON_TYPES[idx - 1]
+  }
+  return []
+}
+
+/** Type display names for a national-dex id, e.g. `['Grass', 'Poison']`. */
+export function typeNamesFor(pid: unknown): string[] {
+  return typesFor(pid).map((t) => POKEMON_TYPE_NAMES[t] ?? `#${t}`)
 }
 
 /**

@@ -63,6 +63,14 @@ USER_AGENT = "pcedit-fetcher/1.0 (+https://github.com/daclink/pokeclicker-save-e
 PC_RAW = "https://raw.githubusercontent.com/pokeclicker/pokeclicker/develop"
 BERRY_TYPE_URL = f"{PC_RAW}/src/modules/enums/BerryType.ts"
 MULCH_TYPE_URL = f"{PC_RAW}/src/modules/enums/MulchType.ts"
+POKEMON_LIST_URL = f"{PC_RAW}/src/modules/pokemons/PokemonList.ts"
+
+# Canonical PokeClicker PokemonType enum order (0 Normal .. 17 Fairy).
+POKEMON_TYPE_ORDER = [
+    "Normal", "Fire", "Water", "Electric", "Grass", "Ice", "Fighting",
+    "Poison", "Ground", "Flying", "Psychic", "Bug", "Rock", "Ghost",
+    "Dragon", "Dark", "Steel", "Fairy",
+]
 EXPECTED_BERRY_COUNT = 70
 EXPECTED_FIRST_BERRY = "Cheri"
 EXPECTED_LAST_BERRY = "Hopo"
@@ -279,6 +287,44 @@ def fetch_mulch_names(*, retries: int = 3) -> list[str]:
     return [n[:-len("_Mulch")] if n.endswith("_Mulch") else n for n in raw]
 
 
+def fetch_pokemon_types(*, retries: int = 3) -> list[list[int]]:
+    """Pull PokemonList.ts and return per-species type indices, id 1..MAX_ID.
+
+    Each entry has an ``'id': N`` then a ``'type': [PokemonType.A, ...]``.
+    We map type names to the canonical enum indices and keep only integer
+    national-dex ids (regional forms use fractional ids like 19.01). Returns
+    a list of length MAX_ID where entry ``i`` is the type list for dex id
+    ``i + 1`` (one or two indices).
+    """
+    src = _fetch_with_retry(POKEMON_LIST_URL, label="PokemonList.ts",
+                            retries=retries)
+    tidx = {name: i for i, name in enumerate(POKEMON_TYPE_ORDER)}
+    by_id: dict[int, list[int]] = {}
+    cur_id: float | None = None
+    token = re.compile(r"'id':\s*(-?\d+(?:\.\d+)?)|'type':\s*\[([^\]]*)\]")
+    for m in token.finditer(src):
+        if m.group(1) is not None:
+            cur_id = float(m.group(1))
+            continue
+        if cur_id is None:
+            continue
+        if cur_id == int(cur_id) and 1 <= cur_id <= MAX_ID:
+            iid = int(cur_id)
+            names = re.findall(r"PokemonType\.(\w+)", m.group(2))
+            idxs = [tidx[n] for n in names if n in tidx]  # drops None (-1)
+            if iid not in by_id and idxs:
+                by_id[iid] = idxs
+        cur_id = None
+
+    missing = [i for i in range(1, MAX_ID + 1) if i not in by_id]
+    if missing:
+        raise SystemExit(
+            f"PokemonList.ts: missing types for {len(missing)} ids: "
+            f"{missing[:10]}{' …' if len(missing) > 10 else ''}"
+        )
+    return [by_id[i] for i in range(1, MAX_ID + 1)]
+
+
 # --- output writer ----------------------------------------------------------
 
 def _dump(name: str, obj) -> Path:
@@ -293,8 +339,9 @@ def _dump(name: str, obj) -> Path:
 
 
 def write_data_files(names: list[str], buckets: list[int],
-                     berries: list[str], mulches: list[str]) -> list[Path]:
-    """Write the five reference-data JSON files ``pokeclicker_data.py`` reads.
+                     berries: list[str], mulches: list[str],
+                     types: list[list[int]]) -> list[Path]:
+    """Write the reference-data JSON files the editors read.
 
     Layout mirrors the Python constants 1:1 so each file diffs cleanly when
     upstream changes.
@@ -308,6 +355,7 @@ def write_data_files(names: list[str], buckets: list[int],
               {"labels": list(BUCKET_LABELS), "index": digit_str}),
         _dump("berry-names.json", berries),
         _dump("mulch-names.json", mulches),
+        _dump("pokemon-types.json", types),
     ]
     return written
 
@@ -332,8 +380,10 @@ def main() -> int:
     print(f"  {len(berries)} berries: {berries[0]} ... {berries[-1]}")
     mulches = fetch_mulch_names()
     print(f"  {len(mulches)} mulches: {', '.join(mulches)}")
+    types = fetch_pokemon_types()
+    print(f"  {len(types)} pokemon type lists parsed")
 
-    written = write_data_files(names, buckets, berries, mulches)
+    written = write_data_files(names, buckets, berries, mulches, types)
     print(f"\nWrote {len(written)} files to {DATA_DIR.relative_to(REPO_ROOT)}/:")
     for path in written:
         print(f"  {path.name}  ({path.stat().st_size} bytes)")
