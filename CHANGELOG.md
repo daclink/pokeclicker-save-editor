@@ -31,6 +31,16 @@ Release notes.
   consistent with the dex.
 
 ### Fixed
+- **Multipliers: Master Ball price multiplier read a non-existent key (web).**
+  The tab read `player._itemMultipliers['Masterball|farmPoint']`, which never
+  exists (Master Balls aren't bought with farm points), so it always showed
+  1.0 even after buying Master Balls. Items like Master Ball have a *separate*
+  multiplier per currency (`Masterball|questPoint`, `|money`, `|dungeonToken`,
+  `|battlePoint`, `|diamond`). The Multipliers section is now **dynamic** —
+  it always shows the three vitamin rows (Protein/Calcium/Carbos, bought with
+  money) and additionally lists every entry actually present in the save, each
+  editable, with the 1.0-drops-the-key rule preserved. Desktop is unchanged
+  (being discontinued).
 - **Caught Pokémon: pokérus and shiny read the wrong save keys (web).**
   The Caught tab read pokérus from key `"1"` (which is actually
   `attackBonusAmount`), so the column showed large numbers instead of the

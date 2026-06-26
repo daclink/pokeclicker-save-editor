@@ -9,17 +9,20 @@
 
   import { store } from '../lib/store.svelte'
   import {
-    MULTIPLIERS,
+    VITAMIN_MULTIPLIER_KEYS,
     readCurrencies,
     readMultipliers,
+    setMultiplier,
     writeCurrencies,
-    writeMultipliers,
     type Currencies,
     type CurrencyKey,
-    type MultiplierKey,
-    type Multipliers,
+    type MultiplierRow,
   } from '../lib/currencies'
   import NumberField from '../components/NumberField.svelte'
+
+  // Bump to force the multiplier list to re-read after an edit (mutations
+  // don't change store.data's identity).
+  let mtick = $state(0)
 
   // Derive the editable snapshot from store.data. Re-derives whenever the
   // user loads a new save (store.data identity changes).
@@ -30,16 +33,9 @@
     return readCurrencies(store.data)
   })
 
-  let multipliers = $derived.by<Multipliers>(() => {
-    if (!store.data) {
-      return {
-        'Protein|money': 1.0,
-        'Calcium|money': 1.0,
-        'Carbos|money': 1.0,
-        'Masterball|farmPoint': 1.0,
-      }
-    }
-    return readMultipliers(store.data)
+  let multipliers = $derived.by<MultiplierRow[]>(() => {
+    mtick // re-read after edits drop/add keys
+    return store.data ? readMultipliers(store.data) : []
   })
 
   function setCurrency(key: CurrencyKey, next: number): void {
@@ -55,30 +51,29 @@
     }
   }
 
-  function setMultiplier(key: MultiplierKey, next: number): void {
+  function commitMultiplier(key: string, next: number): void {
     if (!store.data) return
-    const edits: Multipliers = { ...multipliers, [key]: next }
     try {
-      writeMultipliers(store.data, edits)
+      setMultiplier(store.data, key, next)
       store.markDirty()
+      mtick++
     } catch (e) {
       store.errorDetail = e instanceof Error ? e.message : String(e)
       store.status = 'invalid value rejected'
     }
   }
 
-  function resetMultiplier(key: MultiplierKey): void {
-    setMultiplier(key, 1.0)
+  function resetMultiplier(key: string): void {
+    commitMultiplier(key, 1.0)
   }
 
   function resetAllVitamins(): void {
     if (!store.data) return
-    const edits: Multipliers = { ...multipliers }
-    for (const { key, kind } of MULTIPLIERS) {
-      if (kind === 'vitamin') edits[key] = 1.0
+    for (const key of VITAMIN_MULTIPLIER_KEYS) {
+      setMultiplier(store.data, key, 1.0)
     }
-    writeMultipliers(store.data, edits)
     store.markDirty()
+    mtick++
   }
 
   // Row order matches PokeClicker's `enum Currency` (and the desktop
@@ -114,12 +109,12 @@
       Higher = costs more next purchase. Reset to 1.0 to restore base price.
       A row at exactly 1.0 is dropped from the save instead of being written.
     </p>
-    {#each MULTIPLIERS as row (row.key)}
+    {#each multipliers as row (row.key)}
       <NumberField
         label={row.label}
-        value={multipliers[row.key]}
+        value={row.value}
         integer={false}
-        onCommit={(n) => setMultiplier(row.key, n)}
+        onCommit={(n) => commitMultiplier(row.key, n)}
         onReset={() => resetMultiplier(row.key)}
         resetLabel="Reset to 1.0"
       />
