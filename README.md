@@ -2,7 +2,12 @@
 USE AT YOUR OWN RISK. UNOFFICIAL, educational use only. 
 
 
-A small Python CLI for inspecting and editing [PokeClicker](https://www.pokeclicker.com/) save exports. Tested against `v0.10.25`.
+A save editor for [PokeClicker](https://www.pokeclicker.com/) save exports. Tested against `v0.10.25`.
+
+> **🌐 Use it in your browser — no install:** **<https://daclink.github.io/pokeclicker-save-editor/>**
+> Everything runs client-side; your save never leaves the tab. The web app is the recommended editor going forward.
+
+There's also a Python CLI and a desktop GUI (below).
 
 > **Latest release:** see <https://github.com/daclink/pokeclicker-save-editor/releases/latest>.
 > Pre-built installers are attached for macOS, Windows, and Linux — see *Download & install* below.
