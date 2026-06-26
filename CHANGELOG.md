@@ -12,6 +12,13 @@ Release notes.
 ## [Unreleased]
 
 ### Added
+- **Caught Pokémon: region / type filters (web).** Three dropdowns filter the
+  caught table by **region** (dex range) and by **type 1 / type 2** (each
+  matches if the species' type set contains the chosen type, so e.g. Grass +
+  Poison narrows to dual Grass/Poison species). Backed by a new
+  `data/pokemon-types.json` (id → `PokemonType` indices) parsed from
+  PokeClicker's `PokemonList.ts` by `scripts/fetch_pokeclicker_data.py`, with
+  `typesFor`/`typeNamesFor` helpers in `data.ts`.
 - **Web redesign (Phase 1): product-grade shell + theming.** A design-token
   system (CSS custom properties) replaces the scattered hardcoded colors;
   warm-dark is the default theme with a persisted light/dark toggle (honors

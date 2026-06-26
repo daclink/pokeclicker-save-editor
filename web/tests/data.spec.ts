@@ -18,6 +18,8 @@ import {
   nameForMulch,
   regionFor,
   statBucketFor,
+  typeNamesFor,
+  typesFor,
 } from '../src/lib/data'
 
 describe('national-dex names', () => {
@@ -181,5 +183,28 @@ describe('mulch', () => {
     expect(nameForMulch(MULCH_NAMES.length)).toBe(`Slot ${MULCH_NAMES.length}`)
     expect(nameForMulch(-1)).toBe('?')
     expect(nameForMulch(null)).toBe('?')
+  })
+})
+
+describe('pokemon types', () => {
+  test('typeNamesFor returns canonical PokeClicker types', () => {
+    expect(typeNamesFor(1)).toEqual(['Grass', 'Poison']) // Bulbasaur
+    expect(typeNamesFor(4)).toEqual(['Fire']) // Charmander
+    expect(typeNamesFor(6)).toEqual(['Fire', 'Flying']) // Charizard
+    expect(typeNamesFor(25)).toEqual(['Electric']) // Pikachu
+    expect(typeNamesFor(131)).toEqual(['Water', 'Ice']) // Lapras
+  })
+
+  test('typesFor returns indices; out-of-range is empty', () => {
+    expect(typesFor(1)).toEqual([4, 7])
+    expect(typesFor(99999)).toEqual([])
+    expect(typesFor(0)).toEqual([])
+  })
+
+  test('every species has 1 or 2 types', () => {
+    for (let pid = 1; pid <= 1025; pid++) {
+      const n = typesFor(pid).length
+      expect(n === 1 || n === 2, `#${pid} has ${n} types`).toBe(true)
+    }
   })
 })
