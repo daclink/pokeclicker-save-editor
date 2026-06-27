@@ -1,0 +1,57 @@
+name: deploy-pages
+
+# Build the web editor and publish it to GitHub Pages on every push to main
+# that touches the app or its bundled data. The production base path lives in
+# web/vite.config.ts (/pokeclicker-save-editor/), so asset URLs resolve under
+# the project site.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - 'data/**'
+      - '.github/workflows/deploy-pages.yml'
+  workflow_dispatch:
+
+# Least privilege for the OIDC-based Pages deploy.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time; let an in-flight run finish rather than cancelling.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          # Relative to the repo root (actions ignore the working-directory).
+          path: web/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
