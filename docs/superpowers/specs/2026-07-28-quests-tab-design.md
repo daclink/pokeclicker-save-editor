@@ -80,16 +80,21 @@ focus is a statistics counter (out of scope for v1 — no flag/repair for
 
 ## Resolvable quest types
 
-**Board quests (`questList`)** — 4 of the 10 types read a wallet/gem-wallet
-value this repo already models (`currencies.ts`, `gems.ts`), so no new
-metadata is needed, just a formula:
+**Board quests (`questList`)** — 4 of the 10 types read a **lifetime
+statistics counter** (verified against PokéClicker source, not the current
+wallet/gem-wallet balance this repo already models in `currencies.ts`/
+`gems.ts` — those track spendable balances, which is a different field).
+These counters only ever increase under normal play, so a negative-progress
+flag here is an even cleaner tamper signal than the quest-line case. No
+fetch-script metadata needed, just a formula reading `save.statistics`
+directly:
 
-| Type | Live focus | Formula |
+| Type | Live focus (PokéClicker source) | Formula |
 |------|-----------|---------|
-| `GainMoneyQuest` | `wallet[money]` | `data[0]` is amount, `initial` vs. current money |
-| `GainTokensQuest` | `wallet[dungeonToken]` | same shape |
-| `GainFarmPointsQuest` | `wallet[farmPoint]` | same shape |
-| `GainGemsQuest` | `gemWallet[data[2]]` (type index in `data`) | same shape |
+| `GainMoneyQuest` | `save.statistics.totalMoney` | `data[0]` is amount, `initial` vs. current `totalMoney` |
+| `GainTokensQuest` | `save.statistics.totalDungeonTokens` | same shape |
+| `GainFarmPointsQuest` | `save.statistics.totalFarmPoints` | same shape |
+| `GainGemsQuest` | `save.statistics.gemsGained[data[2]]` (type index in `data`; positional array, PokemonType-indexed like `gemWallet` but a separate lifetime-total field) | same shape |
 
 The other 6 board-quest types track statistics counters this repo doesn't
 model (egg-hatch counts, mining layer/item counts, per-dungeon clear counts,
