@@ -115,35 +115,38 @@
   }
   .label {
     flex: 0 0 var(--field-label-width, 14rem);
-    color: #444;
+    color: var(--text);
   }
   input {
     flex: 0 0 9rem;
     padding: 0.25rem 0.5rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+    color: var(--text);
     font: inherit;
     text-align: right;
   }
   input:focus {
-    outline: 2px solid #2563eb;
+    outline: 2px solid var(--focus-ring);
     outline-offset: -1px;
   }
   .suffix {
-    color: #888;
+    color: var(--text-muted);
     font-size: 0.9em;
   }
   button {
     padding: 0.25rem 0.6rem;
-    border: 1px solid #ccc;
-    background: white;
-    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text);
+    border-radius: var(--radius-sm);
     cursor: pointer;
     font: inherit;
     font-size: 0.85em;
   }
   button:hover:not(:disabled) {
-    background: #f0f0f0;
+    border-color: var(--text-muted);
   }
   button:disabled {
     cursor: not-allowed;

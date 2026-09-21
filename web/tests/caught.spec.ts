@@ -20,7 +20,9 @@ import {
   setCaughtAtkBonus,
   setCaughtEntry,
   setCaughtInEgg,
+  setCaughtPokerus,
   setCaughtShiny,
+  POKERUS,
 } from '../src/lib/caught'
 
 const FIXTURE = resolve(
@@ -183,5 +185,42 @@ describe('quick-action bulk helpers', () => {
     const data = loadFixture()
     expect(() => setCaughtAtkBonus(data, [4], -1)).toThrow(/non-negative integer/)
     expect(() => setCaughtAtkBonus(data, [4], 1.5)).toThrow(/non-negative integer/)
+  })
+})
+
+describe('setCaughtPokerus (bulk)', () => {
+  test('writes the level to key "8" on every listed id', () => {
+    const data = loadFixture()
+    setCaughtPokerus(data, [4, 25], POKERUS.Contagious)
+    expect(rawEntry(data, 4)['8']).toBe(2)
+    expect(rawEntry(data, 25)['8']).toBe(2)
+  })
+
+  test('Uninfected writes 0 (the game always persists key "8")', () => {
+    const data = loadFixture()
+    setCaughtPokerus(data, [4], POKERUS.Resistant)
+    setCaughtPokerus(data, [4], POKERUS.Uninfected)
+    expect(rawEntry(data, 4)['8']).toBe(0)
+  })
+
+  test.each([-1, 4, 1.5, Number.NaN])('rejects level %s without touching any entry', (bad) => {
+    const data = loadFixture()
+    const before = JSON.stringify((data.save as any).party.caughtPokemon)
+    expect(() => setCaughtPokerus(data, [4, 25], bad)).toThrow(RangeError)
+    expect(JSON.stringify((data.save as any).party.caughtPokemon)).toBe(before)
+  })
+
+  test('skips ids missing from the save, still updates the rest', () => {
+    const data = loadFixture()
+    setCaughtPokerus(data, [99999, 25], POKERUS.Infected)
+    expect(rawEntry(data, 25)['8']).toBe(1)
+  })
+
+  test('only touches key "8" (shiny, exp, atk bonus unchanged)', () => {
+    const data = loadFixture()
+    setCaughtShiny(data, [4], true)
+    const before = { ...rawEntry(data, 4) }
+    setCaughtPokerus(data, [4], POKERUS.Contagious)
+    expect(rawEntry(data, 4)).toEqual({ ...before, 8: 2 })
   })
 })

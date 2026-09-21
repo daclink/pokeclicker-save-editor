@@ -129,31 +129,32 @@
 
 <style>
   .empty {
-    color: #666;
+    color: var(--text-muted);
     padding: 1rem;
-    background: #f5f5f5;
+    background: var(--surface-2);
     border-radius: 6px;
   }
   .block {
     margin-bottom: 1.5rem;
     padding: 1rem 1.25rem;
-    border: 1px solid #e5e5e5;
+    border: 1px solid var(--border);
     border-radius: 8px;
-    background: #fafafa;
+    background: var(--surface);
+    color: var(--text);
   }
   .block h2 {
     margin: 0 0 0.75rem;
     font-size: 1.05rem;
   }
   .hint {
-    color: #999;
+    color: var(--text-muted);
     font-weight: normal;
-    font-family: ui-monospace, monospace;
+    font-family: var(--font-mono);
     font-size: 0.85em;
   }
   .note {
     margin: 0 0 0.75rem;
-    color: #666;
+    color: var(--text-muted);
     font-size: 0.9em;
   }
   .actions {
@@ -161,14 +162,15 @@
   }
   .actions button {
     padding: 0.4rem 0.9rem;
-    border: 1px solid #ccc;
-    background: white;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text);
     border-radius: 4px;
     cursor: pointer;
     font: inherit;
     font-size: 0.9em;
   }
   .actions button:hover {
-    background: #f0f0f0;
+    border-color: var(--text-muted);
   }
 </style>
