@@ -18,6 +18,8 @@
     type BerryRow,
   } from '../lib/berries'
   import SimpleIntDialog from '../components/SimpleIntDialog.svelte'
+  import Card from '../components/ui/Card.svelte'
+  import SectionHeader from '../components/ui/SectionHeader.svelte'
 
   // --- reactive state ----------------------------------------------------
 
@@ -209,142 +211,150 @@
   <p class="empty">Load a save with <strong>Browse…</strong> above to edit berries.</p>
 {:else}
   <section class="block">
-    <div class="header">
-      <label class="filter">
-        <input type="checkbox" bind:checked={unlockedOnly} />
-        <span>Show unlocked only</span>
-      </label>
-      <span class="count-pill">{selected.size} selected</span>
-    </div>
+    <Card>
+      <SectionHeader
+        title="Berries"
+        description="Per-berry inventory counts and unlocked flags (save.farming.berryList / unlockedBerries)."
+      />
+      <div class="header">
+        <label class="filter">
+          <input type="checkbox" bind:checked={unlockedOnly} />
+          <span>Show unlocked only</span>
+        </label>
+        <span class="count-pill">{selected.size} selected</span>
+      </div>
 
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th class="check-col">
-              <input
-                type="checkbox"
-                checked={visibleAllSelected}
-                onchange={toggleSelectAllVisible}
-                aria-label="Select all visible"
-              />
-            </th>
-            <th>
-              <button type="button" onclick={() => toggleSort('idx')}>
-                #{sortIndicator('idx')}
-              </button>
-            </th>
-            <th class="name-col">
-              <button type="button" onclick={() => toggleSort('name')}>
-                Berry{sortIndicator('name')}
-              </button>
-            </th>
-            <th>
-              <button type="button" onclick={() => toggleSort('count')}>
-                Count{sortIndicator('count')}
-              </button>
-            </th>
-            <th>
-              <button type="button" onclick={() => toggleSort('unlocked')}>
-                Unlocked{sortIndicator('unlocked')}
-              </button>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {#each viewRows as row (row.idx)}
-            <tr
-              class:selected={selected.has(row.idx)}
-              class:locked={!row.unlocked}
-            >
-              <td class="check-col">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th class="check-col">
                 <input
                   type="checkbox"
-                  checked={selected.has(row.idx)}
-                  onchange={() => toggleSelected(row.idx)}
-                  aria-label={`Select ${row.name}`}
+                  checked={visibleAllSelected}
+                  onchange={toggleSelectAllVisible}
+                  aria-label="Select all visible"
                 />
-              </td>
-              <td>{row.idx}</td>
-              <td class="name-col">{row.name}</td>
-              <td>{row.count}</td>
-              <td>{row.unlocked ? '✓' : ''}</td>
+              </th>
+              <th>
+                <button type="button" onclick={() => toggleSort('idx')}>
+                  #{sortIndicator('idx')}
+                </button>
+              </th>
+              <th class="name-col">
+                <button type="button" onclick={() => toggleSort('name')}>
+                  Berry{sortIndicator('name')}
+                </button>
+              </th>
+              <th>
+                <button type="button" onclick={() => toggleSort('count')}>
+                  Count{sortIndicator('count')}
+                </button>
+              </th>
+              <th>
+                <button type="button" onclick={() => toggleSort('unlocked')}>
+                  Unlocked{sortIndicator('unlocked')}
+                </button>
+              </th>
             </tr>
-          {:else}
-            <tr><td colspan="5" class="muted">(no berries match the filter)</td></tr>
-          {/each}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {#each viewRows as row (row.idx)}
+              <tr
+                class:selected={selected.has(row.idx)}
+                class:locked={!row.unlocked}
+              >
+                <td class="check-col">
+                  <input
+                    type="checkbox"
+                    checked={selected.has(row.idx)}
+                    onchange={() => toggleSelected(row.idx)}
+                    aria-label={`Select ${row.name}`}
+                  />
+                </td>
+                <td>{row.idx}</td>
+                <td class="name-col">{row.name}</td>
+                <td>{row.count}</td>
+                <td>{row.unlocked ? '✓' : ''}</td>
+              </tr>
+            {:else}
+              <tr><td colspan="5" class="muted">(no berries match the filter)</td></tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
 
-    <div class="actions">
-      <button type="button" onclick={onEditCount} disabled={selected.size === 0}>
-        Edit count…
-      </button>
-      <button type="button" onclick={() => onUnlockSelected(true)} disabled={selected.size === 0}>
-        Unlock selected
-      </button>
-      <button type="button" onclick={() => onUnlockSelected(false)} disabled={selected.size === 0}>
-        Lock selected
-      </button>
-      <button type="button" onclick={clearSelection} disabled={selected.size === 0}>
-        Clear selection
-      </button>
-    </div>
+      <div class="actions">
+        <button type="button" onclick={onEditCount} disabled={selected.size === 0}>
+          Edit count…
+        </button>
+        <button type="button" onclick={() => onUnlockSelected(true)} disabled={selected.size === 0}>
+          Unlock selected
+        </button>
+        <button type="button" onclick={() => onUnlockSelected(false)} disabled={selected.size === 0}>
+          Lock selected
+        </button>
+        <button type="button" onclick={clearSelection} disabled={selected.size === 0}>
+          Clear selection
+        </button>
+      </div>
 
-    <div class="actions bulk">
-      <button type="button" onclick={() => onSetAllUnlocked(true)}>Unlock all</button>
-      <button type="button" onclick={() => onSetAllUnlocked(false)}>Lock all</button>
-      <button type="button" onclick={() => onFillAll(0)}>Zero counts</button>
-      <button type="button" onclick={() => onFillAll(999)}>All counts to 999</button>
-      <button type="button" onclick={() => onFillAll(9999)}>All counts to 9999</button>
-    </div>
+      <div class="actions bulk">
+        <button type="button" onclick={() => onSetAllUnlocked(true)}>Unlock all</button>
+        <button type="button" onclick={() => onSetAllUnlocked(false)}>Lock all</button>
+        <button type="button" onclick={() => onFillAll(0)}>Zero counts</button>
+        <button type="button" onclick={() => onFillAll(999)}>All counts to 999</button>
+        <button type="button" onclick={() => onFillAll(9999)}>All counts to 9999</button>
+      </div>
+    </Card>
   </section>
 
   <section class="block">
-    <h3>Mulch & shovels</h3>
-    <p class="note">
-      <code>save.farming.mulchList</code> — first {MULCH_NAMES.length} cells
-      use the canonical <code>MulchType</code> names; later slots fall back
-      to <code>Slot N</code>.
-    </p>
-    <div class="mulch-grid">
-      {#each mulch as _v, idx (idx)}
-        <label class="mulch-cell">
-          <span class="mulch-name">{nameForMulch(idx)}</span>
+    <Card>
+      <SectionHeader title="Mulch & shovels" />
+      <p class="note">
+        <code>save.farming.mulchList</code> — first {MULCH_NAMES.length} cells
+        use the canonical <code>MulchType</code> names; later slots fall back
+        to <code>Slot N</code>.
+      </p>
+      <div class="mulch-grid">
+        {#each mulch as _v, idx (idx)}
+          <label class="mulch-cell">
+            <span class="mulch-name">{nameForMulch(idx)}</span>
+            <input
+              type="text"
+              inputmode="numeric"
+              bind:value={mulchText[idx]}
+              onblur={() => commitMulch(idx)}
+              onkeydown={onCellKey}
+            />
+          </label>
+        {/each}
+      </div>
+
+      <div class="shovels">
+        <label>
+          <span>Regular shovels</span>
           <input
             type="text"
             inputmode="numeric"
-            bind:value={mulchText[idx]}
-            onblur={() => commitMulch(idx)}
+            bind:value={shovelText}
+            onblur={commitShovels}
             onkeydown={onCellKey}
           />
         </label>
-      {/each}
-    </div>
-
-    <div class="shovels">
-      <label>
-        <span>Regular shovels</span>
-        <input
-          type="text"
-          inputmode="numeric"
-          bind:value={shovelText}
-          onblur={commitShovels}
-          onkeydown={onCellKey}
-        />
-      </label>
-      <label>
-        <span>Mulch shovels</span>
-        <input
-          type="text"
-          inputmode="numeric"
-          bind:value={mulchShovelText}
-          onblur={commitShovels}
-          onkeydown={onCellKey}
-        />
-      </label>
-    </div>
+        <label>
+          <span>Mulch shovels</span>
+          <input
+            type="text"
+            inputmode="numeric"
+            bind:value={mulchShovelText}
+            onblur={commitShovels}
+            onkeydown={onCellKey}
+          />
+        </label>
+      </div>
+    </Card>
   </section>
 {/if}
 
@@ -352,51 +362,46 @@
 
 <style>
   .empty {
-    color: #666;
-    padding: 1rem;
-    background: #f5f5f5;
-    border-radius: 6px;
+    color: var(--text-muted);
+    padding: var(--space-4);
+    background: var(--surface-2);
+    border-radius: var(--radius-sm);
   }
   .block {
-    margin-bottom: 1.25rem;
-    padding: 1rem 1.25rem;
-    border: 1px solid #e5e5e5;
-    border-radius: 8px;
-    background: #fafafa;
-  }
-  .block h3 {
-    margin: 0 0 0.5rem;
-    font-size: 1rem;
+    margin-bottom: var(--space-5);
   }
   .note {
-    margin: 0 0 0.75rem;
-    color: #666;
+    margin: 0 0 var(--space-3);
+    color: var(--text-muted);
     font-size: 0.9em;
   }
   .note code {
-    background: #eee;
-    padding: 0 0.25rem;
+    background: var(--surface-2);
+    color: var(--text);
+    padding: 0 var(--space-1);
     border-radius: 3px;
+    font-family: var(--font-mono);
     font-size: 0.95em;
   }
   .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--space-2);
   }
   .filter {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: var(--space-2);
     font-size: 0.9em;
-    color: #444;
+    color: var(--text);
   }
   .count-pill {
     font-size: 0.85em;
-    color: #2563eb;
-    padding: 0.1rem 0.5rem;
-    background: #dbeafe;
+    color: var(--text-muted);
+    padding: 0.1rem var(--space-2);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
     border-radius: 999px;
   }
 
@@ -404,26 +409,27 @@
   .table-wrap {
     max-height: 26rem;
     overflow-y: auto;
-    border: 1px solid #e5e5e5;
-    border-radius: 6px;
-    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
   }
   table {
     width: 100%;
     border-collapse: collapse;
     font-size: 0.9em;
+    color: var(--text);
   }
   thead {
     position: sticky;
     top: 0;
-    background: #f5f5f5;
+    background: var(--surface-2);
     z-index: 1;
   }
   th,
   td {
-    padding: 0.3rem 0.5rem;
+    padding: 0.3rem var(--space-2);
     text-align: center;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--border);
   }
   th button {
     border: none;
@@ -431,11 +437,11 @@
     cursor: pointer;
     font: inherit;
     font-weight: 500;
-    color: #444;
+    color: var(--text);
     padding: 0;
   }
   th button:hover {
-    color: #2563eb;
+    color: var(--brand);
   }
   .name-col {
     text-align: left;
@@ -444,41 +450,42 @@
     width: 2rem;
   }
   tr.selected {
-    background: #eff6ff;
+    background: var(--selected-bg);
   }
   tr.locked td {
-    color: #aaa;
+    color: var(--text-muted);
   }
   .muted {
-    color: #999;
+    color: var(--text-muted);
   }
 
   /* Action rows --------------------------------------- */
   .actions {
-    margin-top: 0.75rem;
+    margin-top: var(--space-3);
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: var(--space-2);
   }
   .actions.bulk {
-    border-top: 1px dashed #e5e5e5;
-    padding-top: 0.75rem;
-    margin-top: 0.75rem;
+    border-top: 1px dashed var(--border);
+    padding-top: var(--space-3);
   }
   .actions button {
     padding: 0.35rem 0.8rem;
-    border: 1px solid #ccc;
-    background: white;
-    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text);
+    border-radius: var(--radius-sm);
     cursor: pointer;
     font: inherit;
     font-size: 0.9em;
   }
   .actions button:hover:not(:disabled) {
-    background: #f0f0f0;
+    border-color: var(--text-muted);
   }
   .actions button:disabled {
-    color: #aaa;
+    color: var(--text-muted);
+    opacity: 0.6;
     cursor: not-allowed;
   }
 
@@ -486,7 +493,7 @@
   .mulch-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
-    gap: 0.5rem 0.75rem;
+    gap: var(--space-2) var(--space-3);
   }
   .mulch-cell,
   .shovels label {
@@ -496,28 +503,30 @@
   }
   .mulch-name,
   .shovels label span {
-    color: #444;
+    color: var(--text-muted);
     font-size: 0.85em;
   }
   .mulch-cell input,
   .shovels input {
     width: 100%;
-    padding: 0.25rem 0.5rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    padding: var(--space-1) var(--space-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+    color: var(--text);
     font: inherit;
     text-align: right;
   }
   .mulch-cell input:focus,
   .shovels input:focus {
-    outline: 2px solid #2563eb;
+    outline: 2px solid var(--focus-ring);
     outline-offset: -1px;
   }
   .shovels {
-    margin-top: 1rem;
+    margin-top: var(--space-4);
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.5rem 0.75rem;
+    gap: var(--space-2) var(--space-3);
     max-width: 24rem;
   }
 </style>

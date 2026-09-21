@@ -12,6 +12,11 @@ Release notes.
 ## [Unreleased]
 
 ### Added
+- **Pokédex: "All regions" option (web).** The region picker now starts with
+  *All regions*, listing the whole national dex (#1–1025) with a combined
+  caught counter; "Mark all uncaught" works across every region (still behind
+  a confirm). Derived from `REGION_RANGES`, so new generations are included
+  automatically.
 - **Caught Pokémon: region / type filters (web).** Three dropdowns filter the
   caught table by **region** (dex range) and by **type 1 / type 2** (each
   matches if the species' type set contains the chosen type, so e.g. Grass +
@@ -38,6 +43,17 @@ Release notes.
   consistent with the dex.
 
 ### Fixed
+- **Berries tab looked empty in dark mode (web).** The tab hardcoded light
+  backgrounds (`#fafafa`, `white`) while inheriting the dark theme's
+  near-white text, so berry names, counts, headings and the bulk-action
+  buttons rendered light-on-light and the tab appeared not to load. It is now
+  the first tab migrated to the design tokens (Redesign Phase 2), using the
+  shared `Card`/`SectionHeader` primitives, with new `--selected-bg` and
+  `--focus-ring` tokens for both themes. A new `design-tokens` test fails if
+  a migrated component reintroduces a raw color. The shared **Edit count…**
+  dialog (`SimpleIntDialog`, also used by other tabs) had the same problem —
+  an invisible title and Cancel button — and is migrated too (new
+  `--backdrop` token). Other tabs still need the same migration.
 - **Pokémon forms showed as their base species (web).** Saves store forms
   (regional variants, Alcremie flavours, costume Pikachu, clones, megas…)
   with fractional ids like `869.01` or `25.14`. The editor truncated the id,

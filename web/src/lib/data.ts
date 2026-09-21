@@ -82,6 +82,23 @@ export const REGION_RANGES: readonly RegionRange[] = (
   regionRangesJson as unknown as readonly [string, number, number][]
 ).map(([label, lo, hi]) => ({ label, lo, hi }))
 
+const ALL_REGIONS_LABEL = 'All regions'
+
+/**
+ * Synthetic "every region" range for region pickers (e.g. the Pokédex tab).
+ * Derived from `REGION_RANGES` so it tracks new generations automatically.
+ * Deliberately NOT part of `REGION_RANGES` — `regionFor` must keep naming a
+ * species' real region.
+ */
+export const ALL_REGIONS: RegionRange = {
+  label: ALL_REGIONS_LABEL,
+  lo: Math.min(...REGION_RANGES.map((r) => r.lo)),
+  hi: Math.max(...REGION_RANGES.map((r) => r.hi)),
+}
+
+/** Options for a region `<select>`: "All regions" first, then each region. */
+export const DEX_REGION_OPTIONS: readonly RegionRange[] = [ALL_REGIONS, ...REGION_RANGES]
+
 const _buckets = genderBucketsJson as GenderBucketsJson
 const BUCKET_LABELS = _buckets.labels as readonly GenderBucket[]
 const BUCKET_INDEX: string = _buckets.index
