@@ -25,6 +25,9 @@ import CaughtTab from '../src/tabs/CaughtTab.svelte'
 const FIXTURE = resolve(__dirname, '..', '..', 'tests', 'fixtures', 'v0.10.25', 'minimal.txt')
 const loadFixture = () => decodeBytes(readFileSync(FIXTURE, 'utf8').trim())
 
+// Table column positions (<td> index). Column 0 is the selection checkbox.
+const COL = { id: 1, pokerus: 4, shiny: 7 } as const
+
 function rawEntry(id: number): Record<string, unknown> {
   const list = (store.data!.save as any).party.caughtPokemon as Array<Record<string, unknown>>
   const e = list.find((x: any) => x?.id === id)
@@ -83,7 +86,7 @@ describe('CaughtTab edit dialog — pokérus update', () => {
     // Header row is index 0; data rows follow. Find the one with id=4.
     const targetRow = rows.find((row) => {
       const cells = row.querySelectorAll('td')
-      return cells.length > 0 && cells[0].textContent?.trim() === '4'
+      return cells.length > 0 && cells[COL.id].textContent?.trim() === '4'
     })
     expect(targetRow, 'row for id=4 (Charmander) must exist').toBeTruthy()
 
@@ -126,20 +129,19 @@ describe('CaughtTab edit dialog — pokérus update', () => {
       const updatedRows = document.querySelectorAll('table tbody tr')
       const charmRow = Array.from(updatedRows).find((row) => {
         const cells = row.querySelectorAll('td')
-        return cells.length > 0 && cells[0].textContent?.trim() === '4'
+        return cells.length > 0 && cells[COL.id].textContent?.trim() === '4'
       })
       expect(charmRow, 'row for id=4 must still exist after edit').toBeTruthy()
 
-      // The pokérus cell is the 4th <td> (index 3): id, name, atkBonus, pokerus
       const cells = charmRow!.querySelectorAll('td')
       expect(
-        cells[3].textContent?.trim(),
+        cells[COL.pokerus].textContent?.trim(),
         'pokérus table cell for id=4 should show "Contagious"',
       ).toBe('Contagious')
     })
   })
 
-  test('quick-action Mark shiny still works (baseline for the tick++ path)', async () => {
+  test('Shiny on for a clicked row still works (baseline for the tick++ path)', async () => {
     polyfillDialog()
 
     const { getAllByRole, getByRole } = render(CaughtTab)
@@ -147,15 +149,15 @@ describe('CaughtTab edit dialog — pokérus update', () => {
     const rows = getAllByRole('row')
     const targetRow = rows.find((row) => {
       const cells = row.querySelectorAll('td')
-      return cells.length > 0 && cells[0].textContent?.trim() === '25'
+      return cells.length > 0 && cells[COL.id].textContent?.trim() === '25'
     })
     expect(targetRow, 'row for id=25 (Pikachu) must exist').toBeTruthy()
 
-    // Single-click to select.
+    // Single-click the row to select it.
     await fireEvent.click(targetRow!)
 
-    // Click "Mark shiny".
-    const markShinyBtn = getByRole('button', { name: /mark shiny/i })
+    // Click "Shiny on" (bulk action; applies to the one selected row).
+    const markShinyBtn = getByRole('button', { name: 'Shiny on' })
     await fireEvent.click(markShinyBtn)
 
     // Verify underlying data and table.
@@ -165,12 +167,11 @@ describe('CaughtTab edit dialog — pokérus update', () => {
       const updatedRows = document.querySelectorAll('table tbody tr')
       const pikaRow = Array.from(updatedRows).find((row) => {
         const cells = row.querySelectorAll('td')
-        return cells.length > 0 && cells[0].textContent?.trim() === '25'
+        return cells.length > 0 && cells[COL.id].textContent?.trim() === '25'
       })
       expect(pikaRow, 'row for id=25 must exist after mark-shiny').toBeTruthy()
       const cells = pikaRow!.querySelectorAll('td')
-      // shiny is the 7th <td> (index 6): id, name, atkBonus, pokerus, exp, inEgg, shiny
-      expect(cells[6].textContent?.trim(), 'shiny cell for Pikachu should show "yes"').toBe('yes')
+      expect(cells[COL.shiny].textContent?.trim(), 'shiny cell for Pikachu should show "yes"').toBe('yes')
     })
   })
 })

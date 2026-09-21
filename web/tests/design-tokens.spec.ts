@@ -14,6 +14,10 @@ const MIGRATED_COMPONENTS = [
   'src/components/SimpleIntDialog.svelte',
   'src/tabs/InventoryTab.svelte',
   'src/components/ItemCountGrid.svelte',
+  'src/tabs/CaughtTab.svelte',
+  'src/components/NumberField.svelte',
+  'src/tabs/CurrenciesTab.svelte',
+  'src/tabs/EggsTab.svelte',
 ] as const
 
 const WEB_ROOT = resolve(__dirname, '..')

@@ -244,17 +244,18 @@
 
 <style>
   .empty {
-    color: #666;
+    color: var(--text-muted);
     padding: 1rem;
-    background: #f5f5f5;
+    background: var(--surface-2);
     border-radius: 6px;
   }
   .block {
     margin-bottom: 1.25rem;
     padding: 1rem 1.25rem;
-    border: 1px solid #e5e5e5;
+    border: 1px solid var(--border);
     border-radius: 8px;
-    background: #fafafa;
+    background: var(--surface);
+    color: var(--text);
   }
   .block h3 {
     margin: 0 0 0.5rem;
@@ -262,7 +263,7 @@
   }
   .note {
     margin: 0 0 0.5rem;
-    color: #666;
+    color: var(--text-muted);
     font-size: 0.9em;
   }
   table {
@@ -274,17 +275,17 @@
   td {
     text-align: left;
     padding: 0.35rem 0.5rem;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--border);
   }
   th {
-    color: #666;
+    color: var(--text-muted);
     font-weight: 500;
   }
   tr.empty td {
-    color: #999;
+    color: var(--text-muted);
   }
   .muted {
-    color: #999;
+    color: var(--text-muted);
   }
   .actions-cell {
     text-align: right;
@@ -301,18 +302,19 @@
   }
   button {
     padding: 0.3rem 0.7rem;
-    border: 1px solid #ccc;
-    background: white;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text);
     border-radius: 4px;
     cursor: pointer;
     font: inherit;
     font-size: 0.85em;
   }
   button:hover:not(:disabled) {
-    background: #f0f0f0;
+    border-color: var(--text-muted);
   }
   button:disabled {
-    color: #aaa;
+    color: var(--text-muted);
     cursor: not-allowed;
   }
 
@@ -321,17 +323,18 @@
      max-height + overflow keep all fields reachable when the viewport
      is shorter than the content. */
   dialog {
-    border: 1px solid #ccc;
+    border: 1px solid var(--border);
     border-radius: 8px;
     padding: 1.25rem;
     width: min(38rem, 92vw);
     max-height: 85vh;
     overflow-y: auto;
-    background: white;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: var(--shadow);
   }
   dialog::backdrop {
-    background: rgba(0, 0, 0, 0.4);
+    background: var(--backdrop);
   }
   dialog h3 {
     margin: 0 0 0.75rem;
@@ -344,14 +347,14 @@
   }
   .row .label {
     flex: 0 0 10rem;
-    color: #444;
+    color: var(--text-muted);
   }
   .row.checkbox {
     margin-top: 0.25rem;
   }
   select {
     padding: 0.25rem 0.4rem;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border);
     border-radius: 4px;
     font: inherit;
   }
@@ -362,11 +365,11 @@
     margin-top: 1rem;
   }
   .dialog-actions .primary {
-    background: #2563eb;
-    color: white;
-    border-color: #2563eb;
+    background: var(--brand);
+    color: var(--brand-contrast);
+    border-color: var(--brand);
   }
   .dialog-actions .primary:hover {
-    background: #1d4ed8;
+    filter: brightness(1.1);
   }
 </style>

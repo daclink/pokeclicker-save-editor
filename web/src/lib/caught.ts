@@ -92,9 +92,25 @@ function ensureNonNegInt(name: string, v: number): void {
   }
 }
 
-/** Pokerus is the PokeClicker Pokerus enum: 0..3. */
+/** PokeClicker's `Pokerus` enum (party-entry key "8"). */
+export const POKERUS = {
+  Uninfected: 0,
+  Infected: 1,
+  Contagious: 2,
+  Resistant: 3,
+} as const
+
+/** Display labels indexed by `POKERUS` value. */
+export const POKERUS_LABELS: readonly string[] = Object.keys(POKERUS)
+
+/**
+ * In-game, a pokémon with any pokérus is promoted to Resistant once it has
+ * this many EVs (PartyPokemon.ts) — including right after the save loads.
+ */
+export const POKERUS_RESISTANT_EVS = 50
+
 function ensurePokerus(v: number): void {
-  if (!Number.isInteger(v) || v < 0 || v > 3) {
+  if (!Number.isInteger(v) || v < POKERUS.Uninfected || v > POKERUS.Resistant) {
     throw new RangeError(`pokerus: expected integer 0..3 (Uninfected..Resistant), got ${v}`)
   }
 }
@@ -166,6 +182,24 @@ export function setCaughtShiny(
     if (!entry) continue // tolerate missing ids — saves can change between renders
     if (on) entry['5'] = true
     else delete entry['5']
+  }
+}
+
+/**
+ * Bulk: set pokérus (key "8") on multiple ids. The level is validated before
+ * any write; ids missing from the save are skipped. Uninfected writes 0 — the
+ * game always persists this key.
+ */
+export function setCaughtPokerus(
+  data: SaveData,
+  ids: number[],
+  level: number,
+): void {
+  ensurePokerus(level)
+  for (const id of ids) {
+    const entry = findEntry(data, id)
+    if (!entry) continue
+    entry['8'] = level
   }
 }
 

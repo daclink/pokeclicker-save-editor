@@ -12,6 +12,13 @@ Release notes.
 ## [Unreleased]
 
 ### Added
+- **Caught Pokémon: bulk shiny and pokérus editing (web).** Rows now have
+  checkboxes. The header box selects every *visible* row, so the region and
+  type filters scope bulk edits (e.g. filter to Kanto → select all → set
+  pokérus to Contagious). The bulk bar offers **Shiny on / off**, a
+  **pokérus level + Apply**, and **Set atkBonus 100**. Double-click still
+  edits a single row. A note explains that the game promotes any infected
+  pokémon with 50+ EVs to Resistant on load.
 - **Inventory tab (web).** A new section for three `player._itemList`
   families that had no editor: **Egg items** (the 7 hatchable egg items,
   including Dragon Egg — distinct from the breeding queue on the Eggs tab),
@@ -52,6 +59,11 @@ Release notes.
   consistent with the dex.
 
 ### Fixed
+- **Caught, Currencies and Eggs tabs unreadable in dark mode (web).** Same
+  root cause as the Berries fix: light panel backgrounds under the dark
+  theme's near-white text. All three tabs, their edit dialogs, and the shared
+  `NumberField` now use the design tokens. That leaves Shards, Gems, Flutes
+  and Pokédex still to migrate.
 - **Berries tab looked empty in dark mode (web).** The tab hardcoded light
   backgrounds (`#fafafa`, `white`) while inheriting the dark theme's
   near-white text, so berry names, counts, headings and the bulk-action
