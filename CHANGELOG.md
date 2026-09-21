@@ -38,6 +38,17 @@ Release notes.
   consistent with the dex.
 
 ### Fixed
+- **Pokémon forms showed as their base species (web).** Saves store forms
+  (regional variants, Alcremie flavours, costume Pikachu, clones, megas…)
+  with fractional ids like `869.01` or `25.14`. The editor truncated the id,
+  so every form was named, typed and region-filtered as its base species:
+  "Alcremie (Strawberry Ruby Cream)" showed as "Alcremie", and Flying
+  Pikachu was typed Electric only. A new `data/pokemon-forms.json` (610
+  forms, parsed from PokeClicker's `PokemonList.ts` by
+  `scripts/fetch_pokeclicker_data.py`) gives each form its own name and
+  types. Regional forms report their native region (Alolan Raichu → Alola).
+  Unknown forms fall back to the base species. Gender stat buckets stay per
+  species.
 - **Multipliers: Master Ball price multiplier read a non-existent key (web).**
   The tab read `player._itemMultipliers['Masterball|farmPoint']`, which never
   exists (Master Balls aren't bought with farm points), so it always showed

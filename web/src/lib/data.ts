@@ -3,7 +3,7 @@
  * `pokeclicker_data.py`.
  *
  * Reads the same `data/*.json` files the Python shim reads (one source of
- * truth for both runtimes). Vite inlines the JSON at build time, so there's
+ * truth for both runtimes) — plus web-only `pokemon-forms.json`. Vite inlines the JSON at build time, so there's
  * no runtime fetch; the cost is in the bundle (the names table is the
  * biggest at ~14 KB pretty-printed → ~8 KB minified, well worth it for the
  * zero-network UX).
@@ -16,6 +16,7 @@
 import berryNamesJson from '../../../data/berry-names.json'
 import genderBucketsJson from '../../../data/gender-buckets.json'
 import mulchNamesJson from '../../../data/mulch-names.json'
+import pokemonFormsJson from '../../../data/pokemon-forms.json'
 import pokemonNamesJson from '../../../data/pokemon-names.json'
 import pokemonTypesJson from '../../../data/pokemon-types.json'
 import regionRangesJson from '../../../data/region-ranges.json'
@@ -34,6 +35,17 @@ export type GenderBucket =
   | 'totalGenderlessPokemonCaptured'
 
 type GenderBucketsJson = { labels: readonly string[]; index: string }
+
+/**
+ * A form (regional variant, Alcremie flavour, costume, mega…) — PokeClicker
+ * gives these fractional ids like `869.01`. `region` is present only when the
+ * form's `nativeRegion` is one of `REGION_RANGES` (e.g. Alolan forms).
+ */
+export type PokemonForm = {
+  readonly name: string
+  readonly types: readonly number[]
+  readonly region?: string
+}
 
 // --- exported constants ----------------------------------------------------
 
@@ -54,6 +66,14 @@ export const POKEMON_TYPE_NAMES: readonly string[] = [
  */
 export const POKEMON_TYPES: readonly (readonly number[])[] =
   pokemonTypesJson as unknown as readonly (readonly number[])[]
+
+/**
+ * Form table keyed by `formKey(id)` (JS number → string, e.g. `'25.1'`).
+ * Generated from PokemonList.ts by `scripts/fetch_pokeclicker_data.py`.
+ * Web-only: the desktop shim (`pokeclicker_data.py`) doesn't read it.
+ */
+export const POKEMON_FORMS: Readonly<Record<string, PokemonForm>> =
+  pokemonFormsJson as Readonly<Record<string, PokemonForm>>
 
 // TS sees JSON arrays as `(string | number)[]` rather than tuples, so we
 // cast through `unknown` and trust the shape (the import-time invariants
@@ -103,6 +123,12 @@ if (BERRY_NAMES[0] !== 'Cheri' || BERRY_NAMES[BERRY_NAMES.length - 1] !== 'Hopo'
 if (MULCH_NAMES.length < 6) {
   throw new Error(`mulch roster expected >=6 names, got ${MULCH_NAMES.length}`)
 }
+for (const key of Object.keys(POKEMON_FORMS)) {
+  const n = Number(key)
+  if (!Number.isFinite(n) || Number.isInteger(n) || String(n) !== key) {
+    throw new Error(`pokemon-forms.json: key ${JSON.stringify(key)} is not a normalized fractional id`)
+  }
+}
 
 // --- helpers (parallel to name_for / region_for / stat_bucket_for / etc.) --
 
@@ -115,8 +141,30 @@ function coerceId(pid: unknown): number | null {
   return null
 }
 
-/** Friendly name for a national-dex id (1-based), or `'?'` if unknown. */
+/**
+ * Lookup key for a form id: the id as JavaScript stringifies the number
+ * (`869.01` → `'869.01'`, `'25.10'` → `'25.1'`), matching how saves store
+ * it. `null` for integers (base species) and non-numbers.
+ */
+export function formKey(pid: unknown): string | null {
+  const n = typeof pid === 'number' ? pid : typeof pid === 'string' ? Number(pid) : NaN
+  if (!Number.isFinite(n) || Number.isInteger(n)) return null
+  return String(n)
+}
+
+/** The form entry for a fractional id, or `undefined` (base species / unknown form). */
+function formFor(pid: unknown): PokemonForm | undefined {
+  const key = formKey(pid)
+  return key === null ? undefined : POKEMON_FORMS[key]
+}
+
+/**
+ * Friendly name for a pokémon id, or `'?'` if unknown. Forms (fractional ids)
+ * get their own name; an unknown form falls back to its base species.
+ */
 export function nameFor(pid: unknown): string {
+  const form = formFor(pid)
+  if (form) return form.name
   const idx = coerceId(pid)
   if (idx !== null && idx >= 1 && idx <= NATIONAL_NAMES.length) {
     return NATIONAL_NAMES[idx - 1]
@@ -124,8 +172,14 @@ export function nameFor(pid: unknown): string {
   return '?'
 }
 
-/** Region label for a national-dex id, or `'?'` if out of range. */
+/**
+ * Region label for a pokémon id, or `'?'` if out of range. Regional forms
+ * report their native region (Alolan Raichu → Alola); everything else uses
+ * the base species' dex range.
+ */
 export function regionFor(pid: unknown): string {
+  const formRegion = formFor(pid)?.region
+  if (formRegion) return formRegion
   const idx = coerceId(pid)
   if (idx === null) return '?'
   for (const { label, lo, hi } of REGION_RANGES) {
@@ -134,8 +188,13 @@ export function regionFor(pid: unknown): string {
   return '?'
 }
 
-/** Type indices for a national-dex id (1-based), or `[]` if out of range. */
+/**
+ * Type indices for a pokémon id, or `[]` if out of range. Forms use their own
+ * types (Alolan Raichu is Electric/Psychic); unknown forms fall back to base.
+ */
 export function typesFor(pid: unknown): readonly number[] {
+  const form = formFor(pid)
+  if (form && form.types.length > 0) return form.types
   const idx = coerceId(pid)
   if (idx !== null && idx >= 1 && idx <= POKEMON_TYPES.length) {
     return POKEMON_TYPES[idx - 1]
