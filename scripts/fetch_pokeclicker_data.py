@@ -75,6 +75,7 @@ EXPECTED_BERRY_COUNT = 70
 EXPECTED_FIRST_BERRY = "Cheri"
 EXPECTED_LAST_BERRY = "Hopo"
 EXPECTED_MULCH_MIN = 6   # save.farming.mulchList may carry extra slots
+EXPECTED_FORMS_MIN = 600  # fractional-id entries in PokemonList.ts (610 as of 2026-09)
 
 # PokeAPI returns kebab-case names that don't always round-trip to the
 # canonical Pokémon-games display name. For most species the optional
@@ -325,6 +326,76 @@ def fetch_pokemon_types(*, retries: int = 3) -> list[list[int]]:
     return [by_id[i] for i in range(1, MAX_ID + 1)]
 
 
+def normalize_form_id(literal: str) -> str:
+    """Key a fractional PokemonList.ts id the way JavaScript stringifies it.
+
+    Saves hold the id as a JSON number, so the web app looks forms up with
+    ``String(entry.id)``. Python's ``repr(float)`` and JS ``Number#toString``
+    both emit the shortest round-tripping decimal, so ``'25.10'`` → ``'25.1'``
+    on both sides. Integer ids are not forms and raise ``ValueError``.
+    """
+    value = float(literal)  # ValueError on garbage / empty
+    if value.is_integer():
+        raise ValueError(f"not a form id (integer): {literal!r}")
+    return repr(value)
+
+
+_ENTRY_START = re.compile(r"'id':\s*(-?\d+(?:\.\d+)?)\s*,")
+_ENTRY_NAME = re.compile(r"'name':\s*'((?:[^'\\]|\\.)*)'")
+_ENTRY_REGION = re.compile(r"'nativeRegion':\s*Region\.(\w+)")
+_ENTRY_TYPE = re.compile(r"'type':\s*\[([^\]]*)\]")
+
+
+def parse_pokemon_forms(src: str) -> dict[str, dict]:
+    """Parse every fractional-id entry of PokemonList.ts into a lookup table.
+
+    Returns ``{normalized_id: {"name", "types"[, "region"]}}``. ``region`` is
+    set only when ``nativeRegion`` names one of ``REGION_RANGES`` (e.g. Alolan
+    forms → ``'Alola'``); for anything else (Hisui, none) the web app falls
+    back to the base species' dex region. ``PokemonType.None`` is dropped.
+    Duplicate ids or entries missing a name/type abort the run.
+    """
+    tidx = {name: i for i, name in enumerate(POKEMON_TYPE_ORDER)}
+    region_by_enum = {lbl.lower(): lbl for lbl, _lo, _hi in REGION_RANGES}
+    starts = list(_ENTRY_START.finditer(src))
+    forms: dict[str, dict] = {}
+    for n, m in enumerate(starts):
+        try:
+            key = normalize_form_id(m.group(1))
+        except ValueError:
+            continue  # base species
+        end = starts[n + 1].start() if n + 1 < len(starts) else len(src)
+        chunk = src[m.end():end]
+        name_m = _ENTRY_NAME.search(chunk)
+        type_m = _ENTRY_TYPE.search(chunk)
+        if not name_m or not type_m:
+            raise SystemExit(f"PokemonList.ts: form {key} lacks a name or type")
+        if key in forms:
+            raise SystemExit(f"PokemonList.ts: duplicate form id {key}")
+        names = re.findall(r"PokemonType\.(\w+)", type_m.group(1))
+        entry: dict = {
+            "name": name_m.group(1).replace("\\'", "'"),
+            "types": [tidx[t] for t in names if t in tidx],
+        }
+        region_m = _ENTRY_REGION.search(chunk)
+        if region_m and region_m.group(1) in region_by_enum:
+            entry["region"] = region_by_enum[region_m.group(1)]
+        forms[key] = entry
+    return forms
+
+
+def fetch_pokemon_forms(*, retries: int = 3) -> dict[str, dict]:
+    """Pull PokemonList.ts and return the form table (see ``parse_pokemon_forms``)."""
+    src = _fetch_with_retry(POKEMON_LIST_URL, label="PokemonList.ts",
+                            retries=retries)
+    forms = parse_pokemon_forms(src)
+    if len(forms) < EXPECTED_FORMS_MIN:
+        raise SystemExit(
+            f"PokemonList.ts: expected >= {EXPECTED_FORMS_MIN} forms, got {len(forms)}"
+        )
+    return forms
+
+
 # --- output writer ----------------------------------------------------------
 
 def _dump(name: str, obj) -> Path:
@@ -340,7 +411,8 @@ def _dump(name: str, obj) -> Path:
 
 def write_data_files(names: list[str], buckets: list[int],
                      berries: list[str], mulches: list[str],
-                     types: list[list[int]]) -> list[Path]:
+                     types: list[list[int]],
+                     forms: dict[str, dict]) -> list[Path]:
     """Write the reference-data JSON files the editors read.
 
     Layout mirrors the Python constants 1:1 so each file diffs cleanly when
@@ -356,6 +428,7 @@ def write_data_files(names: list[str], buckets: list[int],
         _dump("berry-names.json", berries),
         _dump("mulch-names.json", mulches),
         _dump("pokemon-types.json", types),
+        _dump("pokemon-forms.json", forms),
     ]
     return written
 
@@ -382,8 +455,10 @@ def main() -> int:
     print(f"  {len(mulches)} mulches: {', '.join(mulches)}")
     types = fetch_pokemon_types()
     print(f"  {len(types)} pokemon type lists parsed")
+    forms = fetch_pokemon_forms()
+    print(f"  {len(forms)} pokemon forms parsed")
 
-    written = write_data_files(names, buckets, berries, mulches, types)
+    written = write_data_files(names, buckets, berries, mulches, types, forms)
     print(f"\nWrote {len(written)} files to {DATA_DIR.relative_to(REPO_ROOT)}/:")
     for path in written:
         print(f"  {path.name}  ({path.stat().st_size} bytes)")

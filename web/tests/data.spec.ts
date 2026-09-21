@@ -11,6 +11,8 @@ import {
   ALL_REGIONS,
   BERRY_NAMES,
   DEX_REGION_OPTIONS,
+  POKEMON_FORMS,
+  formKey,
   KANTO_NAMES,
   MULCH_NAMES,
   NATIONAL_NAMES,
@@ -226,6 +228,71 @@ describe('pokemon types', () => {
     for (let pid = 1; pid <= 1025; pid++) {
       const n = typesFor(pid).length
       expect(n === 1 || n === 2, `#${pid} has ${n} types`).toBe(true)
+    }
+  })
+})
+
+describe('pokémon forms (fractional ids)', () => {
+  test('formKey stringifies like the save does, and only for forms', () => {
+    expect(formKey(869.01)).toBe('869.01')
+    expect(formKey('869.01')).toBe('869.01')
+    expect(formKey(25.1)).toBe('25.1')
+    expect(formKey('25.10')).toBe('25.1') // source literal with trailing zero
+    expect(formKey(26)).toBeNull()
+    expect(formKey('26')).toBeNull()
+    expect(formKey(null)).toBeNull()
+    expect(formKey('abc')).toBeNull()
+    expect(formKey(Number.NaN)).toBeNull()
+  })
+
+  test('forms get their own names instead of the base species', () => {
+    expect(nameFor(869.01)).toBe('Alcremie (Strawberry Ruby Cream)')
+    expect(nameFor(26.01)).toBe('Alolan Raichu')
+    expect(nameFor(25.1)).toBe('Flying Pikachu')
+    expect(nameFor('6.04')).toBe('Charizard (Clone)')
+  })
+
+  test('base species are unchanged', () => {
+    expect(nameFor(26)).toBe('Raichu')
+    expect(nameFor(869)).toBe('Alcremie')
+    expect(typeNamesFor(26)).toEqual(['Electric'])
+  })
+
+  test('forms get their own types', () => {
+    expect(typeNamesFor(26.01)).toEqual(['Electric', 'Psychic'])
+    expect(typeNamesFor(150.03)).toEqual(['Psychic', 'Steel'])
+  })
+
+  test('regional forms report their native region; others fall back to the dex', () => {
+    expect(regionFor(26.01)).toBe('Alola') // Alolan Raichu, dex #26 is Kanto
+    expect(regionFor(26)).toBe('Kanto')
+    expect(regionFor(869.01)).toBe('Galar')
+    expect(regionFor(58.01)).toBe('Kanto') // Hisuian Growlithe: Hisui isn't a picker region
+  })
+
+  test('unknown fractional id falls back to the base species', () => {
+    expect(formKey(25.999)).toBe('25.999')
+    expect(nameFor(25.999)).toBe('Pikachu')
+    expect(typeNamesFor(25.999)).toEqual(['Electric'])
+    expect(regionFor(25.999)).toBe('Kanto')
+  })
+
+  test('gender stat bucket stays per species', () => {
+    expect(statBucketFor(26.01)).toBe(statBucketFor(26))
+  })
+
+  test('table shape: >= 600 forms, every key a non-integer, valid types + regions', () => {
+    const keys = Object.keys(POKEMON_FORMS)
+    expect(keys.length).toBeGreaterThanOrEqual(600)
+    const regions = new Set(REGION_RANGES.map((r) => r.label))
+    for (const k of keys) {
+      const n = Number(k)
+      expect(Number.isFinite(n) && !Number.isInteger(n), k).toBe(true)
+      expect(String(n), `key ${k} is not normalized`).toBe(k)
+      const f = POKEMON_FORMS[k]
+      expect(f.name.length, k).toBeGreaterThan(0)
+      for (const t of f.types) expect(t >= 0 && t < 18, `${k} type ${t}`).toBe(true)
+      if (f.region !== undefined) expect(regions.has(f.region), `${k} ${f.region}`).toBe(true)
     }
   })
 })

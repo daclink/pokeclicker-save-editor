@@ -1,0 +1,4027 @@
+{
+  "1.01": {
+    "name": "Bulbasaur (Clone)",
+    "types": [
+      4,
+      7
+    ]
+  },
+  "1.02": {
+    "name": "Spooky Bulbasaur",
+    "types": [
+      4,
+      15
+    ]
+  },
+  "1.03": {
+    "name": "Bulbasaur (Rose)",
+    "types": [
+      4,
+      17
+    ]
+  },
+  "2.01": {
+    "name": "Ivysaur (Clone)",
+    "types": [
+      4,
+      7
+    ]
+  },
+  "2.02": {
+    "name": "Spooky Ivysaur",
+    "types": [
+      4,
+      15
+    ]
+  },
+  "2.03": {
+    "name": "Ivysaur (Rose)",
+    "types": [
+      4,
+      17
+    ]
+  },
+  "3.01": {
+    "name": "Mega Venusaur",
+    "types": [
+      4,
+      7
+    ]
+  },
+  "3.02": {
+    "name": "Gigantamax Venusaur",
+    "types": [
+      4,
+      7
+    ]
+  },
+  "3.03": {
+    "name": "Venusaur (Clone)",
+    "types": [
+      4,
+      7
+    ]
+  },
+  "3.04": {
+    "name": "Spooky Venusaur",
+    "types": [
+      4,
+      15
+    ]
+  },
+  "3.05": {
+    "name": "Venusaur (Rose)",
+    "types": [
+      4,
+      17
+    ]
+  },
+  "4.01": {
+    "name": "Charmander (Clone)",
+    "types": [
+      1
+    ]
+  },
+  "5.01": {
+    "name": "Charmeleon (Clone)",
+    "types": [
+      1
+    ]
+  },
+  "6.01": {
+    "name": "Mega Charizard X",
+    "types": [
+      1,
+      14
+    ]
+  },
+  "6.02": {
+    "name": "Mega Charizard Y",
+    "types": [
+      1,
+      9
+    ]
+  },
+  "6.03": {
+    "name": "Gigantamax Charizard",
+    "types": [
+      1,
+      9
+    ]
+  },
+  "6.04": {
+    "name": "Charizard (Clone)",
+    "types": [
+      1,
+      9
+    ]
+  },
+  "6.05": {
+    "name": "Captain Charizard",
+    "types": [
+      1,
+      15
+    ]
+  },
+  "7.01": {
+    "name": "Squirtle (Clone)",
+    "types": [
+      2
+    ]
+  },
+  "7.02": {
+    "name": "Squad Leader Squirtle",
+    "types": [
+      2,
+      15
+    ]
+  },
+  "8.01": {
+    "name": "Wartortle (Clone)",
+    "types": [
+      2
+    ]
+  },
+  "9.01": {
+    "name": "Mega Blastoise",
+    "types": [
+      2
+    ]
+  },
+  "9.02": {
+    "name": "Gigantamax Blastoise",
+    "types": [
+      2
+    ]
+  },
+  "9.03": {
+    "name": "Blastoise (Clone)",
+    "types": [
+      2
+    ]
+  },
+  "10.01": {
+    "name": "Pinkan Caterpie",
+    "types": [
+      11
+    ]
+  },
+  "12.01": {
+    "name": "Gigantamax Butterfree",
+    "types": [
+      11,
+      9
+    ]
+  },
+  "12.02": {
+    "name": "Valencian Butterfree",
+    "types": [
+      11,
+      9
+    ]
+  },
+  "12.03": {
+    "name": "Pink Butterfree",
+    "types": [
+      11,
+      9
+    ]
+  },
+  "12.04": {
+    "name": "Ash's Butterfree",
+    "types": [
+      11,
+      9
+    ]
+  },
+  "13.01": {
+    "name": "Pinkan Weedle",
+    "types": [
+      11,
+      7
+    ]
+  },
+  "15.01": {
+    "name": "Mega Beedrill",
+    "types": [
+      11,
+      7
+    ]
+  },
+  "16.01": {
+    "name": "Pinkan Pidgey",
+    "types": [
+      0,
+      9
+    ]
+  },
+  "17.01": {
+    "name": "Pinkan Pidgeotto",
+    "types": [
+      0,
+      9
+    ]
+  },
+  "18.01": {
+    "name": "Mega Pidgeot",
+    "types": [
+      0,
+      9
+    ]
+  },
+  "19.01": {
+    "name": "Alolan Rattata",
+    "types": [
+      15,
+      0
+    ],
+    "region": "Alola"
+  },
+  "19.02": {
+    "name": "Pinkan Rattata",
+    "types": [
+      0
+    ]
+  },
+  "20.01": {
+    "name": "Alolan Raticate",
+    "types": [
+      15,
+      0
+    ],
+    "region": "Alola"
+  },
+  "20.02": {
+    "name": "Totem Raticate",
+    "types": [
+      15,
+      0
+    ],
+    "region": "Alola"
+  },
+  "20.03": {
+    "name": "Valencian Raticate",
+    "types": [
+      0
+    ]
+  },
+  "21.01": {
+    "name": "Red Spearow",
+    "types": [
+      0,
+      9
+    ]
+  },
+  "24.01": {
+    "name": "Pinkan Arbok",
+    "types": [
+      7
+    ]
+  },
+  "25.01": {
+    "name": "Pikachu (Original Cap)",
+    "types": [
+      3
+    ]
+  },
+  "25.02": {
+    "name": "Pikachu (Hoenn Cap)",
+    "types": [
+      3
+    ]
+  },
+  "25.03": {
+    "name": "Pikachu (Sinnoh Cap)",
+    "types": [
+      3
+    ]
+  },
+  "25.04": {
+    "name": "Pikachu (Unova Cap)",
+    "types": [
+      3
+    ]
+  },
+  "25.05": {
+    "name": "Pikachu (Kalos Cap)",
+    "types": [
+      3
+    ]
+  },
+  "25.06": {
+    "name": "Pikachu (Alola Cap)",
+    "types": [
+      3
+    ]
+  },
+  "25.07": {
+    "name": "Pikachu (World Cap)",
+    "types": [
+      3
+    ]
+  },
+  "25.08": {
+    "name": "Pikachu (Partner Cap)",
+    "types": [
+      3
+    ]
+  },
+  "25.09": {
+    "name": "Gigantamax Pikachu",
+    "types": [
+      3
+    ]
+  },
+  "25.1": {
+    "name": "Flying Pikachu",
+    "types": [
+      3,
+      9
+    ]
+  },
+  "25.11": {
+    "name": "Surfing Pikachu",
+    "types": [
+      3,
+      2
+    ]
+  },
+  "25.12": {
+    "name": "Pikachu (Gengar)",
+    "types": [
+      3,
+      13
+    ]
+  },
+  "25.13": {
+    "name": "Let's Go Pikachu",
+    "types": [
+      3,
+      0
+    ]
+  },
+  "25.14": {
+    "name": "Pinkan Pikachu",
+    "types": [
+      3
+    ]
+  },
+  "25.15": {
+    "name": "Detective Pikachu",
+    "types": [
+      3,
+      10
+    ]
+  },
+  "25.16": {
+    "name": "Pikachu (Clone)",
+    "types": [
+      3
+    ]
+  },
+  "25.17": {
+    "name": "Pikachu (Rock Star)",
+    "types": [
+      3,
+      16
+    ]
+  },
+  "25.18": {
+    "name": "Pikachu (Belle)",
+    "types": [
+      3,
+      5
+    ]
+  },
+  "25.19": {
+    "name": "Pikachu (Pop Star)",
+    "types": [
+      3,
+      17
+    ]
+  },
+  "25.2": {
+    "name": "Pikachu (Ph. D.)",
+    "types": [
+      3
+    ]
+  },
+  "25.21": {
+    "name": "Pikachu (Libre)",
+    "types": [
+      3,
+      6
+    ]
+  },
+  "25.22": {
+    "name": "Pikachu (Easter)",
+    "types": [
+      3,
+      17
+    ]
+  },
+  "25.23": {
+    "name": "Pikachu (Palaeontologist)",
+    "types": [
+      3,
+      12
+    ]
+  },
+  "26.01": {
+    "name": "Alolan Raichu",
+    "types": [
+      3,
+      10
+    ],
+    "region": "Alola"
+  },
+  "26.02": {
+    "name": "Detective Raichu",
+    "types": [
+      3,
+      10
+    ]
+  },
+  "27.01": {
+    "name": "Alolan Sandshrew",
+    "types": [
+      5,
+      16
+    ],
+    "region": "Alola"
+  },
+  "28.01": {
+    "name": "Alolan Sandslash",
+    "types": [
+      5,
+      16
+    ],
+    "region": "Alola"
+  },
+  "29.01": {
+    "name": "Pinkan Nidoran(F)",
+    "types": [
+      7
+    ]
+  },
+  "32.01": {
+    "name": "Pinkan Nidoran(M)",
+    "types": [
+      7
+    ]
+  },
+  "34.01": {
+    "name": "Pinkan Nidoking",
+    "types": [
+      7,
+      8
+    ]
+  },
+  "37.01": {
+    "name": "Alolan Vulpix",
+    "types": [
+      5
+    ],
+    "region": "Alola"
+  },
+  "38.01": {
+    "name": "Alolan Ninetales",
+    "types": [
+      5,
+      17
+    ],
+    "region": "Alola"
+  },
+  "43.01": {
+    "name": "Pinkan Oddish",
+    "types": [
+      4,
+      7
+    ]
+  },
+  "45.01": {
+    "name": "Valencian Vileplume",
+    "types": [
+      4,
+      7
+    ]
+  },
+  "45.02": {
+    "name": "Pinkan Vileplume",
+    "types": [
+      4,
+      7
+    ]
+  },
+  "46.01": {
+    "name": "Valencian Paras",
+    "types": [
+      11,
+      4
+    ]
+  },
+  "46.02": {
+    "name": "Pinkan Paras",
+    "types": [
+      11,
+      4
+    ]
+  },
+  "48.01": {
+    "name": "Pinkan Venonat",
+    "types": [
+      11,
+      7
+    ]
+  },
+  "50.01": {
+    "name": "Alolan Diglett",
+    "types": [
+      8,
+      16
+    ],
+    "region": "Alola"
+  },
+  "50.02": {
+    "name": "Pinkan Diglett",
+    "types": [
+      8
+    ]
+  },
+  "51.01": {
+    "name": "Alolan Dugtrio",
+    "types": [
+      8,
+      16
+    ],
+    "region": "Alola"
+  },
+  "51.02": {
+    "name": "Dugtrio (Punk)",
+    "types": [
+      8,
+      15
+    ]
+  },
+  "52.01": {
+    "name": "Gigantamax Meowth",
+    "types": [
+      0
+    ]
+  },
+  "52.02": {
+    "name": "Alolan Meowth",
+    "types": [
+      15
+    ],
+    "region": "Alola"
+  },
+  "52.03": {
+    "name": "Galarian Meowth",
+    "types": [
+      16
+    ],
+    "region": "Galar"
+  },
+  "52.04": {
+    "name": "Meowth (Phanpy)",
+    "types": [
+      0
+    ]
+  },
+  "53.01": {
+    "name": "Alolan Persian",
+    "types": [
+      15
+    ],
+    "region": "Alola"
+  },
+  "56.01": {
+    "name": "Pinkan Mankey",
+    "types": [
+      6
+    ]
+  },
+  "57.01": {
+    "name": "Pinkan Primeape",
+    "types": [
+      6
+    ]
+  },
+  "58.01": {
+    "name": "Hisuian Growlithe",
+    "types": [
+      1,
+      12
+    ]
+  },
+  "59.01": {
+    "name": "Hisuian Arcanine",
+    "types": [
+      1,
+      12
+    ]
+  },
+  "59.02": {
+    "name": "Noble Arcanine",
+    "types": [
+      1,
+      12
+    ]
+  },
+  "61.01": {
+    "name": "Pinkan Poliwhirl",
+    "types": [
+      2
+    ]
+  },
+  "65.01": {
+    "name": "Mega Alakazam",
+    "types": [
+      10
+    ]
+  },
+  "68.01": {
+    "name": "Gigantamax Machamp",
+    "types": [
+      6
+    ]
+  },
+  "69.01": {
+    "name": "Pinkan Bellsprout",
+    "types": [
+      4,
+      7
+    ]
+  },
+  "70.01": {
+    "name": "Valencian Weepinbell",
+    "types": [
+      4,
+      7
+    ]
+  },
+  "70.02": {
+    "name": "Weepinbell (Fancy)",
+    "types": [
+      4,
+      17
+    ]
+  },
+  "74.01": {
+    "name": "Alolan Geodude",
+    "types": [
+      12,
+      3
+    ],
+    "region": "Alola"
+  },
+  "74.02": {
+    "name": "Pinkan Geodude",
+    "types": [
+      12,
+      8
+    ]
+  },
+  "75.01": {
+    "name": "Alolan Graveler",
+    "types": [
+      12,
+      3
+    ],
+    "region": "Alola"
+  },
+  "76.01": {
+    "name": "Alolan Golem",
+    "types": [
+      12,
+      3
+    ],
+    "region": "Alola"
+  },
+  "77.01": {
+    "name": "Galarian Ponyta",
+    "types": [
+      10
+    ],
+    "region": "Galar"
+  },
+  "78.01": {
+    "name": "Galarian Rapidash",
+    "types": [
+      10,
+      17
+    ],
+    "region": "Galar"
+  },
+  "79.01": {
+    "name": "Galarian Slowpoke",
+    "types": [
+      10
+    ],
+    "region": "Galar"
+  },
+  "80.01": {
+    "name": "Mega Slowbro",
+    "types": [
+      2,
+      10
+    ]
+  },
+  "80.02": {
+    "name": "Galarian Slowbro",
+    "types": [
+      7,
+      10
+    ],
+    "region": "Galar"
+  },
+  "83.01": {
+    "name": "Galarian Farfetch'd",
+    "types": [
+      6
+    ],
+    "region": "Galar"
+  },
+  "85.01": {
+    "name": "Pinkan Dodrio",
+    "types": [
+      0,
+      9
+    ]
+  },
+  "88.01": {
+    "name": "Alolan Grimer",
+    "types": [
+      7,
+      15
+    ],
+    "region": "Alola"
+  },
+  "89.01": {
+    "name": "Alolan Muk",
+    "types": [
+      7,
+      15
+    ],
+    "region": "Alola"
+  },
+  "94.01": {
+    "name": "Mega Gengar",
+    "types": [
+      13,
+      7
+    ]
+  },
+  "94.02": {
+    "name": "Gigantamax Gengar",
+    "types": [
+      13,
+      7
+    ]
+  },
+  "94.03": {
+    "name": "Gengar (Punk)",
+    "types": [
+      13,
+      15
+    ]
+  },
+  "95.01": {
+    "name": "Crystal Onix",
+    "types": [
+      12,
+      5
+    ]
+  },
+  "95.02": {
+    "name": "Onix (Rocker)",
+    "types": [
+      12,
+      3
+    ]
+  },
+  "99.01": {
+    "name": "Gigantamax Kingler",
+    "types": [
+      2
+    ]
+  },
+  "100.01": {
+    "name": "Hisuian Voltorb",
+    "types": [
+      3,
+      4
+    ]
+  },
+  "101.01": {
+    "name": "Hisuian Electrode",
+    "types": [
+      3,
+      4
+    ]
+  },
+  "101.02": {
+    "name": "Noble Electrode",
+    "types": [
+      3,
+      4
+    ]
+  },
+  "102.01": {
+    "name": "Exeggcute (Single)",
+    "types": [
+      4,
+      10
+    ]
+  },
+  "103.01": {
+    "name": "Alolan Exeggutor",
+    "types": [
+      4,
+      14
+    ],
+    "region": "Alola"
+  },
+  "103.02": {
+    "name": "Pinkan Exeggutor",
+    "types": [
+      4,
+      10
+    ]
+  },
+  "105.01": {
+    "name": "Alolan Marowak",
+    "types": [
+      1,
+      13
+    ],
+    "region": "Alola"
+  },
+  "105.02": {
+    "name": "Totem Marowak",
+    "types": [
+      1,
+      13
+    ],
+    "region": "Alola"
+  },
+  "110.01": {
+    "name": "Galarian Weezing",
+    "types": [
+      7,
+      17
+    ],
+    "region": "Galar"
+  },
+  "110.02": {
+    "name": "Pinkan Weezing",
+    "types": [
+      7
+    ]
+  },
+  "111.01": {
+    "name": "Pinkan Rhyhorn",
+    "types": [
+      8,
+      12
+    ]
+  },
+  "112.01": {
+    "name": "Pinkan Rhydon",
+    "types": [
+      8,
+      12
+    ]
+  },
+  "113.01": {
+    "name": "Charity Chansey",
+    "types": [
+      0
+    ]
+  },
+  "114.01": {
+    "name": "Tangela (Pom-pom)",
+    "types": [
+      4,
+      3
+    ]
+  },
+  "115.01": {
+    "name": "Mega Kangaskhan",
+    "types": [
+      0
+    ]
+  },
+  "115.02": {
+    "name": "Baby Kangaskhan",
+    "types": [
+      0
+    ]
+  },
+  "118.01": {
+    "name": "Goldeen (Diva)",
+    "types": [
+      2,
+      17
+    ]
+  },
+  "122.01": {
+    "name": "Galarian Mr. Mime",
+    "types": [
+      5,
+      10
+    ],
+    "region": "Galar"
+  },
+  "123.01": {
+    "name": "Pinkan Scyther",
+    "types": [
+      11,
+      9
+    ]
+  },
+  "124.01": {
+    "name": "Santa Jynx",
+    "types": [
+      5,
+      10
+    ]
+  },
+  "125.01": {
+    "name": "Pinkan Electabuzz",
+    "types": [
+      3
+    ]
+  },
+  "127.01": {
+    "name": "Mega Pinsir",
+    "types": [
+      11,
+      9
+    ]
+  },
+  "128.01": {
+    "name": "Paldean Tauros (Combat)",
+    "types": [
+      6
+    ],
+    "region": "Paldea"
+  },
+  "128.02": {
+    "name": "Paldean Tauros (Blaze)",
+    "types": [
+      6,
+      1
+    ],
+    "region": "Paldea"
+  },
+  "128.03": {
+    "name": "Paldean Tauros (Aqua)",
+    "types": [
+      6,
+      2
+    ],
+    "region": "Paldea"
+  },
+  "129.01": {
+    "name": "Magikarp Skelly",
+    "types": [
+      2
+    ]
+  },
+  "129.02": {
+    "name": "Magikarp Calico (Orange, White)",
+    "types": [
+      2
+    ]
+  },
+  "129.03": {
+    "name": "Magikarp Calico (Orange, White, Black)",
+    "types": [
+      2
+    ]
+  },
+  "129.04": {
+    "name": "Magikarp Calico (White, Orange)",
+    "types": [
+      2
+    ]
+  },
+  "129.05": {
+    "name": "Magikarp Calico (Orange, Gold)",
+    "types": [
+      2
+    ]
+  },
+  "129.06": {
+    "name": "Magikarp Orange Two-Tone",
+    "types": [
+      2
+    ]
+  },
+  "129.07": {
+    "name": "Magikarp Orange Orca",
+    "types": [
+      2
+    ]
+  },
+  "129.08": {
+    "name": "Magikarp Orange Dapples",
+    "types": [
+      2
+    ]
+  },
+  "129.09": {
+    "name": "Magikarp Pink Two-Tone",
+    "types": [
+      2
+    ]
+  },
+  "129.1": {
+    "name": "Magikarp Pink Orca",
+    "types": [
+      2
+    ]
+  },
+  "129.11": {
+    "name": "Magikarp Pink Dapples",
+    "types": [
+      2
+    ]
+  },
+  "129.12": {
+    "name": "Magikarp Grey Bubbles",
+    "types": [
+      2
+    ]
+  },
+  "129.13": {
+    "name": "Magikarp Grey Diamonds",
+    "types": [
+      2
+    ]
+  },
+  "129.14": {
+    "name": "Magikarp Grey Patches",
+    "types": [
+      2
+    ]
+  },
+  "129.15": {
+    "name": "Magikarp Purple Bubbles",
+    "types": [
+      2
+    ]
+  },
+  "129.16": {
+    "name": "Magikarp Purple Diamonds",
+    "types": [
+      2
+    ]
+  },
+  "129.17": {
+    "name": "Magikarp Purple Patches",
+    "types": [
+      2
+    ]
+  },
+  "129.18": {
+    "name": "Magikarp Apricot Tiger",
+    "types": [
+      2
+    ]
+  },
+  "129.19": {
+    "name": "Magikarp Apricot Zebra",
+    "types": [
+      2
+    ]
+  },
+  "129.2": {
+    "name": "Magikarp Apricot Stripes",
+    "types": [
+      2
+    ]
+  },
+  "129.21": {
+    "name": "Magikarp Brown Tiger",
+    "types": [
+      2
+    ]
+  },
+  "129.22": {
+    "name": "Magikarp Brown Zebra",
+    "types": [
+      2
+    ]
+  },
+  "129.23": {
+    "name": "Magikarp Brown Stripes",
+    "types": [
+      2
+    ]
+  },
+  "129.24": {
+    "name": "Magikarp Orange Forehead",
+    "types": [
+      2
+    ]
+  },
+  "129.25": {
+    "name": "Magikarp Orange Mask",
+    "types": [
+      2
+    ]
+  },
+  "129.26": {
+    "name": "Magikarp Black Forehead",
+    "types": [
+      2
+    ]
+  },
+  "129.27": {
+    "name": "Magikarp Black Mask",
+    "types": [
+      2
+    ]
+  },
+  "129.28": {
+    "name": "Magikarp Blue Raindrops",
+    "types": [
+      2
+    ]
+  },
+  "129.29": {
+    "name": "Magikarp Saucy Blue",
+    "types": [
+      2
+    ]
+  },
+  "129.3": {
+    "name": "Magikarp Violet Raindrops",
+    "types": [
+      2
+    ]
+  },
+  "129.31": {
+    "name": "Magikarp Saucy Violet",
+    "types": [
+      2
+    ]
+  },
+  "129.32": {
+    "name": "Magikarp (Feebas)",
+    "types": [
+      2
+    ]
+  },
+  "129.33": {
+    "name": "Magikarp (Pirate)",
+    "types": [
+      2
+    ]
+  },
+  "130.01": {
+    "name": "Mega Gyarados",
+    "types": [
+      2,
+      15
+    ]
+  },
+  "130.02": {
+    "name": "Gyarados (Captain)",
+    "types": [
+      2,
+      13
+    ]
+  },
+  "131.01": {
+    "name": "Gigantamax Lapras",
+    "types": [
+      2,
+      5
+    ]
+  },
+  "132.01": {
+    "name": "Ditto (Magikarp)",
+    "types": [
+      0
+    ]
+  },
+  "133.01": {
+    "name": "Gigantamax Eevee",
+    "types": [
+      0
+    ]
+  },
+  "133.02": {
+    "name": "Let's Go Eevee",
+    "types": [
+      0,
+      3
+    ]
+  },
+  "142.01": {
+    "name": "Mega Aerodactyl",
+    "types": [
+      12,
+      9
+    ]
+  },
+  "143.01": {
+    "name": "Gigantamax Snorlax",
+    "types": [
+      0
+    ]
+  },
+  "143.02": {
+    "name": "Santa Snorlax",
+    "types": [
+      0,
+      17
+    ]
+  },
+  "143.03": {
+    "name": "Snorlax (Snowman)",
+    "types": [
+      0,
+      5
+    ]
+  },
+  "144.01": {
+    "name": "Galarian Articuno",
+    "types": [
+      10,
+      9
+    ],
+    "region": "Galar"
+  },
+  "145.01": {
+    "name": "Galarian Zapdos",
+    "types": [
+      6,
+      9
+    ],
+    "region": "Galar"
+  },
+  "146.01": {
+    "name": "Galarian Moltres",
+    "types": [
+      15,
+      9
+    ],
+    "region": "Galar"
+  },
+  "150.01": {
+    "name": "Mega Mewtwo X",
+    "types": [
+      10,
+      6
+    ]
+  },
+  "150.02": {
+    "name": "Mega Mewtwo Y",
+    "types": [
+      10
+    ]
+  },
+  "150.03": {
+    "name": "Armored Mewtwo",
+    "types": [
+      10,
+      16
+    ]
+  },
+  "157.01": {
+    "name": "Hisuian Typhlosion",
+    "types": [
+      1,
+      13
+    ]
+  },
+  "172.01": {
+    "name": "Spiky-eared Pichu",
+    "types": [
+      3
+    ]
+  },
+  "175.01": {
+    "name": "Spooky Togepi",
+    "types": [
+      13
+    ]
+  },
+  "175.02": {
+    "name": "Togepi (Flowering Crown)",
+    "types": [
+      17,
+      4
+    ]
+  },
+  "176.01": {
+    "name": "Spooky Togetic",
+    "types": [
+      13,
+      9
+    ]
+  },
+  "181.01": {
+    "name": "Mega Ampharos",
+    "types": [
+      3,
+      14
+    ]
+  },
+  "185.01": {
+    "name": "Sudowoodo (Golden)",
+    "types": [
+      16
+    ]
+  },
+  "187.01": {
+    "name": "Hoppip (Chimecho)",
+    "types": [
+      4,
+      9
+    ]
+  },
+  "194.01": {
+    "name": "Paldean Wooper",
+    "types": [
+      7,
+      8
+    ],
+    "region": "Paldea"
+  },
+  "199.01": {
+    "name": "Galarian Slowking",
+    "types": [
+      7,
+      10
+    ],
+    "region": "Galar"
+  },
+  "201.01": {
+    "name": "Unown (B)",
+    "types": [
+      10
+    ]
+  },
+  "201.02": {
+    "name": "Unown (C)",
+    "types": [
+      10
+    ]
+  },
+  "201.03": {
+    "name": "Unown (D)",
+    "types": [
+      10
+    ]
+  },
+  "201.04": {
+    "name": "Unown (E)",
+    "types": [
+      10
+    ]
+  },
+  "201.05": {
+    "name": "Unown (F)",
+    "types": [
+      10
+    ]
+  },
+  "201.06": {
+    "name": "Unown (G)",
+    "types": [
+      10
+    ]
+  },
+  "201.07": {
+    "name": "Unown (H)",
+    "types": [
+      10
+    ]
+  },
+  "201.08": {
+    "name": "Unown (I)",
+    "types": [
+      10
+    ]
+  },
+  "201.09": {
+    "name": "Unown (J)",
+    "types": [
+      10
+    ]
+  },
+  "201.1": {
+    "name": "Unown (K)",
+    "types": [
+      10
+    ]
+  },
+  "201.11": {
+    "name": "Unown (L)",
+    "types": [
+      10
+    ]
+  },
+  "201.12": {
+    "name": "Unown (M)",
+    "types": [
+      10
+    ]
+  },
+  "201.13": {
+    "name": "Unown (N)",
+    "types": [
+      10
+    ]
+  },
+  "201.14": {
+    "name": "Unown (O)",
+    "types": [
+      10
+    ]
+  },
+  "201.15": {
+    "name": "Unown (P)",
+    "types": [
+      10
+    ]
+  },
+  "201.16": {
+    "name": "Unown (Q)",
+    "types": [
+      10
+    ]
+  },
+  "201.17": {
+    "name": "Unown (R)",
+    "types": [
+      10
+    ]
+  },
+  "201.18": {
+    "name": "Unown (S)",
+    "types": [
+      10
+    ]
+  },
+  "201.19": {
+    "name": "Unown (T)",
+    "types": [
+      10
+    ]
+  },
+  "201.2": {
+    "name": "Unown (U)",
+    "types": [
+      10
+    ]
+  },
+  "201.21": {
+    "name": "Unown (V)",
+    "types": [
+      10
+    ]
+  },
+  "201.22": {
+    "name": "Unown (W)",
+    "types": [
+      10
+    ]
+  },
+  "201.23": {
+    "name": "Unown (X)",
+    "types": [
+      10
+    ]
+  },
+  "201.24": {
+    "name": "Unown (Y)",
+    "types": [
+      10
+    ]
+  },
+  "201.25": {
+    "name": "Unown (Z)",
+    "types": [
+      10
+    ]
+  },
+  "201.26": {
+    "name": "Unown (!)",
+    "types": [
+      10
+    ]
+  },
+  "201.27": {
+    "name": "Unown (?)",
+    "types": [
+      10
+    ]
+  },
+  "208.01": {
+    "name": "Mega Steelix",
+    "types": [
+      16,
+      8
+    ]
+  },
+  "208.02": {
+    "name": "Crystal Steelix",
+    "types": [
+      16,
+      5
+    ]
+  },
+  "211.01": {
+    "name": "Hisuian Qwilfish",
+    "types": [
+      15,
+      7
+    ]
+  },
+  "212.01": {
+    "name": "Mega Scizor",
+    "types": [
+      11,
+      16
+    ]
+  },
+  "213.01": {
+    "name": "Shuckle (Corked)",
+    "types": [
+      11,
+      12
+    ]
+  },
+  "214.01": {
+    "name": "Mega Heracross",
+    "types": [
+      11,
+      6
+    ]
+  },
+  "215.01": {
+    "name": "Hisuian Sneasel",
+    "types": [
+      6,
+      7
+    ]
+  },
+  "222.01": {
+    "name": "Galarian Corsola",
+    "types": [
+      13
+    ],
+    "region": "Galar"
+  },
+  "229.01": {
+    "name": "Mega Houndoom",
+    "types": [
+      15,
+      1
+    ]
+  },
+  "234.01": {
+    "name": "Reindeer Stantler",
+    "types": [
+      0
+    ]
+  },
+  "242.01": {
+    "name": "Blessing Blissey",
+    "types": [
+      0
+    ]
+  },
+  "248.01": {
+    "name": "Mega Tyranitar",
+    "types": [
+      12,
+      15
+    ]
+  },
+  "249.01": {
+    "name": "XD001",
+    "types": [
+      10,
+      9
+    ]
+  },
+  "251.01": {
+    "name": "Flowering Celebi",
+    "types": [
+      10,
+      4
+    ]
+  },
+  "251.02": {
+    "name": "Grinch Celebi",
+    "types": [
+      15,
+      4
+    ]
+  },
+  "254.01": {
+    "name": "Mega Sceptile",
+    "types": [
+      4,
+      14
+    ]
+  },
+  "255.01": {
+    "name": "Torchic (Egg)",
+    "types": [
+      1,
+      17
+    ]
+  },
+  "257.01": {
+    "name": "Mega Blaziken",
+    "types": [
+      1,
+      6
+    ]
+  },
+  "260.01": {
+    "name": "Mega Swampert",
+    "types": [
+      2,
+      8
+    ]
+  },
+  "263.01": {
+    "name": "Galarian Zigzagoon",
+    "types": [
+      15,
+      0
+    ],
+    "region": "Galar"
+  },
+  "264.01": {
+    "name": "Galarian Linoone",
+    "types": [
+      15,
+      0
+    ],
+    "region": "Galar"
+  },
+  "282.01": {
+    "name": "Mega Gardevoir",
+    "types": [
+      10,
+      17
+    ]
+  },
+  "302.01": {
+    "name": "Mega Sableye",
+    "types": [
+      15,
+      13
+    ]
+  },
+  "303.01": {
+    "name": "Mega Mawile",
+    "types": [
+      16,
+      17
+    ]
+  },
+  "306.01": {
+    "name": "Mega Aggron",
+    "types": [
+      16
+    ]
+  },
+  "308.01": {
+    "name": "Mega Medicham",
+    "types": [
+      6,
+      10
+    ]
+  },
+  "310.01": {
+    "name": "Mega Manectric",
+    "types": [
+      3
+    ]
+  },
+  "319.01": {
+    "name": "Mega Sharpedo",
+    "types": [
+      2,
+      15
+    ]
+  },
+  "323.01": {
+    "name": "Mega Camerupt",
+    "types": [
+      1,
+      8
+    ]
+  },
+  "334.01": {
+    "name": "Mega Altaria",
+    "types": [
+      14,
+      17
+    ]
+  },
+  "351.01": {
+    "name": "Castform (Sunny)",
+    "types": [
+      1
+    ]
+  },
+  "351.02": {
+    "name": "Castform (Rainy)",
+    "types": [
+      2
+    ]
+  },
+  "351.03": {
+    "name": "Castform (Snowy)",
+    "types": [
+      5
+    ]
+  },
+  "354.01": {
+    "name": "Mega Banette",
+    "types": [
+      13
+    ]
+  },
+  "359.01": {
+    "name": "Mega Absol",
+    "types": [
+      15
+    ]
+  },
+  "362.01": {
+    "name": "Mega Glalie",
+    "types": [
+      5
+    ]
+  },
+  "373.01": {
+    "name": "Mega Salamence",
+    "types": [
+      14,
+      9
+    ]
+  },
+  "376.01": {
+    "name": "Mega Metagross",
+    "types": [
+      16,
+      10
+    ]
+  },
+  "380.01": {
+    "name": "Mega Latias",
+    "types": [
+      14,
+      10
+    ]
+  },
+  "381.01": {
+    "name": "Mega Latios",
+    "types": [
+      14,
+      10
+    ]
+  },
+  "382.01": {
+    "name": "Primal Kyogre",
+    "types": [
+      2
+    ]
+  },
+  "383.01": {
+    "name": "Primal Groudon",
+    "types": [
+      8,
+      1
+    ]
+  },
+  "383.02": {
+    "name": "Meta Groudon",
+    "types": [
+      8
+    ]
+  },
+  "384.01": {
+    "name": "Mega Rayquaza",
+    "types": [
+      14,
+      9
+    ]
+  },
+  "386.01": {
+    "name": "Deoxys (Attack)",
+    "types": [
+      10
+    ]
+  },
+  "386.02": {
+    "name": "Deoxys (Defense)",
+    "types": [
+      10
+    ]
+  },
+  "386.03": {
+    "name": "Deoxys (Speed)",
+    "types": [
+      10
+    ]
+  },
+  "386.04": {
+    "name": "Deoxys (Green Core)",
+    "types": [
+      10
+    ]
+  },
+  "386.05": {
+    "name": "Deoxys (Clone)",
+    "types": [
+      10
+    ]
+  },
+  "388.01": {
+    "name": "Grotle (Acorn)",
+    "types": [
+      4
+    ]
+  },
+  "412.01": {
+    "name": "Burmy (Sand)",
+    "types": [
+      11
+    ]
+  },
+  "412.02": {
+    "name": "Burmy (Trash)",
+    "types": [
+      11
+    ]
+  },
+  "412.03": {
+    "name": "Burmy (No Coat)",
+    "types": [
+      11
+    ]
+  },
+  "413.01": {
+    "name": "Wormadam (Sand)",
+    "types": [
+      11,
+      8
+    ]
+  },
+  "413.02": {
+    "name": "Wormadam (Trash)",
+    "types": [
+      11,
+      16
+    ]
+  },
+  "421.01": {
+    "name": "Cherrim (Sunshine)",
+    "types": [
+      4
+    ]
+  },
+  "422.01": {
+    "name": "Shellos (East)",
+    "types": [
+      2
+    ]
+  },
+  "423.01": {
+    "name": "Gastrodon (East)",
+    "types": [
+      2,
+      8
+    ]
+  },
+  "428.01": {
+    "name": "Mega Lopunny",
+    "types": [
+      0,
+      6
+    ]
+  },
+  "429.01": {
+    "name": "Mismagius (Illusion)",
+    "types": [
+      13,
+      14
+    ]
+  },
+  "440.01": {
+    "name": "Handout Happiny",
+    "types": [
+      0
+    ]
+  },
+  "445.01": {
+    "name": "Mega Garchomp",
+    "types": [
+      14,
+      8
+    ]
+  },
+  "446.01": {
+    "name": "Elf Munchlax",
+    "types": [
+      0,
+      17
+    ]
+  },
+  "448.01": {
+    "name": "Mega Lucario",
+    "types": [
+      6,
+      16
+    ]
+  },
+  "448.02": {
+    "name": "Captain Lucario",
+    "types": [
+      6,
+      2
+    ]
+  },
+  "459.01": {
+    "name": "Snover (Berry)",
+    "types": [
+      4,
+      5
+    ]
+  },
+  "460.01": {
+    "name": "Mega Abomasnow",
+    "types": [
+      4,
+      5
+    ]
+  },
+  "468.01": {
+    "name": "Spooky Togekiss",
+    "types": [
+      13,
+      9
+    ]
+  },
+  "475.01": {
+    "name": "Mega Gallade",
+    "types": [
+      10,
+      6
+    ]
+  },
+  "479.01": {
+    "name": "Rotom (Heat)",
+    "types": [
+      3,
+      1
+    ]
+  },
+  "479.02": {
+    "name": "Rotom (Wash)",
+    "types": [
+      3,
+      2
+    ]
+  },
+  "479.03": {
+    "name": "Rotom (Frost)",
+    "types": [
+      3,
+      5
+    ]
+  },
+  "479.04": {
+    "name": "Rotom (Fan)",
+    "types": [
+      3,
+      9
+    ]
+  },
+  "479.05": {
+    "name": "Rotom (Mow)",
+    "types": [
+      3,
+      4
+    ]
+  },
+  "479.06": {
+    "name": "Rotom (Discord)",
+    "types": [
+      3,
+      13
+    ]
+  },
+  "483.01": {
+    "name": "Dialga (Origin)",
+    "types": [
+      16,
+      14
+    ]
+  },
+  "484.01": {
+    "name": "Palkia (Origin)",
+    "types": [
+      2,
+      14
+    ]
+  },
+  "487.01": {
+    "name": "Giratina (Origin)",
+    "types": [
+      13,
+      14
+    ]
+  },
+  "492.01": {
+    "name": "Shaymin (Sky)",
+    "types": [
+      4,
+      9
+    ]
+  },
+  "493.01": {
+    "name": "Arceus (Fire)",
+    "types": [
+      1
+    ]
+  },
+  "493.02": {
+    "name": "Arceus (Water)",
+    "types": [
+      2
+    ]
+  },
+  "493.03": {
+    "name": "Arceus (Electric)",
+    "types": [
+      3
+    ]
+  },
+  "493.04": {
+    "name": "Arceus (Grass)",
+    "types": [
+      4
+    ]
+  },
+  "493.05": {
+    "name": "Arceus (Ice)",
+    "types": [
+      5
+    ]
+  },
+  "493.06": {
+    "name": "Arceus (Fighting)",
+    "types": [
+      6
+    ]
+  },
+  "493.07": {
+    "name": "Arceus (Poison)",
+    "types": [
+      7
+    ]
+  },
+  "493.08": {
+    "name": "Arceus (Ground)",
+    "types": [
+      8
+    ]
+  },
+  "493.09": {
+    "name": "Arceus (Flying)",
+    "types": [
+      9
+    ]
+  },
+  "493.1": {
+    "name": "Arceus (Psychic)",
+    "types": [
+      10
+    ]
+  },
+  "493.11": {
+    "name": "Arceus (Bug)",
+    "types": [
+      11
+    ]
+  },
+  "493.12": {
+    "name": "Arceus (Rock)",
+    "types": [
+      12
+    ]
+  },
+  "493.13": {
+    "name": "Arceus (Ghost)",
+    "types": [
+      13
+    ]
+  },
+  "493.14": {
+    "name": "Arceus (Dragon)",
+    "types": [
+      14
+    ]
+  },
+  "493.15": {
+    "name": "Arceus (Dark)",
+    "types": [
+      15
+    ]
+  },
+  "493.16": {
+    "name": "Arceus (Steel)",
+    "types": [
+      16
+    ]
+  },
+  "493.17": {
+    "name": "Arceus (Fairy)",
+    "types": [
+      17
+    ]
+  },
+  "503.01": {
+    "name": "Hisuian Samurott",
+    "types": [
+      2,
+      15
+    ]
+  },
+  "531.01": {
+    "name": "Mega Audino",
+    "types": [
+      0,
+      17
+    ]
+  },
+  "549.01": {
+    "name": "Hisuian Lilligant",
+    "types": [
+      4,
+      6
+    ]
+  },
+  "549.02": {
+    "name": "Noble Lilligant",
+    "types": [
+      4,
+      6
+    ]
+  },
+  "550.01": {
+    "name": "Basculin (Blue-Striped)",
+    "types": [
+      2
+    ]
+  },
+  "550.02": {
+    "name": "Basculin (White-Striped)",
+    "types": [
+      2
+    ]
+  },
+  "554.01": {
+    "name": "Galarian Darumaka",
+    "types": [
+      5
+    ],
+    "region": "Galar"
+  },
+  "555.01": {
+    "name": "Darmanitan (Zen)",
+    "types": [
+      1,
+      10
+    ]
+  },
+  "555.02": {
+    "name": "Galarian Darmanitan",
+    "types": [
+      5
+    ],
+    "region": "Galar"
+  },
+  "555.03": {
+    "name": "Galarian Darmanitan (Zen)",
+    "types": [
+      5,
+      1
+    ],
+    "region": "Galar"
+  },
+  "562.01": {
+    "name": "Galarian Yamask",
+    "types": [
+      8,
+      13
+    ],
+    "region": "Galar"
+  },
+  "569.01": {
+    "name": "Gigantamax Garbodor",
+    "types": [
+      7
+    ]
+  },
+  "570.01": {
+    "name": "Hisuian Zorua",
+    "types": [
+      0,
+      13
+    ]
+  },
+  "570.02": {
+    "name": "Zorua (Pirate)",
+    "types": [
+      15,
+      7
+    ]
+  },
+  "571.01": {
+    "name": "Hisuian Zoroark",
+    "types": [
+      0,
+      13
+    ]
+  },
+  "585.01": {
+    "name": "Deerling (Summer)",
+    "types": [
+      0,
+      4
+    ]
+  },
+  "585.02": {
+    "name": "Deerling (Autumn)",
+    "types": [
+      0,
+      4
+    ]
+  },
+  "585.03": {
+    "name": "Deerling (Winter)",
+    "types": [
+      0,
+      4
+    ]
+  },
+  "586.01": {
+    "name": "Sawsbuck (Summer)",
+    "types": [
+      0,
+      4
+    ]
+  },
+  "586.02": {
+    "name": "Sawsbuck (Autumn)",
+    "types": [
+      0,
+      4
+    ]
+  },
+  "586.03": {
+    "name": "Sawsbuck (Winter)",
+    "types": [
+      0,
+      4
+    ]
+  },
+  "618.01": {
+    "name": "Galarian Stunfisk",
+    "types": [
+      8,
+      16
+    ],
+    "region": "Galar"
+  },
+  "628.01": {
+    "name": "Hisuian Braviary",
+    "types": [
+      10,
+      9
+    ]
+  },
+  "641.01": {
+    "name": "Tornadus (Therian)",
+    "types": [
+      9
+    ]
+  },
+  "642.01": {
+    "name": "Thundurus (Therian)",
+    "types": [
+      3,
+      9
+    ]
+  },
+  "645.01": {
+    "name": "Landorus (Therian)",
+    "types": [
+      8,
+      9
+    ]
+  },
+  "646.01": {
+    "name": "Kyurem (White)",
+    "types": [
+      14,
+      5
+    ]
+  },
+  "646.02": {
+    "name": "Kyurem (Black)",
+    "types": [
+      14,
+      5
+    ]
+  },
+  "647.01": {
+    "name": "Keldeo (Resolute)",
+    "types": [
+      2,
+      6
+    ]
+  },
+  "648.01": {
+    "name": "Meloetta (Pirouette)",
+    "types": [
+      0,
+      6
+    ]
+  },
+  "649.01": {
+    "name": "Genesect (Burn)",
+    "types": [
+      11,
+      1
+    ]
+  },
+  "649.02": {
+    "name": "Genesect (Chill)",
+    "types": [
+      11,
+      5
+    ]
+  },
+  "649.03": {
+    "name": "Genesect (Douse)",
+    "types": [
+      11,
+      2
+    ]
+  },
+  "649.04": {
+    "name": "Genesect (Shock)",
+    "types": [
+      11,
+      3
+    ]
+  },
+  "649.05": {
+    "name": "Genesect (High-Speed)",
+    "types": [
+      16,
+      11
+    ]
+  },
+  "649.06": {
+    "name": "Genesect (High-Speed Burn)",
+    "types": [
+      16,
+      1
+    ]
+  },
+  "649.07": {
+    "name": "Genesect (High-Speed Chill)",
+    "types": [
+      16,
+      5
+    ]
+  },
+  "649.08": {
+    "name": "Genesect (High-Speed Douse)",
+    "types": [
+      16,
+      2
+    ]
+  },
+  "649.09": {
+    "name": "Genesect (High-Speed Shock)",
+    "types": [
+      16,
+      3
+    ]
+  },
+  "658.01": {
+    "name": "Ash-Greninja",
+    "types": [
+      2,
+      15
+    ]
+  },
+  "666.01": {
+    "name": "Vivillon (Icy Snow)",
+    "types": [
+      11,
+      9
+    ]
+  },
+  "666.02": {
+    "name": "Vivillon (Polar)",
+    "types": [
+      11,
+      9
+    ]
+  },
+  "666.03": {
+    "name": "Vivillon (Tundra)",
+    "types": [
+      11,
+      9
+    ]
+  },
+  "666.04": {
+    "name": "Vivillon (Continental)",
+    "types": [
+      11,
+      9
+    ]
+  },
+  "666.05": {
+    "name": "Vivillon (Garden)",
+    "types": [
+      11,
+      9
+    ]
+  },
+  "666.06": {
+    "name": "Vivillon (Elegant)",
+    "types": [
+      11,
+      9
+    ]
+  },
+  "666.07": {
+    "name": "Vivillon (Modern)",
+    "types": [
+      11,
+      9
+    ]
+  },
+  "666.08": {
+    "name": "Vivillon (Marine)",
+    "types": [
+      11,
+      9
+    ]
+  },
+  "666.09": {
+    "name": "Vivillon (Archipelago)",
+    "types": [
+      11,
+      9
+    ]
+  },
+  "666.1": {
+    "name": "Vivillon (High Plains)",
+    "types": [
+      11,
+      9
+    ]
+  },
+  "666.11": {
+    "name": "Vivillon (Sandstorm)",
+    "types": [
+      11,
+      9
+    ]
+  },
+  "666.12": {
+    "name": "Vivillon (River)",
+    "types": [
+      11,
+      9
+    ]
+  },
+  "666.13": {
+    "name": "Vivillon (Monsoon)",
+    "types": [
+      11,
+      9
+    ]
+  },
+  "666.14": {
+    "name": "Vivillon (Savanna)",
+    "types": [
+      11,
+      9
+    ]
+  },
+  "666.15": {
+    "name": "Vivillon (Sun)",
+    "types": [
+      11,
+      9
+    ]
+  },
+  "666.16": {
+    "name": "Vivillon (Ocean)",
+    "types": [
+      11,
+      9
+    ]
+  },
+  "666.17": {
+    "name": "Vivillon (Jungle)",
+    "types": [
+      11,
+      9
+    ]
+  },
+  "666.18": {
+    "name": "Vivillon (Poké Ball)",
+    "types": [
+      11,
+      9
+    ]
+  },
+  "666.19": {
+    "name": "Vivillon (Fancy)",
+    "types": [
+      11,
+      9
+    ]
+  },
+  "669.01": {
+    "name": "Flabébé (Yellow)",
+    "types": [
+      17
+    ]
+  },
+  "669.02": {
+    "name": "Flabébé (Orange)",
+    "types": [
+      17
+    ]
+  },
+  "669.03": {
+    "name": "Flabébé (Blue)",
+    "types": [
+      17
+    ]
+  },
+  "669.04": {
+    "name": "Flabébé (White)",
+    "types": [
+      17
+    ]
+  },
+  "670.01": {
+    "name": "Floette (Yellow)",
+    "types": [
+      17
+    ]
+  },
+  "670.02": {
+    "name": "Floette (Orange)",
+    "types": [
+      17
+    ]
+  },
+  "670.03": {
+    "name": "Floette (Blue)",
+    "types": [
+      17
+    ]
+  },
+  "670.04": {
+    "name": "Floette (White)",
+    "types": [
+      17
+    ]
+  },
+  "670.05": {
+    "name": "Floette (Eternal)",
+    "types": [
+      17
+    ]
+  },
+  "671.01": {
+    "name": "Florges (Yellow)",
+    "types": [
+      17
+    ]
+  },
+  "671.02": {
+    "name": "Florges (Orange)",
+    "types": [
+      17
+    ]
+  },
+  "671.03": {
+    "name": "Florges (Blue)",
+    "types": [
+      17
+    ]
+  },
+  "671.04": {
+    "name": "Florges (White)",
+    "types": [
+      17
+    ]
+  },
+  "676.01": {
+    "name": "Furfrou (Heart)",
+    "types": [
+      0
+    ]
+  },
+  "676.02": {
+    "name": "Furfrou (Star)",
+    "types": [
+      0
+    ]
+  },
+  "676.03": {
+    "name": "Furfrou (Diamond)",
+    "types": [
+      0
+    ]
+  },
+  "676.04": {
+    "name": "Furfrou (Debutante)",
+    "types": [
+      0
+    ]
+  },
+  "676.05": {
+    "name": "Furfrou (Matron)",
+    "types": [
+      0
+    ]
+  },
+  "676.06": {
+    "name": "Furfrou (Dandy)",
+    "types": [
+      0
+    ]
+  },
+  "676.07": {
+    "name": "Furfrou (La Reine)",
+    "types": [
+      0
+    ]
+  },
+  "676.08": {
+    "name": "Furfrou (Kabuki)",
+    "types": [
+      0
+    ]
+  },
+  "676.09": {
+    "name": "Furfrou (Pharaoh)",
+    "types": [
+      0
+    ]
+  },
+  "681.01": {
+    "name": "Aegislash (Blade)",
+    "types": [
+      16,
+      13
+    ]
+  },
+  "686.01": {
+    "name": "Inkay (Pikachu)",
+    "types": [
+      10,
+      3
+    ]
+  },
+  "705.01": {
+    "name": "Hisuian Sliggoo",
+    "types": [
+      16,
+      14
+    ]
+  },
+  "706.01": {
+    "name": "Hisuian Goodra",
+    "types": [
+      16,
+      14
+    ]
+  },
+  "710.01": {
+    "name": "Pumpkaboo (Small)",
+    "types": [
+      13,
+      4
+    ]
+  },
+  "710.02": {
+    "name": "Pumpkaboo (Large)",
+    "types": [
+      13,
+      4
+    ]
+  },
+  "710.03": {
+    "name": "Pumpkaboo (Super Size)",
+    "types": [
+      13,
+      4
+    ]
+  },
+  "711.01": {
+    "name": "Gourgeist (Small)",
+    "types": [
+      13,
+      4
+    ]
+  },
+  "711.02": {
+    "name": "Gourgeist (Large)",
+    "types": [
+      13,
+      4
+    ]
+  },
+  "711.03": {
+    "name": "Gourgeist (Super Size)",
+    "types": [
+      13,
+      4
+    ]
+  },
+  "713.01": {
+    "name": "Hisuian Avalugg",
+    "types": [
+      5,
+      12
+    ]
+  },
+  "713.02": {
+    "name": "Noble Avalugg",
+    "types": [
+      5,
+      12
+    ]
+  },
+  "716.01": {
+    "name": "Xerneas (Active)",
+    "types": [
+      17
+    ]
+  },
+  "719.01": {
+    "name": "Mega Diancie",
+    "types": [
+      12,
+      17
+    ]
+  },
+  "720.01": {
+    "name": "Hoopa (Unbound)",
+    "types": [
+      10,
+      15
+    ]
+  },
+  "720.02": {
+    "name": "Captain Hoopa",
+    "types": [
+      2,
+      13
+    ]
+  },
+  "724.01": {
+    "name": "Hisuian Decidueye",
+    "types": [
+      4,
+      6
+    ]
+  },
+  "735.01": {
+    "name": "Totem Gumshoos",
+    "types": [
+      0
+    ]
+  },
+  "738.01": {
+    "name": "Totem Vikavolt",
+    "types": [
+      11,
+      3
+    ]
+  },
+  "741.01": {
+    "name": "Oricorio (Pom-Pom)",
+    "types": [
+      3,
+      9
+    ]
+  },
+  "741.02": {
+    "name": "Oricorio (Pa'u)",
+    "types": [
+      10,
+      9
+    ]
+  },
+  "741.03": {
+    "name": "Oricorio (Sensu)",
+    "types": [
+      13,
+      9
+    ]
+  },
+  "743.01": {
+    "name": "Totem Ribombee",
+    "types": [
+      11,
+      17
+    ]
+  },
+  "745.01": {
+    "name": "Lycanroc (Midnight)",
+    "types": [
+      12
+    ]
+  },
+  "745.02": {
+    "name": "Lycanroc (Dusk)",
+    "types": [
+      12
+    ]
+  },
+  "746.01": {
+    "name": "Wishiwashi (School)",
+    "types": [
+      2
+    ]
+  },
+  "746.02": {
+    "name": "Totem Wishiwashi",
+    "types": [
+      2
+    ]
+  },
+  "752.01": {
+    "name": "Totem Araquanid",
+    "types": [
+      2,
+      11
+    ]
+  },
+  "754.01": {
+    "name": "Totem Lurantis",
+    "types": [
+      4
+    ]
+  },
+  "758.01": {
+    "name": "Totem Salazzle",
+    "types": [
+      7,
+      1
+    ]
+  },
+  "761.01": {
+    "name": "Bounsweet (Pirate)",
+    "types": [
+      4,
+      15
+    ]
+  },
+  "762.01": {
+    "name": "Steenee (Pirate)",
+    "types": [
+      4,
+      15
+    ]
+  },
+  "763.01": {
+    "name": "Tsareena (Captain)",
+    "types": [
+      4,
+      15
+    ]
+  },
+  "773.01": {
+    "name": "Silvally (Fire)",
+    "types": [
+      1
+    ]
+  },
+  "773.02": {
+    "name": "Silvally (Water)",
+    "types": [
+      2
+    ]
+  },
+  "773.03": {
+    "name": "Silvally (Electric)",
+    "types": [
+      3
+    ]
+  },
+  "773.04": {
+    "name": "Silvally (Grass)",
+    "types": [
+      4
+    ]
+  },
+  "773.05": {
+    "name": "Silvally (Ice)",
+    "types": [
+      5
+    ]
+  },
+  "773.06": {
+    "name": "Silvally (Fighting)",
+    "types": [
+      6
+    ]
+  },
+  "773.07": {
+    "name": "Silvally (Poison)",
+    "types": [
+      7
+    ]
+  },
+  "773.08": {
+    "name": "Silvally (Ground)",
+    "types": [
+      8
+    ]
+  },
+  "773.09": {
+    "name": "Silvally (Flying)",
+    "types": [
+      9
+    ]
+  },
+  "773.1": {
+    "name": "Silvally (Psychic)",
+    "types": [
+      10
+    ]
+  },
+  "773.11": {
+    "name": "Silvally (Bug)",
+    "types": [
+      11
+    ]
+  },
+  "773.12": {
+    "name": "Silvally (Rock)",
+    "types": [
+      12
+    ]
+  },
+  "773.13": {
+    "name": "Silvally (Ghost)",
+    "types": [
+      13
+    ]
+  },
+  "773.14": {
+    "name": "Silvally (Dragon)",
+    "types": [
+      14
+    ]
+  },
+  "773.15": {
+    "name": "Silvally (Dark)",
+    "types": [
+      15
+    ]
+  },
+  "773.16": {
+    "name": "Silvally (Steel)",
+    "types": [
+      16
+    ]
+  },
+  "773.17": {
+    "name": "Silvally (Fairy)",
+    "types": [
+      17
+    ]
+  },
+  "774.01": {
+    "name": "Minior (Red Core)",
+    "types": [
+      12,
+      9
+    ]
+  },
+  "774.02": {
+    "name": "Minior (Orange Core)",
+    "types": [
+      12,
+      9
+    ]
+  },
+  "774.03": {
+    "name": "Minior (Yellow Core)",
+    "types": [
+      12,
+      9
+    ]
+  },
+  "774.04": {
+    "name": "Minior (Green Core)",
+    "types": [
+      12,
+      9
+    ]
+  },
+  "774.05": {
+    "name": "Minior (Blue Core)",
+    "types": [
+      12,
+      9
+    ]
+  },
+  "774.06": {
+    "name": "Minior (Indigo Core)",
+    "types": [
+      12,
+      9
+    ]
+  },
+  "774.07": {
+    "name": "Minior (Violet Core)",
+    "types": [
+      12,
+      9
+    ]
+  },
+  "777.01": {
+    "name": "Totem Togedemaru",
+    "types": [
+      3,
+      16
+    ]
+  },
+  "778.01": {
+    "name": "Totem Mimikyu",
+    "types": [
+      13,
+      17
+    ]
+  },
+  "778.02": {
+    "name": "Mimikyu (Busted)",
+    "types": [
+      13,
+      17
+    ]
+  },
+  "784.01": {
+    "name": "Totem Kommo-o",
+    "types": [
+      14,
+      6
+    ]
+  },
+  "791.01": {
+    "name": "Solgaleo (Radiant Sun)",
+    "types": [
+      10,
+      16
+    ]
+  },
+  "792.01": {
+    "name": "Lunala (Full Moon)",
+    "types": [
+      10,
+      13
+    ]
+  },
+  "800.01": {
+    "name": "Necrozma (Dusk Mane)",
+    "types": [
+      10,
+      16
+    ]
+  },
+  "800.02": {
+    "name": "Necrozma (Dawn Wings)",
+    "types": [
+      10,
+      13
+    ]
+  },
+  "800.03": {
+    "name": "Ultra Necrozma",
+    "types": [
+      10,
+      14
+    ]
+  },
+  "801.01": {
+    "name": "Magearna (Original Color)",
+    "types": [
+      16,
+      17
+    ]
+  },
+  "802.01": {
+    "name": "Marshadow (Zenith)",
+    "types": [
+      6,
+      13
+    ]
+  },
+  "809.01": {
+    "name": "Gigantamax Melmetal",
+    "types": [
+      16
+    ]
+  },
+  "812.01": {
+    "name": "Gigantamax Rillaboom",
+    "types": [
+      4
+    ]
+  },
+  "813.01": {
+    "name": "Scorbunny (Pirate)",
+    "types": [
+      1,
+      2
+    ]
+  },
+  "814.01": {
+    "name": "Raboot (Pirate)",
+    "types": [
+      1,
+      2
+    ]
+  },
+  "815.02": {
+    "name": "Cinderace (Captain)",
+    "types": [
+      1,
+      2
+    ]
+  },
+  "815.01": {
+    "name": "Gigantamax Cinderace",
+    "types": [
+      1
+    ]
+  },
+  "818.01": {
+    "name": "Gigantamax Inteleon",
+    "types": [
+      2
+    ]
+  },
+  "823.01": {
+    "name": "Gigantamax Corviknight",
+    "types": [
+      9,
+      16
+    ]
+  },
+  "826.01": {
+    "name": "Gigantamax Orbeetle",
+    "types": [
+      11,
+      10
+    ]
+  },
+  "834.01": {
+    "name": "Gigantamax Drednaw",
+    "types": [
+      2,
+      12
+    ]
+  },
+  "839.01": {
+    "name": "Gigantamax Coalossal",
+    "types": [
+      12,
+      1
+    ]
+  },
+  "840.01": {
+    "name": "Exposed Applin",
+    "types": [
+      11,
+      14
+    ]
+  },
+  "841.01": {
+    "name": "Gigantamax Flapple",
+    "types": [
+      4,
+      14
+    ]
+  },
+  "842.01": {
+    "name": "Gigantamax Appletun",
+    "types": [
+      4,
+      14
+    ]
+  },
+  "844.01": {
+    "name": "Gigantamax Sandaconda",
+    "types": [
+      8
+    ]
+  },
+  "845.01": {
+    "name": "Cramorant (Gulping)",
+    "types": [
+      9,
+      2
+    ]
+  },
+  "845.02": {
+    "name": "Cramorant (Gorging)",
+    "types": [
+      9,
+      2
+    ]
+  },
+  "849.01": {
+    "name": "Toxtricity (Low Key)",
+    "types": [
+      3,
+      7
+    ]
+  },
+  "849.02": {
+    "name": "Gigantamax Toxtricity",
+    "types": [
+      3,
+      7
+    ]
+  },
+  "851.01": {
+    "name": "Gigantamax Centiskorch",
+    "types": [
+      1,
+      11
+    ]
+  },
+  "858.01": {
+    "name": "Gigantamax Hatterene",
+    "types": [
+      10,
+      17
+    ]
+  },
+  "861.01": {
+    "name": "Gigantamax Grimmsnarl",
+    "types": [
+      15,
+      17
+    ]
+  },
+  "868.01": {
+    "name": "Milcery (Cheesy)",
+    "types": [
+      17
+    ]
+  },
+  "869.01": {
+    "name": "Alcremie (Strawberry Ruby Cream)",
+    "types": [
+      17
+    ]
+  },
+  "869.02": {
+    "name": "Alcremie (Strawberry Caramel)",
+    "types": [
+      17
+    ]
+  },
+  "869.03": {
+    "name": "Alcremie (Strawberry Ruby Swirl)",
+    "types": [
+      17
+    ]
+  },
+  "869.04": {
+    "name": "Alcremie (Strawberry Matcha)",
+    "types": [
+      17
+    ]
+  },
+  "869.05": {
+    "name": "Alcremie (Strawberry Salted)",
+    "types": [
+      17
+    ]
+  },
+  "869.06": {
+    "name": "Alcremie (Strawberry Lemon)",
+    "types": [
+      17
+    ]
+  },
+  "869.07": {
+    "name": "Alcremie (Strawberry Mint)",
+    "types": [
+      17
+    ]
+  },
+  "869.08": {
+    "name": "Alcremie (Strawberry Rainbow)",
+    "types": [
+      17
+    ]
+  },
+  "869.1": {
+    "name": "Alcremie (Berry Vanilla)",
+    "types": [
+      17
+    ]
+  },
+  "869.11": {
+    "name": "Alcremie (Berry Ruby Cream)",
+    "types": [
+      17
+    ]
+  },
+  "869.12": {
+    "name": "Alcremie (Berry Caramel)",
+    "types": [
+      17
+    ]
+  },
+  "869.13": {
+    "name": "Alcremie (Berry Ruby Swirl)",
+    "types": [
+      17
+    ]
+  },
+  "869.14": {
+    "name": "Alcremie (Berry Matcha)",
+    "types": [
+      17
+    ]
+  },
+  "869.15": {
+    "name": "Alcremie (Berry Salted)",
+    "types": [
+      17
+    ]
+  },
+  "869.16": {
+    "name": "Alcremie (Berry Lemon)",
+    "types": [
+      17
+    ]
+  },
+  "869.17": {
+    "name": "Alcremie (Berry Mint)",
+    "types": [
+      17
+    ]
+  },
+  "869.18": {
+    "name": "Alcremie (Berry Rainbow)",
+    "types": [
+      17
+    ]
+  },
+  "869.2": {
+    "name": "Alcremie (Love Vanilla)",
+    "types": [
+      17
+    ]
+  },
+  "869.21": {
+    "name": "Alcremie (Love Ruby Cream)",
+    "types": [
+      17
+    ]
+  },
+  "869.22": {
+    "name": "Alcremie (Love Caramel)",
+    "types": [
+      17
+    ]
+  },
+  "869.23": {
+    "name": "Alcremie (Love Ruby Swirl)",
+    "types": [
+      17
+    ]
+  },
+  "869.24": {
+    "name": "Alcremie (Love Matcha)",
+    "types": [
+      17
+    ]
+  },
+  "869.25": {
+    "name": "Alcremie (Love Salted)",
+    "types": [
+      17
+    ]
+  },
+  "869.26": {
+    "name": "Alcremie (Love Lemon)",
+    "types": [
+      17
+    ]
+  },
+  "869.27": {
+    "name": "Alcremie (Love Mint)",
+    "types": [
+      17
+    ]
+  },
+  "869.28": {
+    "name": "Alcremie (Love Rainbow)",
+    "types": [
+      17
+    ]
+  },
+  "869.3": {
+    "name": "Alcremie (Star Vanilla)",
+    "types": [
+      17
+    ]
+  },
+  "869.31": {
+    "name": "Alcremie (Star Ruby Cream)",
+    "types": [
+      17
+    ]
+  },
+  "869.32": {
+    "name": "Alcremie (Star Caramel)",
+    "types": [
+      17
+    ]
+  },
+  "869.33": {
+    "name": "Alcremie (Star Ruby Swirl)",
+    "types": [
+      17
+    ]
+  },
+  "869.34": {
+    "name": "Alcremie (Star Matcha)",
+    "types": [
+      17
+    ]
+  },
+  "869.35": {
+    "name": "Alcremie (Star Salted)",
+    "types": [
+      17
+    ]
+  },
+  "869.36": {
+    "name": "Alcremie (Star Lemon)",
+    "types": [
+      17
+    ]
+  },
+  "869.37": {
+    "name": "Alcremie (Star Mint)",
+    "types": [
+      17
+    ]
+  },
+  "869.38": {
+    "name": "Alcremie (Star Rainbow)",
+    "types": [
+      17
+    ]
+  },
+  "869.4": {
+    "name": "Alcremie (Clover Vanilla)",
+    "types": [
+      17
+    ]
+  },
+  "869.41": {
+    "name": "Alcremie (Clover Ruby Cream)",
+    "types": [
+      17
+    ]
+  },
+  "869.42": {
+    "name": "Alcremie (Clover Caramel)",
+    "types": [
+      17
+    ]
+  },
+  "869.43": {
+    "name": "Alcremie (Clover Ruby Swirl)",
+    "types": [
+      17
+    ]
+  },
+  "869.44": {
+    "name": "Alcremie (Clover Matcha)",
+    "types": [
+      17
+    ]
+  },
+  "869.45": {
+    "name": "Alcremie (Clover Salted)",
+    "types": [
+      17
+    ]
+  },
+  "869.46": {
+    "name": "Alcremie (Clover Lemon)",
+    "types": [
+      17
+    ]
+  },
+  "869.47": {
+    "name": "Alcremie (Clover Mint)",
+    "types": [
+      17
+    ]
+  },
+  "869.48": {
+    "name": "Alcremie (Clover Rainbow)",
+    "types": [
+      17
+    ]
+  },
+  "869.5": {
+    "name": "Alcremie (Flower Vanilla)",
+    "types": [
+      17
+    ]
+  },
+  "869.51": {
+    "name": "Alcremie (Flower Ruby Cream)",
+    "types": [
+      17
+    ]
+  },
+  "869.52": {
+    "name": "Alcremie (Flower Caramel)",
+    "types": [
+      17
+    ]
+  },
+  "869.53": {
+    "name": "Alcremie (Flower Ruby Swirl)",
+    "types": [
+      17
+    ]
+  },
+  "869.54": {
+    "name": "Alcremie (Flower Matcha)",
+    "types": [
+      17
+    ]
+  },
+  "869.55": {
+    "name": "Alcremie (Flower Salted)",
+    "types": [
+      17
+    ]
+  },
+  "869.56": {
+    "name": "Alcremie (Flower Lemon)",
+    "types": [
+      17
+    ]
+  },
+  "869.57": {
+    "name": "Alcremie (Flower Mint)",
+    "types": [
+      17
+    ]
+  },
+  "869.58": {
+    "name": "Alcremie (Flower Rainbow)",
+    "types": [
+      17
+    ]
+  },
+  "869.6": {
+    "name": "Alcremie (Ribbon Vanilla)",
+    "types": [
+      17
+    ]
+  },
+  "869.61": {
+    "name": "Alcremie (Ribbon Ruby Cream)",
+    "types": [
+      17
+    ]
+  },
+  "869.62": {
+    "name": "Alcremie (Ribbon Caramel)",
+    "types": [
+      17
+    ]
+  },
+  "869.63": {
+    "name": "Alcremie (Ribbon Ruby Swirl)",
+    "types": [
+      17
+    ]
+  },
+  "869.64": {
+    "name": "Alcremie (Ribbon Matcha)",
+    "types": [
+      17
+    ]
+  },
+  "869.65": {
+    "name": "Alcremie (Ribbon Salted)",
+    "types": [
+      17
+    ]
+  },
+  "869.66": {
+    "name": "Alcremie (Ribbon Lemon)",
+    "types": [
+      17
+    ]
+  },
+  "869.67": {
+    "name": "Alcremie (Ribbon Mint)",
+    "types": [
+      17
+    ]
+  },
+  "869.68": {
+    "name": "Alcremie (Ribbon Rainbow)",
+    "types": [
+      17
+    ]
+  },
+  "869.7": {
+    "name": "Gigantamax Alcremie",
+    "types": [
+      17
+    ]
+  },
+  "875.01": {
+    "name": "Eiscue (Noice Face)",
+    "types": [
+      5
+    ]
+  },
+  "876.01": {
+    "name": "Indeedee (Female)",
+    "types": [
+      10,
+      0
+    ]
+  },
+  "877.01": {
+    "name": "Morpeko (Hangry)",
+    "types": [
+      3,
+      15
+    ]
+  },
+  "879.01": {
+    "name": "Gigantamax Copperajah",
+    "types": [
+      16
+    ]
+  },
+  "884.01": {
+    "name": "Gigantamax Duraludon",
+    "types": [
+      16,
+      14
+    ]
+  },
+  "888.01": {
+    "name": "Zacian (Crowned Sword)",
+    "types": [
+      17,
+      16
+    ]
+  },
+  "888.02": {
+    "name": "Captain Zacian",
+    "types": [
+      15,
+      16
+    ]
+  },
+  "889.01": {
+    "name": "Zamazenta (Crowned Shield)",
+    "types": [
+      6,
+      16
+    ]
+  },
+  "890.01": {
+    "name": "Eternamax Eternatus",
+    "types": [
+      7,
+      14
+    ]
+  },
+  "892.01": {
+    "name": "Urshifu (Rapid Strike)",
+    "types": [
+      6,
+      2
+    ]
+  },
+  "892.02": {
+    "name": "Gigantamax Urshifu (Single Strike)",
+    "types": [
+      6,
+      15
+    ]
+  },
+  "892.03": {
+    "name": "Gigantamax Urshifu (Rapid Strike)",
+    "types": [
+      6,
+      2
+    ]
+  },
+  "893.01": {
+    "name": "Zarude (Dada)",
+    "types": [
+      15,
+      4
+    ]
+  },
+  "898.01": {
+    "name": "Ice Rider Calyrex",
+    "types": [
+      10,
+      5
+    ]
+  },
+  "898.02": {
+    "name": "Shadow Rider Calyrex",
+    "types": [
+      10,
+      13
+    ]
+  },
+  "900.01": {
+    "name": "Noble Kleavor",
+    "types": [
+      11,
+      12
+    ]
+  },
+  "901.01": {
+    "name": "Bloodmoon Ursaluna",
+    "types": [
+      8,
+      0
+    ],
+    "region": "Paldea"
+  },
+  "902.01": {
+    "name": "Basculegion (Female)",
+    "types": [
+      2,
+      13
+    ]
+  },
+  "905.01": {
+    "name": "Enamorus (Therian)",
+    "types": [
+      17,
+      9
+    ]
+  },
+  "916.01": {
+    "name": "Oinkologne (Female)",
+    "types": [
+      0
+    ]
+  },
+  "925.01": {
+    "name": "Maushold (Family of Three)",
+    "types": [
+      0
+    ]
+  },
+  "931.01": {
+    "name": "Squawkabilly (Blue)",
+    "types": [
+      0,
+      9
+    ]
+  },
+  "931.02": {
+    "name": "Squawkabilly (Yellow)",
+    "types": [
+      0,
+      9
+    ]
+  },
+  "931.03": {
+    "name": "Squawkabilly (White)",
+    "types": [
+      0,
+      9
+    ]
+  },
+  "950.01": {
+    "name": "Titan Klawf",
+    "types": [
+      12
+    ]
+  },
+  "962.01": {
+    "name": "Titan Bombirdier",
+    "types": [
+      9,
+      15
+    ]
+  },
+  "964.01": {
+    "name": "Palafin (Hero)",
+    "types": [
+      2
+    ]
+  },
+  "968.01": {
+    "name": "Titan Orthworm",
+    "types": [
+      16
+    ]
+  },
+  "977.01": {
+    "name": "Titan Dondozo",
+    "types": [
+      2
+    ]
+  },
+  "978.01": {
+    "name": "Tatsugiri (Droopy)",
+    "types": [
+      14,
+      2
+    ]
+  },
+  "978.02": {
+    "name": "Tatsugiri (Stretchy)",
+    "types": [
+      14,
+      2
+    ]
+  },
+  "978.03": {
+    "name": "Titan Tatsugiri",
+    "types": [
+      14,
+      2
+    ]
+  },
+  "982.01": {
+    "name": "Dudunsparce (Three-Segment)",
+    "types": [
+      0
+    ]
+  },
+  "984.01": {
+    "name": "Titan Great Tusk",
+    "types": [
+      8,
+      6
+    ]
+  },
+  "990.01": {
+    "name": "Titan Iron Treads",
+    "types": [
+      8,
+      16
+    ]
+  },
+  "999.01": {
+    "name": "Gimmighoul (Roaming)",
+    "types": [
+      13
+    ]
+  },
+  "1017.01": {
+    "name": "Ogerpon (Wellspring Mask)",
+    "types": [
+      4,
+      2
+    ]
+  },
+  "1017.02": {
+    "name": "Ogerpon (Hearthflame Mask)",
+    "types": [
+      4,
+      1
+    ]
+  },
+  "1017.03": {
+    "name": "Ogerpon (Cornerstone Mask)",
+    "types": [
+      4,
+      12
+    ]
+  },
+  "1017.04": {
+    "name": "Ogerpon (Terrastallized Teal Mask)",
+    "types": [
+      4
+    ]
+  },
+  "1017.05": {
+    "name": "Ogerpon (Terrastallized Wellspring Mask)",
+    "types": [
+      4,
+      2
+    ]
+  },
+  "1017.06": {
+    "name": "Ogerpon (Terrastallized Hearthflame Mask)",
+    "types": [
+      4,
+      1
+    ]
+  },
+  "1017.07": {
+    "name": "Ogerpon (Terrastallized Cornerstone Mask)",
+    "types": [
+      4,
+      12
+    ]
+  },
+  "1024.01": {
+    "name": "Terapagos (Terastal)",
+    "types": [
+      0
+    ]
+  },
+  "1024.02": {
+    "name": "Terapagos (Stellar)",
+    "types": [
+      0
+    ]
+  },
+  "-966.01": {
+    "name": "Segin Starmobile",
+    "types": [
+      15
+    ],
+    "region": "Paldea"
+  },
+  "-966.02": {
+    "name": "Schedar Starmobile",
+    "types": [
+      1
+    ],
+    "region": "Paldea"
+  },
+  "-966.03": {
+    "name": "Navi Starmobile",
+    "types": [
+      7
+    ],
+    "region": "Paldea"
+  },
+  "-966.04": {
+    "name": "Ruchbah Starmobile",
+    "types": [
+      17
+    ],
+    "region": "Paldea"
+  },
+  "-966.05": {
+    "name": "Caph Starmobile",
+    "types": [
+      6
+    ],
+    "region": "Paldea"
+  }
+}
