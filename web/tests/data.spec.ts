@@ -8,7 +8,9 @@
 import { describe, expect, test } from 'vitest'
 
 import {
+  ALL_REGIONS,
   BERRY_NAMES,
+  DEX_REGION_OPTIONS,
   KANTO_NAMES,
   MULCH_NAMES,
   NATIONAL_NAMES,
@@ -90,6 +92,25 @@ describe('regions', () => {
       lo: 906,
       hi: 1025,
     })
+  })
+
+  test('ALL_REGIONS spans the full national dex', () => {
+    expect(ALL_REGIONS.lo).toBe(REGION_RANGES[0].lo)
+    expect(ALL_REGIONS.hi).toBe(REGION_RANGES[REGION_RANGES.length - 1].hi)
+    expect(ALL_REGIONS.hi - ALL_REGIONS.lo + 1).toBe(NATIONAL_NAMES.length)
+  })
+
+  test('ALL_REGIONS is a picker option, not a real region', () => {
+    expect(REGION_RANGES).not.toContain(ALL_REGIONS)
+    expect(DEX_REGION_OPTIONS[0]).toBe(ALL_REGIONS)
+    expect(DEX_REGION_OPTIONS.slice(1)).toEqual(REGION_RANGES)
+    // regionFor still names a species' real region, never "All regions".
+    expect(regionFor(25)).toBe('Kanto')
+  })
+
+  test('picker labels are unique (the Pokédex <select> keys on them)', () => {
+    const labels = DEX_REGION_OPTIONS.map((r) => r.label)
+    expect(new Set(labels).size).toBe(labels.length)
   })
 
   test('out-of-range ids return "?"', () => {

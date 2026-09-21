@@ -97,56 +97,63 @@
 
 <style>
   dialog {
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    padding: 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: var(--space-5);
     width: min(24rem, 92vw);
-    background: white;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: var(--shadow);
   }
   dialog::backdrop {
-    background: rgba(0, 0, 0, 0.4);
+    background: var(--backdrop);
   }
   h3 {
-    margin: 0 0 0.5rem;
+    margin: 0 0 var(--space-2);
   }
   .prompt {
-    margin: 0 0 0.75rem;
-    color: #444;
+    margin: 0 0 var(--space-3);
+    color: var(--text-muted);
     font-size: 0.95em;
   }
   input {
     width: 100%;
-    padding: 0.35rem 0.5rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    padding: 0.35rem var(--space-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+    color: var(--text);
     font: inherit;
     text-align: right;
   }
   input:focus {
-    outline: 2px solid #2563eb;
+    outline: 2px solid var(--focus-ring);
     outline-offset: -1px;
   }
   .actions {
     display: flex;
     justify-content: flex-end;
-    gap: 0.5rem;
-    margin-top: 1rem;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
   }
   .actions button {
     padding: 0.4rem 0.9rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+    color: var(--text);
     cursor: pointer;
     font: inherit;
   }
+  .actions button:hover {
+    border-color: var(--text-muted);
+  }
   .actions .primary {
-    background: #2563eb;
-    color: white;
-    border-color: #2563eb;
+    background: var(--brand);
+    color: var(--brand-contrast);
+    border-color: var(--brand);
   }
   .actions .primary:hover {
-    background: #1d4ed8;
+    filter: brightness(1.1);
   }
 </style>

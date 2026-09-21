@@ -8,7 +8,7 @@ import { resolve } from 'node:path'
 import { describe, expect, test } from 'vitest'
 
 import { decodeBytes } from '../src/lib/save'
-import { REGION_RANGES, statBucketFor } from '../src/lib/data'
+import { ALL_REGIONS, NATIONAL_NAMES, REGION_RANGES, statBucketFor } from '../src/lib/data'
 import { caughtIdSet, markCaught, regionRows } from '../src/lib/pokedex'
 
 const FIXTURE = resolve(
@@ -56,6 +56,22 @@ describe('regionRows', () => {
     expect(rows.some((r) => r.pid === 4)).toBe(false)
     expect(rows.some((r) => r.pid === 25)).toBe(false)
     expect(rows.length).toBe(KANTO.hi - KANTO.lo + 1 - 2)
+  })
+})
+
+describe('regionRows with ALL_REGIONS', () => {
+  test('lists every national-dex id once, in order', () => {
+    const rows = regionRows(load(), ALL_REGIONS)
+    expect(rows).toHaveLength(NATIONAL_NAMES.length)
+    expect(rows[0].pid).toBe(1)
+    expect(rows[rows.length - 1].pid).toBe(NATIONAL_NAMES.length)
+  })
+
+  test('uncaughtOnly drops the two fixture catches across all regions', () => {
+    const rows = regionRows(load(), ALL_REGIONS, true)
+    expect(rows).toHaveLength(NATIONAL_NAMES.length - 2)
+    expect(rows.map((r) => r.pid)).not.toContain(4)
+    expect(rows.map((r) => r.pid)).not.toContain(25)
   })
 })
 
