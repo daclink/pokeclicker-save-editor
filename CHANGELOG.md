@@ -11,7 +11,14 @@ Release notes.
 
 ## [Unreleased]
 
+## [0.9.0] — 2026-09-21
+
 ### Added
+- **Version badge (web).** The sidebar shows `v<version> · <commit>` (e.g.
+  `v0.9.0 · 678f4b0`) under the logo, linking to the commit, so you can
+  tell which build is live on GitHub Pages. The version is read from
+  `_version.py` at build time (the constant `scripts/release.py` checks) and
+  the commit from `GITHUB_SHA` / local git.
 - **Caught Pokémon: bulk shiny and pokérus editing (web).** Rows now have
   checkboxes. The header box selects every *visible* row, so the region and
   type filters scope bulk edits (e.g. filter to Kanto → select all → set
@@ -649,7 +656,8 @@ Release notes.
   - **Caught Pokémon**: editable table with double-click dialog.
 - Round-trip verified byte-exact on the v0.10.25 sample save.
 
-[Unreleased]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.5.1...v0.6.0
