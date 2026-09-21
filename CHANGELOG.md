@@ -12,6 +12,15 @@ Release notes.
 ## [Unreleased]
 
 ### Added
+- **Inventory tab (web).** A new section for three `player._itemList`
+  families that had no editor: **Egg items** (the 7 hatchable egg items,
+  including Dragon Egg — distinct from the breeding queue on the Eggs tab),
+  **Evolution items** (the 51 `StoneType` stones and held items), and
+  **Mega stones** (all 50, each shown with its pokémon and whether you've
+  caught it; "Give for caught pokémon", "Give all", "Remove all"). Rosters
+  are generated from PokeClicker's own enums by
+  `scripts/fetch_pokeclicker_data.py`. Writes follow the game's rules: a
+  count of 0 removes the item, and a mega stone is stored as exactly 1.
 - **Pokédex: "All regions" option (web).** The region picker now starts with
   *All regions*, listing the whole national dex (#1–1025) with a combined
   caught counter; "Mark all uncaught" works across every region (still behind
