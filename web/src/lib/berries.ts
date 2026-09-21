@@ -3,7 +3,8 @@
  *
  * Touches `save.farming` for:
  *
- *   berryList:        70-entry int[]  — per-berry inventory count
+ *   berryInventory:   70-entry int[]  — per-berry inventory count
+ *                     (`berryList` before game v0.10.26; see BERRY_COUNTS_KEY)
  *   unlockedBerries:  70-entry bool[] — per-berry unlocked flag
  *   mulchList:        7-entry int[]   — per-mulch-slot inventory
  *   shovelAmt:        int             — regular shovels
@@ -20,14 +21,34 @@
 import { BERRY_NAMES } from './data'
 import type { SaveData } from './save'
 
-const BERRY_COUNT = BERRY_NAMES.length // 70 in v0.10.25
+const BERRY_COUNT = BERRY_NAMES.length // 70 in v0.10.25/26
 const DEFAULT_MULCH_SLOTS = 7
 
-// --- accessors --------------------------------------------------------------
+/**
+ * Per-berry counts key. PokeClicker v0.10.26 renamed `berryList` →
+ * `berryInventory` (same 70-int shape; Farming.ts only reads the new name).
+ * Older saves keep `berryList` — the game migrates them on load — so we
+ * write whichever key the save already uses, defaulting to the current name.
+ */
+export const BERRY_COUNTS_KEY = 'berryInventory'
+export const LEGACY_BERRY_COUNTS_KEY = 'berryList'
 
-function getFarming(data: SaveData): Record<string, unknown> {
+type Farming = Record<string, unknown>
+
+// --- accessors --------------------------------------------------------------
+//
+// Readers ("peek") never write: the tab calls them inside Svelte `$derived`,
+// where mutating `$state` throws `state_unsafe_mutation` and the view never
+// renders. Only the write helpers ("ensure") create missing containers.
+
+function peekFarming(data: SaveData): Farming | undefined {
   const save = data.save as Record<string, unknown> | undefined
-  let farming = save?.farming as Record<string, unknown> | undefined
+  return save?.farming as Farming | undefined
+}
+
+function ensureFarming(data: SaveData): Farming {
+  const save = data.save as Record<string, unknown> | undefined
+  let farming = save?.farming as Farming | undefined
   if (!farming) {
     farming = {}
     if (save) save.farming = farming
@@ -35,39 +56,31 @@ function getFarming(data: SaveData): Record<string, unknown> {
   return farming
 }
 
-function getBerryList(data: SaveData): number[] {
-  const farming = getFarming(data)
-  let arr = farming.berryList as number[] | undefined
-  if (!Array.isArray(arr)) {
-    arr = []
-    farming.berryList = arr
-  }
-  return arr
+/** Which key holds per-berry counts in this save. */
+export function berryCountsKey(farming: Farming | undefined): string {
+  if (farming && BERRY_COUNTS_KEY in farming) return BERRY_COUNTS_KEY
+  if (farming && LEGACY_BERRY_COUNTS_KEY in farming) return LEGACY_BERRY_COUNTS_KEY
+  return BERRY_COUNTS_KEY
 }
 
-function getUnlocked(data: SaveData): boolean[] {
-  const farming = getFarming(data)
-  let arr = farming.unlockedBerries as boolean[] | undefined
-  if (!Array.isArray(arr)) {
-    arr = []
-    farming.unlockedBerries = arr
-  }
-  return arr
+function peekArray<T>(farming: Farming | undefined, key: string): readonly T[] {
+  const arr = farming?.[key]
+  return Array.isArray(arr) ? (arr as T[]) : []
 }
 
-function getMulchList(data: SaveData): number[] {
-  const farming = getFarming(data)
-  let arr = farming.mulchList as number[] | undefined
+function ensureArray<T>(farming: Farming, key: string): T[] {
+  let arr = farming[key] as T[] | undefined
   if (!Array.isArray(arr)) {
     arr = []
-    farming.mulchList = arr
+    farming[key] = arr
   }
   return arr
 }
 
 function padBerryArrays(data: SaveData): { counts: number[]; unlocked: boolean[] } {
-  const counts = getBerryList(data)
-  const unlocked = getUnlocked(data)
+  const farming = ensureFarming(data)
+  const counts = ensureArray<number>(farming, berryCountsKey(farming))
+  const unlocked = ensureArray<boolean>(farming, 'unlockedBerries')
   while (counts.length < BERRY_COUNT) counts.push(0)
   while (unlocked.length < BERRY_COUNT) unlocked.push(false)
   return { counts, unlocked }
@@ -84,8 +97,9 @@ export type BerryRow = {
 
 /** One row per BerryType entry. Missing list slots show as `0` / `false`. */
 export function readBerryRows(data: SaveData): BerryRow[] {
-  const counts = getBerryList(data)
-  const unlocked = getUnlocked(data)
+  const farming = peekFarming(data)
+  const counts = peekArray<number>(farming, berryCountsKey(farming))
+  const unlocked = peekArray<boolean>(farming, 'unlockedBerries')
   return BERRY_NAMES.map((name, idx) => ({
     idx,
     name,
@@ -97,7 +111,7 @@ export function readBerryRows(data: SaveData): BerryRow[] {
 /** Read mulch counts. Returns at least 7 entries (the v0.10.25 wild count);
  *  missing slots default to 0. */
 export function readMulch(data: SaveData): number[] {
-  const arr = getMulchList(data)
+  const arr = peekArray<number>(peekFarming(data), 'mulchList')
   const out: number[] = []
   const len = Math.max(arr.length, DEFAULT_MULCH_SLOTS)
   for (let i = 0; i < len; i++) out.push(arr[i] ?? 0)
@@ -108,10 +122,10 @@ export function readShovels(data: SaveData): {
   shovel: number
   mulchShovel: number
 } {
-  const farming = getFarming(data)
+  const farming = peekFarming(data)
   return {
-    shovel: (farming.shovelAmt as number) ?? 0,
-    mulchShovel: (farming.mulchShovelAmt as number) ?? 0,
+    shovel: (farming?.shovelAmt as number) ?? 0,
+    mulchShovel: (farming?.mulchShovelAmt as number) ?? 0,
   }
 }
 
@@ -186,7 +200,7 @@ export function setAllBerriesUnlocked(data: SaveData, on: boolean): void {
 export function setMulchCount(data: SaveData, idx: number, n: number): void {
   if (idx < 0) throw new RangeError(`mulch idx ${idx} must be >= 0`)
   ensureNonNegInt(`mulch[${idx}]`, n)
-  const arr = getMulchList(data)
+  const arr = ensureArray<number>(ensureFarming(data), 'mulchList')
   while (arr.length <= idx) arr.push(0)
   arr[idx] = n
 }
@@ -198,7 +212,7 @@ export function setShovels(
 ): void {
   ensureNonNegInt('shovelAmt', shovel)
   ensureNonNegInt('mulchShovelAmt', mulchShovel)
-  const farming = getFarming(data)
+  const farming = ensureFarming(data)
   farming.shovelAmt = shovel
   farming.mulchShovelAmt = mulchShovel
 }

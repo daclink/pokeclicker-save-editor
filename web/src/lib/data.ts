@@ -266,7 +266,7 @@ export function statBucketFor(pid: unknown): GenderBucket | null {
   return BUCKET_LABELS[digit] ?? null
 }
 
-/** BerryType name for an index into `save.farming.berryList`, or `'?'`. */
+/** BerryType name for an index into `save.farming.berryInventory` (`berryList` pre-v0.10.26), or `'?'`. */
 export function nameForBerry(idx: unknown): string {
   const n = coerceId(idx)
   if (n !== null && n >= 0 && n < BERRY_NAMES.length) return BERRY_NAMES[n]

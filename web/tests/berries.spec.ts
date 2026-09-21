@@ -173,3 +173,81 @@ describe('mulch + shovels', () => {
     expect(() => setShovels(data, 0, -1)).toThrow(/non-negative/)
   })
 })
+
+// --- game v0.10.26: berryList was renamed to berryInventory -----------------
+
+/** A v0.10.26-shaped save: counts live under `berryInventory`. */
+function v26Save(counts: number[] = Array.from({ length: 70 }, (_, i) => i * 10)) {
+  return {
+    save: {
+      farming: {
+        berryInventory: [...counts],
+        unlockedBerries: Array(70).fill(true),
+        mulchList: [1, 2, 3, 4, 5, 6, 7],
+        shovelAmt: 5,
+        mulchShovelAmt: 6,
+      },
+    },
+  } as Record<string, unknown>
+}
+const farmingOf = (d: Record<string, unknown>) => (d.save as any).farming
+
+/** Deep-freeze so any write throws — readers must be side-effect free
+ *  (Svelte forbids mutating $state inside $derived: state_unsafe_mutation). */
+function deepFreeze<T>(o: T): T {
+  if (o && typeof o === 'object') {
+    Object.values(o as object).forEach(deepFreeze)
+    Object.freeze(o)
+  }
+  return o
+}
+
+describe('v0.10.26 berryInventory', () => {
+  test('reads counts from berryInventory', () => {
+    const rows = readBerryRows(v26Save())
+    expect(rows[1].count).toBe(10)
+    expect(rows[69].count).toBe(690)
+  })
+
+  test('writes go to berryInventory and never create berryList', () => {
+    const d = v26Save()
+    setBerryCount(d, 2, 999)
+    fillAllBerryCounts(d, 7)
+    setBerryCounts(d, [0], 1)
+    expect(farmingOf(d).berryInventory[0]).toBe(1)
+    expect(farmingOf(d).berryInventory[2]).toBe(7)
+    expect('berryList' in farmingOf(d)).toBe(false)
+  })
+
+  test('older saves keep using berryList (game migrates them)', () => {
+    const d = loadFixture()
+    setBerryCount(d, 0, 123)
+    expect(farmingOf(d).berryList[0]).toBe(123)
+    expect('berryInventory' in farmingOf(d)).toBe(false)
+  })
+
+  test('a farming block with neither key gets the current name on write', () => {
+    const d = { save: { farming: {} } } as Record<string, unknown>
+    setBerryCount(d, 3, 4)
+    expect(farmingOf(d).berryInventory[3]).toBe(4)
+    expect('berryList' in farmingOf(d)).toBe(false)
+  })
+})
+
+describe('readers are side-effect free', () => {
+  test('frozen v0.10.26 save reads without writing', () => {
+    const d = deepFreeze(v26Save())
+    expect(() => readBerryRows(d)).not.toThrow()
+    expect(() => readMulch(d)).not.toThrow()
+    expect(() => readShovels(d)).not.toThrow()
+  })
+
+  test('frozen save with no farming block reads as all defaults', () => {
+    const d = deepFreeze({ save: {} } as Record<string, unknown>)
+    const rows = readBerryRows(d)
+    expect(rows).toHaveLength(70)
+    expect(rows.every((r) => r.count === 0 && !r.unlocked)).toBe(true)
+    expect(readMulch(d)).toEqual(Array(7).fill(0))
+    expect(readShovels(d)).toEqual({ shovel: 0, mulchShovel: 0 })
+  })
+})
