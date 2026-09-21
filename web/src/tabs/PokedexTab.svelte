@@ -7,7 +7,7 @@
   // keeps the Trainer Card counters consistent.
 
   import { store } from '../lib/store.svelte'
-  import { REGION_RANGES } from '../lib/data'
+  import { ALL_REGIONS, DEX_REGION_OPTIONS, REGION_RANGES } from '../lib/data'
   import { markCaught, regionRows, type DexRow } from '../lib/pokedex'
 
   let tick = $state(0)
@@ -17,7 +17,12 @@
   let selected = $state<Set<number>>(new Set())
 
   let region = $derived(
-    REGION_RANGES.find((r) => r.label === regionLabel) ?? REGION_RANGES[0],
+    DEX_REGION_OPTIONS.find((r) => r.label === regionLabel) ?? REGION_RANGES[0],
+  )
+
+  /** "in Kanto" vs "across all regions" — reads naturally in button/status copy. */
+  let regionPhrase = $derived(
+    region === ALL_REGIONS ? 'across all regions' : `in ${region.label}`,
   )
 
   let rows = $derived.by<DexRow[]>(() => {
@@ -59,10 +64,10 @@
       if (!caughtSet.has(pid)) ids.push(pid)
     }
     if (ids.length === 0) {
-      store.status = `all ${regionTotal} in ${region.label} already caught`
+      store.status = `all ${regionTotal} ${regionPhrase} already caught`
       return
     }
-    if (!confirm(`Mark all ${ids.length} uncaught pokémon in ${region.label} as caught?`)) {
+    if (!confirm(`Mark all ${ids.length} uncaught pokémon ${regionPhrase} as caught?`)) {
       return
     }
     applyMark(ids)
@@ -94,7 +99,7 @@
       <label>
         Region:
         <select bind:value={regionLabel}>
-          {#each REGION_RANGES as r (r.label)}
+          {#each DEX_REGION_OPTIONS as r (r.label)}
             <option value={r.label}>{r.label}</option>
           {/each}
         </select>
@@ -145,7 +150,7 @@
         Mark selected caught ({selected.size})
       </button>
       <button type="button" onclick={onMarkAllUncaught}>
-        Mark all uncaught in {region.label}
+        Mark all uncaught {regionPhrase}
       </button>
       <label class="check bump">
         <input type="checkbox" bind:checked={bumpStats} />
