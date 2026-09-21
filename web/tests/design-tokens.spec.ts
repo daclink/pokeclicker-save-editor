@@ -12,6 +12,8 @@ import { describe, expect, test } from 'vitest'
 const MIGRATED_COMPONENTS = [
   'src/tabs/BerriesTab.svelte',
   'src/components/SimpleIntDialog.svelte',
+  'src/tabs/InventoryTab.svelte',
+  'src/components/ItemCountGrid.svelte',
 ] as const
 
 const WEB_ROOT = resolve(__dirname, '..')

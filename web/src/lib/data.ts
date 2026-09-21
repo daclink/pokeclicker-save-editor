@@ -14,6 +14,9 @@
  */
 
 import berryNamesJson from '../../../data/berry-names.json'
+import eggItemsJson from '../../../data/egg-items.json'
+import evolutionItemsJson from '../../../data/evolution-items.json'
+import megaStonesJson from '../../../data/mega-stones.json'
 import genderBucketsJson from '../../../data/gender-buckets.json'
 import mulchNamesJson from '../../../data/mulch-names.json'
 import pokemonFormsJson from '../../../data/pokemon-forms.json'
@@ -52,6 +55,22 @@ export type PokemonForm = {
 export const NATIONAL_NAMES: readonly string[] = pokemonNamesJson as readonly string[]
 export const BERRY_NAMES: readonly string[] = berryNamesJson as readonly string[]
 export const MULCH_NAMES: readonly string[] = mulchNamesJson as readonly string[]
+
+// --- inventory rosters (player._itemList keys; generated from GameConstants.ts)
+
+/** `EggItemType` members — standalone egg *items*, not the breeding queue. */
+export const EGG_ITEMS: readonly string[] = eggItemsJson as readonly string[]
+/** `StoneType` members (evolution stones and trade/evolution held items). */
+export const EVOLUTION_ITEMS: readonly string[] = evolutionItemsJson as readonly string[]
+
+export type MegaStone = { readonly stone: string; readonly base: string }
+/** `MegaStoneType` members, each with the base pokémon it mega-evolves. */
+export const MEGA_STONES: readonly MegaStone[] = megaStonesJson as readonly MegaStone[]
+
+/** Display label for an `_itemList` key: `Kings_rock` → `Kings rock`. */
+export function itemDisplayName(key: string): string {
+  return key.replace(/_/g, ' ')
+}
 
 /** Canonical PokeClicker `PokemonType` enum order (0 Normal … 17 Fairy). */
 export const POKEMON_TYPE_NAMES: readonly string[] = [
@@ -139,6 +158,17 @@ if (BERRY_NAMES[0] !== 'Cheri' || BERRY_NAMES[BERRY_NAMES.length - 1] !== 'Hopo'
 }
 if (MULCH_NAMES.length < 6) {
   throw new Error(`mulch roster expected >=6 names, got ${MULCH_NAMES.length}`)
+}
+if (EGG_ITEMS.length !== 7) {
+  throw new Error(`egg-items.json: expected 7 EggItemType members, got ${EGG_ITEMS.length}`)
+}
+if (EVOLUTION_ITEMS.length < 50 || EVOLUTION_ITEMS.includes('None')) {
+  throw new Error(`evolution-items.json: expected >=50 StoneType members without None`)
+}
+for (const { stone, base } of MEGA_STONES) {
+  if (!NATIONAL_NAMES.includes(base)) {
+    throw new Error(`mega-stones.json: ${stone} base ${JSON.stringify(base)} is not a national-dex name`)
+  }
 }
 for (const key of Object.keys(POKEMON_FORMS)) {
   const n = Number(key)

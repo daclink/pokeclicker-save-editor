@@ -14,6 +14,7 @@
   import GemsTab from './tabs/GemsTab.svelte'
   import FlutesTab from './tabs/FlutesTab.svelte'
   import BerriesTab from './tabs/BerriesTab.svelte'
+  import InventoryTab from './tabs/InventoryTab.svelte'
   import CaughtTab from './tabs/CaughtTab.svelte'
   import PokedexTab from './tabs/PokedexTab.svelte'
 
@@ -40,6 +41,8 @@
       <FlutesTab />
     {:else if active === 'berries'}
       <BerriesTab />
+    {:else if active === 'inventory'}
+      <InventoryTab />
     {:else if active === 'caught'}
       <CaughtTab />
     {:else if active === 'pokedex'}

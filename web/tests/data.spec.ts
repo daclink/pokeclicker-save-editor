@@ -10,6 +10,10 @@ import { describe, expect, test } from 'vitest'
 import {
   ALL_REGIONS,
   BERRY_NAMES,
+  EGG_ITEMS,
+  EVOLUTION_ITEMS,
+  MEGA_STONES,
+  itemDisplayName,
   DEX_REGION_OPTIONS,
   POKEMON_FORMS,
   formKey,
@@ -294,5 +298,36 @@ describe('pokémon forms (fractional ids)', () => {
       for (const t of f.types) expect(t >= 0 && t < 18, `${k} type ${t}`).toBe(true)
       if (f.region !== undefined) expect(regions.has(f.region), `${k} ${f.region}`).toBe(true)
     }
+  })
+})
+
+describe('inventory rosters', () => {
+  test('egg items: the 7 EggItemType members, including Dragon_egg', () => {
+    expect(EGG_ITEMS).toHaveLength(7)
+    expect(EGG_ITEMS).toContain('Dragon_egg')
+    expect(EGG_ITEMS).not.toContain('Lucky_egg') // a consumable, not an egg item
+  })
+
+  test('evolution items: StoneType without the None sentinel or underground loot', () => {
+    expect(EVOLUTION_ITEMS.length).toBeGreaterThanOrEqual(50)
+    expect(EVOLUTION_ITEMS[0]).toBe('Leaf_stone')
+    expect(EVOLUTION_ITEMS).not.toContain('None')
+    for (const loot of ['Oval_stone', 'Odd_keystone', 'Draco_plate', 'Hard_stone']) {
+      expect(EVOLUTION_ITEMS).not.toContain(loot)
+    }
+    expect(new Set(EVOLUTION_ITEMS).size).toBe(EVOLUTION_ITEMS.length)
+  })
+
+  test('mega stones: 50, unique, every base is a national-dex species', () => {
+    expect(MEGA_STONES.length).toBeGreaterThanOrEqual(50)
+    expect(new Set(MEGA_STONES.map((m) => m.stone)).size).toBe(MEGA_STONES.length)
+    for (const m of MEGA_STONES) expect(NATIONAL_NAMES, m.stone).toContain(m.base)
+    expect(MEGA_STONES.find((m) => m.stone === 'Blue_Orb')?.base).toBe('Kyogre')
+  })
+
+  test('itemDisplayName turns save keys into labels', () => {
+    expect(itemDisplayName('Kings_rock')).toBe('Kings rock')
+    expect(itemDisplayName('Charizardite_X')).toBe('Charizardite X')
+    expect(itemDisplayName('Upgrade')).toBe('Upgrade')
   })
 })

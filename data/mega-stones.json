@@ -1,0 +1,202 @@
+[
+  {
+    "stone": "Abomasite",
+    "base": "Abomasnow"
+  },
+  {
+    "stone": "Absolite",
+    "base": "Absol"
+  },
+  {
+    "stone": "Aerodactylite",
+    "base": "Aerodactyl"
+  },
+  {
+    "stone": "Aggronite",
+    "base": "Aggron"
+  },
+  {
+    "stone": "Alakazite",
+    "base": "Alakazam"
+  },
+  {
+    "stone": "Altarianite",
+    "base": "Altaria"
+  },
+  {
+    "stone": "Ampharosite",
+    "base": "Ampharos"
+  },
+  {
+    "stone": "Audinite",
+    "base": "Audino"
+  },
+  {
+    "stone": "Banettite",
+    "base": "Banette"
+  },
+  {
+    "stone": "Beedrillite",
+    "base": "Beedrill"
+  },
+  {
+    "stone": "Blastoisinite",
+    "base": "Blastoise"
+  },
+  {
+    "stone": "Blazikenite",
+    "base": "Blaziken"
+  },
+  {
+    "stone": "Blue_Orb",
+    "base": "Kyogre"
+  },
+  {
+    "stone": "Cameruptite",
+    "base": "Camerupt"
+  },
+  {
+    "stone": "Charizardite_X",
+    "base": "Charizard"
+  },
+  {
+    "stone": "Charizardite_Y",
+    "base": "Charizard"
+  },
+  {
+    "stone": "Diancite",
+    "base": "Diancie"
+  },
+  {
+    "stone": "Galladite",
+    "base": "Gallade"
+  },
+  {
+    "stone": "Garchompite",
+    "base": "Garchomp"
+  },
+  {
+    "stone": "Gardevoirite",
+    "base": "Gardevoir"
+  },
+  {
+    "stone": "Gengarite",
+    "base": "Gengar"
+  },
+  {
+    "stone": "Glalitite",
+    "base": "Glalie"
+  },
+  {
+    "stone": "Gyaradosite",
+    "base": "Gyarados"
+  },
+  {
+    "stone": "Heracronite",
+    "base": "Heracross"
+  },
+  {
+    "stone": "Houndoominite",
+    "base": "Houndoom"
+  },
+  {
+    "stone": "Kangaskhanite",
+    "base": "Kangaskhan"
+  },
+  {
+    "stone": "Latiasite",
+    "base": "Latias"
+  },
+  {
+    "stone": "Latiosite",
+    "base": "Latios"
+  },
+  {
+    "stone": "Lopunnite",
+    "base": "Lopunny"
+  },
+  {
+    "stone": "Lucarionite",
+    "base": "Lucario"
+  },
+  {
+    "stone": "Manectite",
+    "base": "Manectric"
+  },
+  {
+    "stone": "Mawilite",
+    "base": "Mawile"
+  },
+  {
+    "stone": "Medichamite",
+    "base": "Medicham"
+  },
+  {
+    "stone": "Metagrossite",
+    "base": "Metagross"
+  },
+  {
+    "stone": "Meteorite",
+    "base": "Rayquaza"
+  },
+  {
+    "stone": "Mewtwonite_X",
+    "base": "Mewtwo"
+  },
+  {
+    "stone": "Mewtwonite_Y",
+    "base": "Mewtwo"
+  },
+  {
+    "stone": "Pidgeotite",
+    "base": "Pidgeot"
+  },
+  {
+    "stone": "Pinsirite",
+    "base": "Pinsir"
+  },
+  {
+    "stone": "Red_Orb",
+    "base": "Groudon"
+  },
+  {
+    "stone": "Sablenite",
+    "base": "Sableye"
+  },
+  {
+    "stone": "Salamencite",
+    "base": "Salamence"
+  },
+  {
+    "stone": "Sceptilite",
+    "base": "Sceptile"
+  },
+  {
+    "stone": "Scizorite",
+    "base": "Scizor"
+  },
+  {
+    "stone": "Sharpedonite",
+    "base": "Sharpedo"
+  },
+  {
+    "stone": "Slowbronite",
+    "base": "Slowbro"
+  },
+  {
+    "stone": "Steelixite",
+    "base": "Steelix"
+  },
+  {
+    "stone": "Swampertite",
+    "base": "Swampert"
+  },
+  {
+    "stone": "Tyranitarite",
+    "base": "Tyranitar"
+  },
+  {
+    "stone": "Venusaurite",
+    "base": "Venusaur"
+  }
+]

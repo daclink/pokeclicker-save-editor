@@ -6,6 +6,7 @@ export type SectionId =
   | 'gems'
   | 'flutes'
   | 'berries'
+  | 'inventory'
   | 'caught'
   | 'pokedex'
 
@@ -23,6 +24,7 @@ export const SECTIONS: readonly Section[] = [
   { id: 'gems', label: 'Gems', icon: '💎' },
   { id: 'flutes', label: 'Flutes', icon: '🎵' },
   { id: 'berries', label: 'Berries', icon: '🫐' },
+  { id: 'inventory', label: 'Inventory', icon: '🎒' },
   { id: 'caught', label: 'Caught Pokémon', icon: '⛺' },
   { id: 'pokedex', label: 'Pokédex', icon: '📕' },
 ]

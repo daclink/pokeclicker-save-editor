@@ -64,6 +64,8 @@ PC_RAW = "https://raw.githubusercontent.com/pokeclicker/pokeclicker/develop"
 BERRY_TYPE_URL = f"{PC_RAW}/src/modules/enums/BerryType.ts"
 MULCH_TYPE_URL = f"{PC_RAW}/src/modules/enums/MulchType.ts"
 POKEMON_LIST_URL = f"{PC_RAW}/src/modules/pokemons/PokemonList.ts"
+GAME_CONSTANTS_URL = f"{PC_RAW}/src/modules/GameConstants.ts"
+ITEM_LIST_URL = f"{PC_RAW}/src/modules/items/ItemList.ts"
 
 # Canonical PokeClicker PokemonType enum order (0 Normal .. 17 Fairy).
 POKEMON_TYPE_ORDER = [
@@ -75,6 +77,9 @@ EXPECTED_BERRY_COUNT = 70
 EXPECTED_FIRST_BERRY = "Cheri"
 EXPECTED_LAST_BERRY = "Hopo"
 EXPECTED_MULCH_MIN = 6   # save.farming.mulchList may carry extra slots
+EXPECTED_EGG_ITEM_COUNT = 7     # EggItemType: Fire/Water/Grass/Fighting/Electric/Dragon/Mystery
+EXPECTED_EVOLUTION_ITEMS_MIN = 50  # StoneType minus None (51 as of 2026-09)
+EXPECTED_MEGA_STONES_MIN = 50   # MegaStoneType (50 as of 2026-09)
 EXPECTED_FORMS_MIN = 600  # fractional-id entries in PokemonList.ts (610 as of 2026-09)
 
 # PokeAPI returns kebab-case names that don't always round-trip to the
@@ -196,7 +201,11 @@ def display_name(species: dict, pid: int) -> str:
 # (Typed)` — note the parens) that must be stripped. Bare identifiers
 # (optionally followed by `,` or `= -1` for the None sentinel) are the
 # entries we want.
-_ENUM_LINE = re.compile(r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*(?:=\s*-?\d+\s*)?,?\s*$")
+# Members may be bare (`Cheri,`) or quoted (`'Leaf_stone',` in StoneType /
+# EggItemType); the backreference requires matching quotes on both sides.
+_ENUM_LINE = re.compile(
+    r"^\s*(['\"]?)([A-Za-z_][A-Za-z0-9_]*)\1\s*(?:=\s*-?\d+\s*)?,?\s*$"
+)
 
 
 def _fetch_with_retry(url: str, *, label: str, retries: int = 3) -> str:
@@ -237,7 +246,7 @@ def _parse_enum_idents(src: str, enum_name: str) -> list[str]:
         if not match:
             sys.stderr.write(f"  {enum_name}: skipping unrecognized line: {raw!r}\n")
             continue
-        ident = match.group(1)
+        ident = match.group(2)
         if ident == "None":
             continue
         idents.append(ident)
@@ -396,6 +405,56 @@ def fetch_pokemon_forms(*, retries: int = 3) -> dict[str, dict]:
     return forms
 
 
+def parse_egg_items(game_constants_src: str) -> list[str]:
+    """``EggItemType`` member names = the ``player._itemList`` keys for egg items."""
+    return _parse_enum_idents(game_constants_src, "EggItemType")
+
+
+def parse_evolution_items(game_constants_src: str) -> list[str]:
+    """``StoneType`` member names (``None`` sentinel dropped) = evolution-item keys."""
+    return _parse_enum_idents(game_constants_src, "StoneType")
+
+
+_MEGA_STONE_ITEM = re.compile(
+    r"new\s+MegaStoneItem\(\s*MegaStoneType\.(\w+)\s*,\s*'((?:[^'\\]|\\.)*)'"
+)
+
+
+def parse_mega_stones(game_constants_src: str, item_list_src: str) -> list[dict]:
+    """Join ``MegaStoneType`` (order, key) with ``ItemList.ts`` (base pokémon).
+
+    Returns ``[{"stone": "Alakazite", "base": "Alakazam"}, …]`` in enum order.
+    A stone with no ``MegaStoneItem`` entry aborts the run.
+    """
+    base_by_stone = {
+        stone: base.replace("\\'", "'")
+        for stone, base in _MEGA_STONE_ITEM.findall(item_list_src)
+    }
+    out: list[dict] = []
+    for stone in _parse_enum_idents(game_constants_src, "MegaStoneType"):
+        if stone not in base_by_stone:
+            raise SystemExit(f"ItemList.ts: no MegaStoneItem for {stone}")
+        out.append({"stone": stone, "base": base_by_stone[stone]})
+    return out
+
+
+def fetch_item_rosters(*, retries: int = 3) -> tuple[list[str], list[str], list[dict]]:
+    """Fetch GameConstants.ts + ItemList.ts; return (eggs, evolution items, mega stones)."""
+    consts = _fetch_with_retry(GAME_CONSTANTS_URL, label="GameConstants.ts",
+                               retries=retries)
+    items = _fetch_with_retry(ITEM_LIST_URL, label="ItemList.ts", retries=retries)
+    eggs = parse_egg_items(consts)
+    evolution = parse_evolution_items(consts)
+    megas = parse_mega_stones(consts, items)
+    if len(eggs) != EXPECTED_EGG_ITEM_COUNT:
+        raise SystemExit(f"expected {EXPECTED_EGG_ITEM_COUNT} egg items, got {eggs!r}")
+    if len(evolution) < EXPECTED_EVOLUTION_ITEMS_MIN:
+        raise SystemExit(f"expected >= {EXPECTED_EVOLUTION_ITEMS_MIN} evolution items, got {len(evolution)}")
+    if len(megas) < EXPECTED_MEGA_STONES_MIN:
+        raise SystemExit(f"expected >= {EXPECTED_MEGA_STONES_MIN} mega stones, got {len(megas)}")
+    return eggs, evolution, megas
+
+
 # --- output writer ----------------------------------------------------------
 
 def _dump(name: str, obj) -> Path:
@@ -412,7 +471,9 @@ def _dump(name: str, obj) -> Path:
 def write_data_files(names: list[str], buckets: list[int],
                      berries: list[str], mulches: list[str],
                      types: list[list[int]],
-                     forms: dict[str, dict]) -> list[Path]:
+                     forms: dict[str, dict],
+                     egg_items: list[str], evolution_items: list[str],
+                     mega_stones: list[dict]) -> list[Path]:
     """Write the reference-data JSON files the editors read.
 
     Layout mirrors the Python constants 1:1 so each file diffs cleanly when
@@ -429,6 +490,9 @@ def write_data_files(names: list[str], buckets: list[int],
         _dump("mulch-names.json", mulches),
         _dump("pokemon-types.json", types),
         _dump("pokemon-forms.json", forms),
+        _dump("egg-items.json", egg_items),
+        _dump("evolution-items.json", evolution_items),
+        _dump("mega-stones.json", mega_stones),
     ]
     return written
 
@@ -458,7 +522,12 @@ def main() -> int:
     forms = fetch_pokemon_forms()
     print(f"  {len(forms)} pokemon forms parsed")
 
-    written = write_data_files(names, buckets, berries, mulches, types, forms)
+    egg_items, evolution_items, mega_stones = fetch_item_rosters()
+    print(f"  {len(egg_items)} egg items, {len(evolution_items)} evolution items, "
+          f"{len(mega_stones)} mega stones")
+
+    written = write_data_files(names, buckets, berries, mulches, types, forms,
+                               egg_items, evolution_items, mega_stones)
     print(f"\nWrote {len(written)} files to {DATA_DIR.relative_to(REPO_ROOT)}/:")
     for path in written:
         print(f"  {path.name}  ({path.stat().st_size} bytes)")
