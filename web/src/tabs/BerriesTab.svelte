@@ -214,7 +214,7 @@
     <Card>
       <SectionHeader
         title="Berries"
-        description="Per-berry inventory counts and unlocked flags (save.farming.berryList / unlockedBerries)."
+        description="Per-berry inventory counts and unlocked flags (save.farming.berryInventory / unlockedBerries)."
       />
       <div class="header">
         <label class="filter">

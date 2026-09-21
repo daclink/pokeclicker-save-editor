@@ -11,6 +11,17 @@ Release notes.
 
 ## [Unreleased]
 
+### Fixed
+- **Berries tab wouldn't open with PokeClicker v0.10.26 saves (web).** The
+  game renamed `save.farming.berryList` → `berryInventory` (same 70 counts).
+  The tab's read helpers "helpfully" created the missing `berryList` while
+  rendering, which Svelte rejects (`state_unsafe_mutation`), so clicking
+  Berries left the previous view on screen. The berry helpers now use
+  whichever key the save has (`berryInventory`, or `berryList` for older
+  saves; new saves get `berryInventory`), and all readers are side-effect
+  free — only writes create missing keys. Desktop (sunset) still reads
+  `berryList` only.
+
 ## [0.9.0] — 2026-09-21
 
 ### Added
