@@ -3,6 +3,7 @@
   // mobile breakpoint it collapses behind a hamburger into an overlay drawer.
   import Logo from './Logo.svelte'
   import { SECTIONS, type SectionId } from '../lib/sections'
+  import { BUILD_COMMIT_URL, BUILD_LABEL } from '../lib/buildInfo'
 
   let {
     active,
@@ -32,6 +33,13 @@
     <Logo size={26} />
     <span class="wordmark">PokéSave <span class="dim">Editor</span></span>
   </div>
+  <div class="build" title="Version and commit of this build">
+    {#if BUILD_COMMIT_URL}
+      <a href={BUILD_COMMIT_URL} target="_blank" rel="noreferrer">{BUILD_LABEL}</a>
+    {:else}
+      <span>{BUILD_LABEL}</span>
+    {/if}
+  </div>
   <ul>
     {#each SECTIONS as s (s.id)}
       <li>
@@ -60,6 +68,20 @@
 {/if}
 
 <style>
+  .build {
+    padding: var(--space-1) var(--space-2) var(--space-3);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+  .build a {
+    color: inherit;
+    text-decoration: none;
+  }
+  .build a:hover {
+    color: var(--text);
+    text-decoration: underline;
+  }
   .sidebar {
     background: var(--surface);
     border-right: 1px solid var(--border);

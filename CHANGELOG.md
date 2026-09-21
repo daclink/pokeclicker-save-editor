@@ -12,6 +12,11 @@ Release notes.
 ## [Unreleased]
 
 ### Added
+- **Version badge (web).** The sidebar shows `v<version> · <commit>` (e.g.
+  `v0.9.0 · 678f4b0`) under the logo, linking to the commit, so you can
+  tell which build is live on GitHub Pages. The version is read from
+  `_version.py` at build time (the constant `scripts/release.py` checks) and
+  the commit from `GITHUB_SHA` / local git.
 - **Caught Pokémon: bulk shiny and pokérus editing (web).** Rows now have
   checkboxes. The header box selects every *visible* row, so the region and
   type filters scope bulk edits (e.g. filter to Kanto → select all → set
