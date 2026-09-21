@@ -9,7 +9,10 @@ import { describe, expect, test } from 'vitest'
 //
 // Add a file here when its migration lands; the list grows until it covers
 // every tab, at which point it can become a glob.
-const MIGRATED_COMPONENTS = ['src/tabs/BerriesTab.svelte'] as const
+const MIGRATED_COMPONENTS = [
+  'src/tabs/BerriesTab.svelte',
+  'src/components/SimpleIntDialog.svelte',
+] as const
 
 const WEB_ROOT = resolve(__dirname, '..')
 

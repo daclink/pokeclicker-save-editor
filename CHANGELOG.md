@@ -50,8 +50,10 @@ Release notes.
   the first tab migrated to the design tokens (Redesign Phase 2), using the
   shared `Card`/`SectionHeader` primitives, with new `--selected-bg` and
   `--focus-ring` tokens for both themes. A new `design-tokens` test fails if
-  a migrated component reintroduces a raw color. Other tabs still need the
-  same migration.
+  a migrated component reintroduces a raw color. The shared **Edit count…**
+  dialog (`SimpleIntDialog`, also used by other tabs) had the same problem —
+  an invisible title and Cancel button — and is migrated too (new
+  `--backdrop` token). Other tabs still need the same migration.
 - **Multipliers: Master Ball price multiplier read a non-existent key (web).**
   The tab read `player._itemMultipliers['Masterball|farmPoint']`, which never
   exists (Master Balls aren't bought with farm points), so it always showed

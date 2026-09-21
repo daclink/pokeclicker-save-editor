@@ -33,7 +33,8 @@
   --text: #f2ece3;
   --text-muted: #a89f92;
   --selected-bg: #3a2f22; /* table row / item selection tint */
-  --focus-ring: #ffc83d; /* keyboard focus outline on inputs */
+  --focus-ring: var(--accent); /* keyboard focus outline on inputs */
+  --backdrop: rgba(0, 0, 0, 0.6); /* modal <dialog> ::backdrop */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
 
@@ -49,6 +50,7 @@
   --text-muted: #6b6358;
   --selected-bg: #fff3cf;
   --focus-ring: #b7791f; /* darker amber: >=3:1 against white surfaces */
+  --backdrop: rgba(0, 0, 0, 0.4);
   --brand: #ee1515;
   --brand-contrast: #ffffff;
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
