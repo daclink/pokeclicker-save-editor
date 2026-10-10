@@ -29,7 +29,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 CHANGELOG = REPO_ROOT / "CHANGELOG.md"
 
 # What version of the game these editor releases are validated against.
-TESTED_AGAINST = "PokeClicker v0.10.25"
+TESTED_AGAINST = "PokeClicker v0.10.26"
 
 
 def extract_section(version: str) -> tuple[str, str]:
