@@ -1,0 +1,2663 @@
+{
+  "gameVersion": "0.10.26",
+  "lines": {
+    "Tutorial Quests": [
+      {
+        "type": "CustomQuest"
+      },
+      {
+        "type": "CapturePokemonsQuest"
+      },
+      {
+        "type": "DefeatPokemonsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "BuyPokeballsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      },
+      {
+        "type": "CustomQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatGymQuest"
+      }
+    ],
+    "Bill's Grandpa Treasure Hunt": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      }
+    ],
+    "Team Rocket": [
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatGymQuest"
+      }
+    ],
+    "Mining Expedition": [
+      {
+        "type": "CustomQuest"
+      },
+      {
+        "type": "MineLayersQuest"
+      }
+    ],
+    "Bill's Errand": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CustomQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      }
+    ],
+    "Persons of Interest": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      }
+    ],
+    "The Sick Ampharos": [
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatGymQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      }
+    ],
+    "Team Rocket Again": [
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      }
+    ],
+    "The Legendary Beasts": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      }
+    ],
+    "Eusine's Chase": [
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      }
+    ],
+    "Whirl Guardian": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "HatchEggsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      }
+    ],
+    "Rainbow Guardian": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      }
+    ],
+    "Unfinished Business": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      }
+    ],
+    "Land vs. Water": [
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      }
+    ],
+    "The Weather Trio": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      }
+    ],
+    "Mystery of Deoxys": [
+      {
+        "type": "DefeatPokemonsQuest"
+      },
+      {
+        "type": "CustomQuest"
+      },
+      {
+        "type": "CapturePokemonTypesQuest"
+      },
+      {
+        "type": "CustomQuest"
+      }
+    ],
+    "The Eon Duo": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      }
+    ],
+    "Celio's Errand": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CustomQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CustomQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      }
+    ],
+    "Team Rocket's Pinkan Theme Park": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "HarvestBerriesQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      }
+    ],
+    "The Three Golems": [
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      }
+    ],
+    "Wish Maker": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      }
+    ],
+    "A Meta Discovery": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      }
+    ],
+    "Shadows in the Desert": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CustomQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CustomQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      }
+    ],
+    "A New World": [
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatGymQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatGymQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      }
+    ],
+    "Recover the Precious Egg!": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CapturePokemonTypesQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "CustomQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonBossQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CapturePokemonTypesQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      }
+    ],
+    "Zero's Ambition": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Purple_shard",
+        "amount": 10
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Ochre_shard",
+        "amount": 10
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Crimson_shard",
+        "amount": 10
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      }
+    ],
+    "Hollow Truth and Ideals": [
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatGymQuest"
+      },
+      {
+        "type": "CustomQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CustomQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatPokemonsQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatGymQuest"
+      },
+      {
+        "type": "CustomQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "CustomQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      }
+    ],
+    "Destiny Deoxys": [
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "ClearBattleFrontierQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      }
+    ],
+    "Swords of Justice": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "GainGemsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      }
+    ],
+    "The Legend Awakened": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CustomQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MineLayersQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      }
+    ],
+    "Gale of Darkness": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatDungeonBossQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatDungeonBossQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatDungeonBossQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      }
+    ],
+    "A Beautiful World": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatGymQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonBossQuest"
+      },
+      {
+        "type": "DefeatGymQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatGymQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatGymQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      }
+    ],
+    "The Delta Episode": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      }
+    ],
+    "Primal Reversion": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      }
+    ],
+    "Detective Pikachu": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      }
+    ],
+    "The Great Vivillon Hunt!": [
+      {
+        "type": "CapturePokemonTypesQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      },
+      {
+        "type": "CapturePokemonTypesQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      },
+      {
+        "type": "CapturePokemonTypesQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      },
+      {
+        "type": "CapturePokemonTypesQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      },
+      {
+        "type": "CapturePokemonTypesQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      },
+      {
+        "type": "CapturePokemonTypesQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      },
+      {
+        "type": "CapturePokemonTypesQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      },
+      {
+        "type": "CapturePokemonTypesQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      },
+      {
+        "type": "CapturePokemonTypesQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      },
+      {
+        "type": "CapturePokemonTypesQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      },
+      {
+        "type": "CapturePokemonTypesQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      },
+      {
+        "type": "CapturePokemonTypesQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      },
+      {
+        "type": "CapturePokemonTypesQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      },
+      {
+        "type": "CapturePokemonTypesQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      },
+      {
+        "type": "CapturePokemonTypesQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      },
+      {
+        "type": "CapturePokemonTypesQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      },
+      {
+        "type": "CapturePokemonTypesQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      },
+      {
+        "type": "CapturePokemonTypesQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      }
+    ],
+    "Princess Diancie": [
+      {
+        "type": "CapturePokemonTypesQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "MineLayersQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "GainGemsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      }
+    ],
+    "Clash of Ages": [
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CustomQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CapturePokemonTypesQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CustomQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      }
+    ],
+    "An Unrivaled Power": [
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonBossQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      }
+    ],
+    "Welcome to Paradise, Cousin!": [
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatDungeonBossQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatGymQuest"
+      },
+      {
+        "type": "DefeatDungeonBossQuest"
+      }
+    ],
+    "Symbiotic Relations": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonBossQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatDungeonBossQuest"
+      },
+      {
+        "type": "DefeatDungeonBossQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatGymQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      }
+    ],
+    "Child of the Stars": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatDungeonBossQuest"
+      },
+      {
+        "type": "DefeatDungeonBossQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatDungeonBossQuest"
+      },
+      {
+        "type": "DefeatDungeonBossQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatGymQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatDungeonBossQuest"
+      },
+      {
+        "type": "DefeatDungeonBossQuest"
+      },
+      {
+        "type": "DefeatDungeonBossQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      }
+    ],
+    "Emissary of Light": [
+      {
+        "type": "DefeatPokemonsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatGymQuest"
+      },
+      {
+        "type": "DefeatDungeonBossQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      }
+    ],
+    "Eater of Light": [
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatDungeonBossQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatDungeonBossQuest"
+      }
+    ],
+    "Island Challenge": [
+      {
+        "type": "CustomQuest"
+      }
+    ],
+    "Typing some Memories": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Water_Memory_Silvally",
+        "amount": 1
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Grass_Memory_Silvally",
+        "amount": 1
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Fire_Memory_Silvally",
+        "amount": 1
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Electric_Memory_Silvally",
+        "amount": 1
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Ice_Memory_Silvally",
+        "amount": 1
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Ground_Memory_Silvally",
+        "amount": 1
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      }
+    ],
+    "Ultra Beast Hunt": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      }
+    ],
+    "Let's Go, Meltan!": [
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      }
+    ],
+    "Defeat Rainbow Rocket": [
+      {
+        "type": "CustomQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      }
+    ],
+    "Magikarp Jump": [
+      {
+        "type": "TalkToNPCQuest"
+      }
+    ],
+    "Dr. Splash's Research Project": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CustomQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      }
+    ],
+    "The Darkest Day": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "DefeatGymQuest"
+      },
+      {
+        "type": "DefeatGymQuest"
+      },
+      {
+        "type": "DefeatGymQuest"
+      },
+      {
+        "type": "DefeatGymQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatGymQuest"
+      }
+    ],
+    "Sword and Shield": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      }
+    ],
+    "The Dojo's Armor": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      }
+    ],
+    "Secrets of the Jungle": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CustomQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      }
+    ],
+    "The Crown of Galar": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      }
+    ],
+    "The Birds of the Dyna Tree": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      }
+    ],
+    "The Ancient Golems": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatPokemonsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      }
+    ],
+    "The Lair of Giants": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatDungeonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Wishing_Piece",
+        "amount": 1
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Wishing_Piece",
+        "amount": 2
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Wishing_Piece",
+        "amount": 4
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Wishing_Piece",
+        "amount": 6
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Wishing_Piece",
+        "amount": 9
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Wishing_Piece",
+        "amount": 12
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Wishing_Piece",
+        "amount": 16
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Wishing_Piece",
+        "amount": 20
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Wishing_Piece",
+        "amount": 25
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Wishing_Piece",
+        "amount": 30
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Wishing_Piece",
+        "amount": 36
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Wishing_Piece",
+        "amount": 42
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Wishing_Piece",
+        "amount": 49
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Wishing_Piece",
+        "amount": 56
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Wishing_Piece",
+        "amount": 64
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Wishing_Piece",
+        "amount": 72
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Wishing_Piece",
+        "amount": 81
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Wishing_Piece",
+        "amount": 90
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Wishing_Piece",
+        "amount": 100
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Wishing_Piece",
+        "amount": 110
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Wishing_Piece",
+        "amount": 121
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Wishing_Piece",
+        "amount": 132
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Wishing_Piece",
+        "amount": 144
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Wishing_Piece",
+        "amount": 156
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Wishing_Piece",
+        "amount": 169
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Wishing_Piece",
+        "amount": 182
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Wishing_Piece",
+        "amount": 196
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Wishing_Piece",
+        "amount": 210
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Wishing_Piece",
+        "amount": 225
+      },
+      {
+        "type": "CustomQuest",
+        "itemKey": "Wishing_Piece",
+        "amount": 240
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "DefeatTemporaryBattleQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      }
+    ],
+    "Incarnate Forces of Hisui": [
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "MultipleQuestsQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      },
+      {
+        "type": "CustomQuest"
+      },
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      }
+    ],
+    "Arceus: The Deified Pokémon": [],
+    "Path of Legends": [
+      {
+        "type": "DefeatGymQuest"
+      }
+    ],
+    "Victory Road": [
+      {
+        "type": "DefeatGymQuest"
+      }
+    ],
+    "Starfall Street": [
+      {
+        "type": "DefeatGymQuest"
+      }
+    ],
+    "The Way Home": [],
+    "How blu mouse?": [
+      {
+        "type": "CaptureSpecificPokemonQuest"
+      }
+    ],
+    "Egg Hunt": [
+      {
+        "type": "DefeatDungeonBossQuest"
+      },
+      {
+        "type": "DefeatDungeonBossQuest"
+      },
+      {
+        "type": "DefeatDungeonBossQuest"
+      },
+      {
+        "type": "TalkToNPCQuest"
+      }
+    ]
+  }
+}
