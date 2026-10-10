@@ -3,8 +3,9 @@
   //
   // Pick a region, see its dex with caught marks, and mark uncaught pokémon
   // caught (selected rows, or the whole region). Already-caught entries are
-  // left untouched. The "Also bump capture stats" toggle (off by default)
-  // keeps the Trainer Card counters consistent.
+  // left untouched. "Show forms" lists each species' alternate forms
+  // (fractional ids like Unown 201.06) under it. The "Also bump capture
+  // stats" toggle (off by default) keeps the Trainer Card counters consistent.
 
   import { store } from '../lib/store.svelte'
   import { ALL_REGIONS, DEX_REGION_OPTIONS, REGION_RANGES } from '../lib/data'
@@ -14,6 +15,7 @@
   let regionLabel = $state(REGION_RANGES[0].label)
   let uncaughtOnly = $state(false)
   let bumpStats = $state(false)
+  let showForms = $state(false)
   let selected = $state<Set<number>>(new Set())
 
   let region = $derived(
@@ -25,13 +27,18 @@
     region === ALL_REGIONS ? 'across all regions' : `in ${region.label}`,
   )
 
-  let rows = $derived.by<DexRow[]>(() => {
+  // Unfiltered rows for the region (forms included when toggled). Totals,
+  // the caught lookup and "mark all" all derive from this, so the confirm
+  // count always matches what gets written.
+  let allRows = $derived.by<DexRow[]>(() => {
     void tick
-    return store.data ? regionRows(store.data, region, uncaughtOnly) : []
+    return store.data ? regionRows(store.data, region, false, { includeForms: showForms }) : []
   })
+  let rows = $derived(uncaughtOnly ? allRows.filter((r) => !r.caught) : allRows)
+  let caughtSet = $derived(new Set(allRows.filter((r) => r.caught).map((r) => r.pid)))
 
-  let caughtInRegion = $derived(rows.filter((r) => r.caught).length)
-  let regionTotal = $derived(region.hi - region.lo + 1)
+  let caughtInRegion = $derived(caughtSet.size)
+  let regionTotal = $derived(allRows.length)
 
   function toggle(pid: number): void {
     const next = new Set(selected)
@@ -55,14 +62,14 @@
   }
 
   function onMarkSelected(): void {
-    applyMark([...selected].filter((pid) => !caughtSet.has(pid)))
+    // Only rows still listed — a form selected before "Show forms" was
+    // unticked must not be marked invisibly.
+    const listed = new Set(allRows.map((r) => r.pid))
+    applyMark([...selected].filter((pid) => listed.has(pid) && !caughtSet.has(pid)))
   }
 
   function onMarkAllUncaught(): void {
-    const ids: number[] = []
-    for (let pid = region.lo; pid <= region.hi; pid++) {
-      if (!caughtSet.has(pid)) ids.push(pid)
-    }
+    const ids = allRows.filter((r) => !r.caught).map((r) => r.pid)
     if (ids.length === 0) {
       store.status = `all ${regionTotal} ${regionPhrase} already caught`
       return
@@ -73,17 +80,6 @@
     applyMark(ids)
   }
 
-  // Caught lookup for the region, independent of the uncaughtOnly view filter.
-  let caughtSet = $derived.by<Set<number>>(() => {
-    void tick
-    const s = new Set<number>()
-    if (store.data) {
-      for (const r of regionRows(store.data, region, false)) {
-        if (r.caught) s.add(r.pid)
-      }
-    }
-    return s
-  })
 </script>
 
 {#if store.data === null}
@@ -107,6 +103,10 @@
       <label class="check">
         <input type="checkbox" bind:checked={uncaughtOnly} />
         Show uncaught only
+      </label>
+      <label class="check">
+        <input type="checkbox" bind:checked={showForms} />
+        Show forms (Unown letters, Alcremie flavors, …)
       </label>
       <span class="status">{region.label}: {caughtInRegion}/{regionTotal} caught</span>
     </div>

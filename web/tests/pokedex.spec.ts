@@ -8,8 +8,15 @@ import { resolve } from 'node:path'
 import { describe, expect, test } from 'vitest'
 
 import { decodeBytes } from '../src/lib/save'
-import { ALL_REGIONS, NATIONAL_NAMES, REGION_RANGES, statBucketFor } from '../src/lib/data'
-import { caughtIdSet, markCaught, regionRows } from '../src/lib/pokedex'
+import {
+  ALL_REGIONS,
+  NATIONAL_NAMES,
+  POKEMON_FORMS,
+  REGION_RANGES,
+  nameFor,
+  statBucketFor,
+} from '../src/lib/data'
+import { caughtIdSet, formsOf, markCaught, regionRows } from '../src/lib/pokedex'
 
 const FIXTURE = resolve(
   __dirname,
@@ -116,5 +123,82 @@ describe('markCaught', () => {
     const total0 = Number(stats(data).totalPokemonCaptured ?? 0)
     markCaught(data, [4, 25], { bumpStats: true }) // both already caught
     expect(Number(stats(data).totalPokemonCaptured ?? 0)).toBe(total0)
+  })
+})
+
+// Pikachu (#25) has many forms (25.01 …); the fixture has base #25 caught only.
+const PIKACHU = 25
+const PIKACHU_FORM = 25.01
+const UNKNOWN_FORM = 25.99
+const pikachuFormCount = Object.keys(POKEMON_FORMS).filter((k) => Math.trunc(Number(k)) === PIKACHU).length
+
+describe('formsOf', () => {
+  test('returns every form of a base id, numerically sorted', () => {
+    const forms = formsOf(PIKACHU)
+    expect(forms).toHaveLength(pikachuFormCount)
+    expect(forms[0]).toBe(PIKACHU_FORM)
+    expect([...forms].sort((a, b) => a - b)).toEqual(forms)
+    expect(forms.every((f) => Math.trunc(f) === PIKACHU)).toBe(true)
+  })
+
+  test('sorts numerically, not lexically (869.1 right after 869.08, 869.7 after 869.68)', () => {
+    const forms = formsOf(869)
+    expect(forms.indexOf(869.1)).toBe(forms.indexOf(869.08) + 1)
+    expect(forms.indexOf(869.7)).toBeGreaterThan(forms.indexOf(869.68))
+  })
+
+  test('a species with no forms gets an empty list', () => {
+    expect(formsOf(11)).toEqual([]) // Metapod
+  })
+})
+
+describe('regionRows with includeForms', () => {
+  test('default (no forms) is unchanged', () => {
+    expect(regionRows(load(), KANTO)).toHaveLength(KANTO.hi - KANTO.lo + 1)
+  })
+
+  test('forms follow their base species, named and uncaught', () => {
+    const rows = regionRows(load(), KANTO, false, { includeForms: true })
+    const base = rows.findIndex((r) => r.pid === PIKACHU)
+    expect(rows[base + 1]).toEqual({ pid: PIKACHU_FORM, name: nameFor(PIKACHU_FORM), caught: false })
+    expect(rows.slice(base + 1, base + 1 + pikachuFormCount).map((r) => r.pid)).toEqual(formsOf(PIKACHU))
+    expect(rows.some((r) => r.pid === UNKNOWN_FORM)).toBe(false)
+  })
+
+  test('a caught form is marked caught and dropped by uncaughtOnly', () => {
+    const data = load()
+    markCaught(data, [PIKACHU_FORM])
+    const all = regionRows(data, KANTO, false, { includeForms: true })
+    expect(all.find((r) => r.pid === PIKACHU_FORM)?.caught).toBe(true)
+    const uncaught = regionRows(data, KANTO, true, { includeForms: true })
+    expect(uncaught.some((r) => r.pid === PIKACHU_FORM)).toBe(false)
+    expect(uncaught.some((r) => r.pid === 25.02)).toBe(true)
+  })
+
+  test('reading rows never mutates the save', () => {
+    const data = load()
+    const before = JSON.stringify(data)
+    regionRows(data, ALL_REGIONS, false, { includeForms: true })
+    expect(JSON.stringify(data)).toBe(before)
+  })
+})
+
+describe('markCaught with form ids', () => {
+  test('stores the form id as a number and skips re-marks', () => {
+    const data = load()
+    expect(markCaught(data, [PIKACHU_FORM])).toBe(1)
+    const entry = rawParty(data).find((e) => e.id === PIKACHU_FORM)
+    expect(typeof entry?.id).toBe('number')
+    expect(markCaught(data, [PIKACHU_FORM])).toBe(0)
+    expect(rawParty(data).filter((e) => e.id === PIKACHU_FORM)).toHaveLength(1)
+  })
+
+  test('bumpStats uses the form key and the base species gender bucket', () => {
+    const data = load()
+    const bucket = statBucketFor(PIKACHU)!
+    const bucket0 = Number(stats(data)[bucket] ?? 0)
+    markCaught(data, [PIKACHU_FORM], { bumpStats: true })
+    expect(stats(data).pokemonCaptured[String(PIKACHU_FORM)]).toBeGreaterThanOrEqual(1)
+    expect(Number(stats(data)[bucket])).toBe(bucket0 + 1)
   })
 })
