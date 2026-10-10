@@ -470,6 +470,10 @@ def _dump(name: str, obj) -> Path:
 # --- quest-line step parser --------------------------------------------------
 
 QUEST_LINE_HELPER_URL = f"{PC_RAW}/src/scripts/quests/QuestLineHelper.ts"
+PACKAGE_JSON_URL = f"{PC_RAW}/package.json"
+GAME_VERSION_RE = re.compile(r"^\d+\.\d+\.\d+$")
+QUEST_STEPS_VERSION_KEY = "gameVersion"
+QUEST_STEPS_LINES_KEY = "lines"
 
 # Tokens found by one forward pass over the source, in file order:
 #   - a `const x = new QuestLine('Name', ...)` declaration
@@ -501,9 +505,12 @@ _RETURN_NEW_RE = re.compile(r"\breturn\s+new\s+(?P<cls>\w+)\(")
 # Matched starting right after "new CustomQuest(" — captures the constructor
 # args when the focus reads a player.itemList key (the only CustomQuest shape
 # this tool can verify progress for).
+# Accepted focus forms: `() => player.itemList.X()`, a bare observable
+# `player.itemList.X`, or `player.itemList.X()`. The reward may be a number or
+# `undefined` (e.g. the Lair of Giants Wishing Piece steps).
 _CUSTOM_QUEST_ITEMLIST_RE = re.compile(
-    r"\s*(?P<amount>\d+)\s*,\s*-?\d+\s*,\s*'(?:\\'|[^'])*'"
-    r"\s*,\s*\(\)\s*=>\s*player\.itemList\.(?P<itemkey>\w+)\(\)\s*\)"
+    r"\s*(?P<amount>\d+)\s*,\s*(?:-?\d+|undefined)\s*,\s*'(?:\\'|[^'])*'"
+    r"\s*,\s*(?:\(\)\s*=>\s*)?player\.itemList\.(?P<itemkey>\w+)(?:\(\))?\s*\)"
 )
 
 CUSTOM_QUEST_CLASS = "CustomQuest"
@@ -803,6 +810,29 @@ def check_step_count(sites_handled: int, src: str) -> None:
         )
 
 
+def parse_game_version(package_json_text: str) -> str:
+    """Read the `version` field (X.Y.Z) out of PokeClicker's package.json."""
+    try:
+        version = json.loads(package_json_text).get("version")
+    except (ValueError, AttributeError) as e:
+        raise SystemExit(f"package.json is not valid JSON: {e}")
+    if not isinstance(version, str) or not GAME_VERSION_RE.match(version):
+        raise SystemExit(f"package.json has no X.Y.Z version (got {version!r})")
+    return version
+
+
+def fetch_game_version(*, retries: int = 3) -> str:
+    """Game version at the same ref the quest data is fetched from."""
+    return parse_game_version(
+        _fetch_with_retry(PACKAGE_JSON_URL, label="package.json", retries=retries))
+
+
+def build_quest_steps_payload(game_version: str,
+                              lines: dict[str, list[dict]]) -> dict:
+    """The on-disk shape of data/quest-steps.json."""
+    return {QUEST_STEPS_VERSION_KEY: game_version, QUEST_STEPS_LINES_KEY: lines}
+
+
 def fetch_quest_line_steps(*, retries: int = 3) -> dict[str, list[dict]]:
     """Pull QuestLineHelper.ts from the PokeClicker repo and parse it.
 
@@ -842,7 +872,8 @@ def write_data_files(names: list[str], buckets: list[int],
                      forms: dict[str, dict],
                      egg_items: list[str], evolution_items: list[str],
                      mega_stones: list[dict],
-                     quest_steps: dict[str, list[dict]]) -> list[Path]:
+                     quest_steps: dict,
+                     ) -> list[Path]:
     """Write the reference-data JSON files the editors read.
 
     Layout mirrors the Python constants 1:1 so each file diffs cleanly when
@@ -896,8 +927,10 @@ def main() -> int:
     print(f"  {len(egg_items)} egg items, {len(evolution_items)} evolution items, "
           f"{len(mega_stones)} mega stones")
 
-    quest_steps = fetch_quest_line_steps()
-    print(f"  {len(quest_steps)} quest lines parsed")
+    quest_lines = fetch_quest_line_steps()
+    game_version = fetch_game_version()
+    print(f"  {len(quest_lines)} quest lines parsed (game v{game_version})")
+    quest_steps = build_quest_steps_payload(game_version, quest_lines)
 
     written = write_data_files(names, buckets, berries, mulches, types, forms,
                                egg_items, evolution_items, mega_stones,

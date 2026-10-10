@@ -11,7 +11,9 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
 from fetch_pokeclicker_data import (  # noqa: E402
+    build_quest_steps_payload,
     check_step_count,
+    parse_game_version,
     strip_comments,
     parse_quest_line_steps,
 )
@@ -228,6 +230,67 @@ class CommentHandlingTest(unittest.TestCase):
         self.assertEqual(len(out), len(COMMENT_SRC))
         self.assertIn("it's fine // not a comment", out)
         self.assertNotIn("ghost", out)
+
+
+FOCUS_FORMS_SRC = r"""
+const lineG = new QuestLine('Focus Forms', 'd');
+lineG.addQuest(new CustomQuest(1, undefined, 'Obtain 1 Wishing Piece', player.itemList.Wishing_Piece).withInitialValue(0));
+const spaced = new CustomQuest (3, 0, 'Spaced ctor.', () => player.itemList.Fire_stone());
+lineG.addQuest(spaced);
+const direct = new CustomQuest(4, 5, 'Direct call.', player.itemList.Leaf_stone());
+lineG.addQuest(direct);
+lineG.addQuest(new CustomQuest(2, 0, 'Not an item.', () => player.oakItems.count()));
+"""
+
+
+class CustomQuestFocusFormsTest(unittest.TestCase):
+    def setUp(self) -> None:
+        self.steps = parse_quest_line_steps(FOCUS_FORMS_SRC)["Focus Forms"]
+
+    def test_bare_observable_with_undefined_reward(self) -> None:
+        self.assertEqual(
+            self.steps[0],
+            {"type": "CustomQuest", "itemKey": "Wishing_Piece", "amount": 1},
+        )
+
+    def test_space_before_constructor_paren(self) -> None:
+        self.assertEqual(
+            self.steps[1],
+            {"type": "CustomQuest", "itemKey": "Fire_stone", "amount": 3},
+        )
+
+    def test_direct_call_without_arrow(self) -> None:
+        self.assertEqual(
+            self.steps[2],
+            {"type": "CustomQuest", "itemKey": "Leaf_stone", "amount": 4},
+        )
+
+    def test_non_itemlist_focus_still_has_no_itemkey(self) -> None:
+        self.assertEqual(self.steps[3], {"type": "CustomQuest"})
+
+
+class GameVersionTest(unittest.TestCase):
+    def test_reads_version_from_package_json(self) -> None:
+        self.assertEqual(parse_game_version('{"name": "x", "version": "0.10.26"}'), "0.10.26")
+
+    def test_missing_version_raises(self) -> None:
+        with self.assertRaises(SystemExit):
+            parse_game_version('{"name": "x"}')
+
+    def test_non_semver_version_raises(self) -> None:
+        with self.assertRaises(SystemExit):
+            parse_game_version('{"version": "latest"}')
+
+    def test_invalid_json_raises(self) -> None:
+        with self.assertRaises(SystemExit):
+            parse_game_version("not json")
+
+    def test_payload_shape(self) -> None:
+        lines = {"A": [{"type": "TalkToNPCQuest"}]}
+        self.assertEqual(
+            build_quest_steps_payload("0.10.26", lines),
+            {"gameVersion": "0.10.26", "lines": lines},
+        )
 
 
 if __name__ == "__main__":
