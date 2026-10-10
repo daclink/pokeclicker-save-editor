@@ -467,13 +467,348 @@ def _dump(name: str, obj) -> Path:
     )
     return path
 
+# --- quest-line step parser --------------------------------------------------
+
+QUEST_LINE_HELPER_URL = f"{PC_RAW}/src/scripts/quests/QuestLineHelper.ts"
+
+# Tokens found by one forward pass over the source, in file order:
+#   - a `const x = new QuestLine('Name', ...)` declaration
+#   - a `const x = new SomeQuestType(` step-variable declaration
+#   - an `x.addQuest(` call (its argument is classified separately)
+# Because addQuest calls always name their questline variable explicitly, a
+# flat var->meta dict built strictly in file order resolves steps correctly even
+# when different methods reuse local names (`step1`).
+_QUEST_TOKEN_RE = re.compile(
+    r"(?:const|let)\s+(?P<qlvar>\w+)\s*=\s*new\s+QuestLine\(\s*'(?P<qlname>(?:\\'|[^'])*)'"
+    r"|(?:const|let)\s+(?P<stepvar>\w+)\s*=\s*new\s+(?P<stepclass>\w+)\s*\("
+    r"|(?P<addvar>\w+)\.addQuest\("
+)
+
+# What follows `.addQuest(`: an inline `new Cls(`, a bare variable `v)`, or a
+# call expression `fn(` that returns a quest.
+_ADD_ARG_NEW_RE = re.compile(r"\s*new\s+(?P<cls>\w+)\s*\(")
+_ADD_ARG_VAR_RE = re.compile(r"\s*(?P<var>\w+)\s*\)")
+_ADD_ARG_CALL_RE = re.compile(r"\s*(?:this\.)?(?P<fn>\w+)\(")
+
+# Arrow-function definitions: `[const|let|public static] name = (params)[: T] => {`
+_ARROW_DEF_RE = re.compile(
+    r"(?:(?:const|let)|public\s+static)\s+(?P<name>\w+)\s*=\s*\("
+)
+_ARROW_TAIL_RE = re.compile(r"\s*(?::[^={]+)?=>\s*\{")
+_RETURN_VAR_RE = re.compile(r"\breturn\s+(?P<var>\w+)\s*;")
+_RETURN_NEW_RE = re.compile(r"\breturn\s+new\s+(?P<cls>\w+)\(")
+
+# Matched starting right after "new CustomQuest(" — captures the constructor
+# args when the focus reads a player.itemList key (the only CustomQuest shape
+# this tool can verify progress for).
+_CUSTOM_QUEST_ITEMLIST_RE = re.compile(
+    r"\s*(?P<amount>\d+)\s*,\s*-?\d+\s*,\s*'(?:\\'|[^'])*'"
+    r"\s*,\s*\(\)\s*=>\s*player\.itemList\.(?P<itemkey>\w+)\(\)\s*\)"
+)
+
+CUSTOM_QUEST_CLASS = "CustomQuest"
+EXPECTED_MIN_QUEST_LINES = 30
+SANITY_QUEST_LINE = "Zero's Ambition"
+SANITY_STEP_INDEX = 4
+SANITY_STEP = {"type": CUSTOM_QUEST_CLASS, "itemKey": "Purple_shard", "amount": 10}
+
+_OPEN_TO_CLOSE = {"(": ")", "[": "]", "{": "}"}
+_QUOTES = "'\""
+_TEMPLATE_QUOTE = "`"
+
+
+def _find_close(src: str, open_idx: int) -> int:
+    """Index of the bracket closing the one at ``open_idx``.
+
+    Skips string/template literals and comments so brackets inside them (and
+    apostrophes in comments) are ignored. Raises ValueError if unbalanced.
+    """
+    stack: list[str] = []
+    i = open_idx
+    n = len(src)
+    while i < n:
+        c = src[i]
+        if c in _QUOTES:
+            i += 1
+            while i < n and src[i] != c:
+                i += 2 if src[i] == "\\" else 1
+        elif c == _TEMPLATE_QUOTE:
+            i += 1
+            while i < n and src[i] != _TEMPLATE_QUOTE:
+                if src[i] == "\\":
+                    i += 2
+                elif src.startswith("${", i):
+                    i = _find_close(src, i + 1)
+                    i += 1
+                else:
+                    i += 1
+        elif src.startswith("//", i):
+            nl = src.find("\n", i)
+            i = n if nl < 0 else nl
+        elif src.startswith("/*", i):
+            end = src.find("*/", i + 2)
+            i = n if end < 0 else end + 1
+        elif c in _OPEN_TO_CLOSE:
+            stack.append(_OPEN_TO_CLOSE[c])
+        elif c in ")]}":
+            if not stack or stack.pop() != c:
+                raise ValueError(f"unbalanced bracket at offset {i}")
+            if not stack:
+                return i
+        i += 1
+    raise ValueError(f"no closing bracket for offset {open_idx}")
+
+
+def _split_top_level(text: str) -> list[str]:
+    """Split ``text`` on commas that are not nested in brackets or literals."""
+    parts: list[str] = []
+    depth_start = 0
+    i = 0
+    while i < len(text):
+        c = text[i]
+        if c in _OPEN_TO_CLOSE:
+            i = _find_close(text, i)
+        elif c in _QUOTES or c == _TEMPLATE_QUOTE:
+            i = _skip_literal(text, i)
+        elif c == ",":
+            parts.append(text[depth_start:i])
+            depth_start = i + 1
+        i += 1
+    tail = text[depth_start:]
+    if tail.strip():
+        parts.append(tail)
+    return [p.strip() for p in parts]
+
+
+def _skip_literal(text: str, i: int) -> int:
+    """Index of the closing quote of the string/template literal at ``i``."""
+    quote = text[i]
+    i += 1
+    while i < len(text) and text[i] != quote:
+        i += 2 if text[i] == "\\" else 1
+    return i
+
+
+def _custom_quest_meta(src: str, after_ctor: int) -> dict:
+    am = _CUSTOM_QUEST_ITEMLIST_RE.match(src, after_ctor)
+    if am:
+        return {
+            "type": CUSTOM_QUEST_CLASS,
+            "itemKey": am.group("itemkey"),
+            "amount": int(am.group("amount")),
+        }
+    return {"type": CUSTOM_QUEST_CLASS}
+
+
+def _step_meta(cls: str, src: str, after_ctor: int) -> dict:
+    if cls == CUSTOM_QUEST_CLASS:
+        return _custom_quest_meta(src, after_ctor)
+    return {"type": cls}
+
+
+class _Closure:
+    """A local arrow function whose body contains addQuest calls (a template
+    of steps replayed at each call site) and/or returns a quest."""
+
+    def __init__(self, params: list[str], body_start: int, body_end: int) -> None:
+        self.params = params
+        self.body_start = body_start
+        self.body_end = body_end
+        # (receiver variable name, step meta) in body order
+        self.template: list[tuple[str, dict]] = []
+        self.returned: dict | None = None
+
+
+def _find_closures(src: str) -> dict[str, _Closure]:
+    closures: dict[str, _Closure] = {}
+    for m in _ARROW_DEF_RE.finditer(src):
+        try:
+            params_end = _find_close(src, m.end() - 1)
+        except ValueError:
+            continue
+        tail = _ARROW_TAIL_RE.match(src, params_end + 1)
+        if not tail:
+            continue
+        body_open = tail.end() - 1
+        body_end = _find_close(src, body_open)
+        params = []
+        for p in _split_top_level(src[m.end():params_end]):
+            pm = re.match(r"\w+", p)
+            if pm:
+                params.append(pm.group(0))
+        closures[m.group("name")] = _Closure(params, body_open, body_end)
+    return closures
+
+
+def _parse_quest_lines(src: str) -> tuple[dict[str, list[dict]], int]:
+    ql_var_to_name: dict[str, str] = {}
+    ql_steps: dict[str, list[dict]] = {}
+    step_var_to_meta: dict[str, dict] = {}
+    closures = _find_closures(src)
+
+    def owner_of(pos: int) -> str | None:
+        for name, c in closures.items():
+            if c.body_start < pos < c.body_end:
+                return name
+        return None
+
+    # Closure calls, found by position so they merge with the token stream.
+    call_re = (re.compile(r"(?<![\w.])(?:this\.)?(?P<fn>%s)\(" % "|".join(
+        map(re.escape, closures))) if closures else None)
+    events: list[tuple[int, str, re.Match]] = [
+        (m.start(), "tok", m) for m in _QUEST_TOKEN_RE.finditer(src)
+    ]
+    if call_re:
+        events += [(m.start(), "call", m) for m in call_re.finditer(src)]
+    events.sort(key=lambda e: e[0])
+
+    sites = 0
+    skip_until = -1
+    for pos, kind, m in events:
+        if pos < skip_until:  # nested inside an already-consumed addQuest arg
+            continue
+        scope = owner_of(pos)
+        if kind == "call":
+            clo = closures[m.group("fn")]
+            if not clo.template:
+                continue  # returns a quest / adds nothing; used as an argument
+            open_idx = m.end() - 1
+            args = _split_top_level(src[open_idx + 1:_find_close(src, open_idx)])
+            for recv, meta in clo.template:
+                if recv in clo.params:
+                    idx = clo.params.index(recv)
+                    recv = args[idx] if idx < len(args) else ""
+                qlname = ql_var_to_name.get(recv)
+                if qlname is None:
+                    raise ValueError(f"closure call {m.group('fn')!r} adds to "
+                                     f"unknown quest line {recv!r}")
+                ql_steps[qlname].append(meta)
+            continue
+
+        if m.group("qlvar"):
+            name = m.group("qlname").replace("\\'", "'")
+            ql_var_to_name[m.group("qlvar")] = name
+            ql_steps.setdefault(name, [])
+        elif m.group("stepvar"):
+            step_var_to_meta[m.group("stepvar")] = _step_meta(
+                m.group("stepclass"), src, m.end())
+        else:  # addQuest call
+            sites += 1
+            meta = _classify_add_arg(src, m.end(), step_var_to_meta, closures)
+            recv = m.group("addvar")
+            if scope is not None:
+                closures[scope].template.append((recv, meta))
+            else:
+                qlname = ql_var_to_name.get(recv)
+                if qlname is None:
+                    raise ValueError(f"addQuest on unknown quest line {recv!r}")
+                ql_steps[qlname].append(meta)
+            skip_until = _find_close(src, m.end() - 1)
+
+    return ql_steps, sites
+
+
+def _classify_add_arg(src: str, arg_start: int, step_vars: dict[str, dict],
+                      closures: dict[str, _Closure]) -> dict:
+    m = _ADD_ARG_NEW_RE.match(src, arg_start)
+    if m:
+        return _step_meta(m.group("cls"), src, m.end())
+    m = _ADD_ARG_VAR_RE.match(src, arg_start)
+    if m:
+        meta = step_vars.get(m.group("var"))
+        if meta is None:
+            raise ValueError(f"addQuest argument {m.group('var')!r} is not a "
+                             "known quest variable")
+        return meta
+    m = _ADD_ARG_CALL_RE.match(src, arg_start)
+    if m and m.group("fn") in closures:
+        clo = closures[m.group("fn")]
+        body = src[clo.body_start:clo.body_end]
+        rv = _RETURN_VAR_RE.search(body)
+        if rv and rv.group("var") in step_vars:
+            return step_vars[rv.group("var")]
+        rn = _RETURN_NEW_RE.search(body)
+        if rn:
+            return {"type": rn.group("cls")}
+    raise ValueError("unrecognised addQuest argument at: "
+                     + src[arg_start:arg_start + 80].replace("\n", " "))
+
+
+def parse_quest_line_steps(src: str, *, with_site_count: bool = False):
+    """Parse `QuestLineHelper.ts` source into {questline name: [step, ...]}.
+
+    Each step is `{"type": ClassName}`, or for a `CustomQuest` whose focus
+    reads `player.itemList.<Key>()`, `{"type": "CustomQuest", "itemKey":
+    <Key>, "amount": <int>}`. Handles `x.addQuest(stepVar)`, inline
+    `x.addQuest(new Cls(...))` (quests nested in that call's arguments are not
+    separate steps), `x.addQuest(fn(...))` where fn returns a quest, and local
+    arrow functions that call addQuest (replayed per call, in call order,
+    binding a quest-line parameter to the argument passed). Anything else
+    raises ValueError rather than guessing.
+
+    With ``with_site_count=True`` returns ``(steps, addQuest_sites_handled)``
+    for use with `check_step_count`.
+    """
+    steps, sites = _parse_quest_lines(src)
+    return (steps, sites) if with_site_count else steps
+
+
+ADD_QUEST_CALL = ".addQuest("
+
+
+def check_step_count(sites_handled: int, src: str) -> None:
+    """Fail loudly unless every `.addQuest(` occurrence in ``src`` was handled
+    by the parser exactly once (closure bodies count once, however many times
+    they are called)."""
+    expected = src.count(ADD_QUEST_CALL)
+    if sites_handled != expected:
+        raise SystemExit(
+            f"QuestLineHelper.ts parser handled {sites_handled} addQuest calls "
+            f"but the source contains {expected} — an unhandled shape would "
+            "shift step indices"
+        )
+
+
+def fetch_quest_line_steps(*, retries: int = 3) -> dict[str, list[dict]]:
+    """Pull QuestLineHelper.ts from the PokeClicker repo and parse it.
+
+    Hard-asserts the exact shape of the bug diagnosed in this repo's
+    2026-07-28 session (Zero's Ambition step 4 = Purple Shards) as the
+    cheapest defense against an upstream restructure silently breaking the
+    parser.
+    """
+    src = _fetch_with_retry(QUEST_LINE_HELPER_URL, label="QuestLineHelper.ts",
+                            retries=retries)
+    try:
+        steps, sites = parse_quest_line_steps(src, with_site_count=True)
+    except ValueError as e:
+        raise SystemExit(f"QuestLineHelper.ts parse failed: {e}")
+    check_step_count(sites, src)
+
+    if len(steps) < EXPECTED_MIN_QUEST_LINES:
+        raise SystemExit(
+            f"expected at least {EXPECTED_MIN_QUEST_LINES} quest lines from "
+            f"QuestLineHelper.ts, got {len(steps)}"
+        )
+    if SANITY_QUEST_LINE not in steps:
+        raise SystemExit(f"quest line {SANITY_QUEST_LINE!r} not found — parser regressed")
+    actual = steps[SANITY_QUEST_LINE][SANITY_STEP_INDEX]
+    if actual != SANITY_STEP:
+        raise SystemExit(
+            f"{SANITY_QUEST_LINE!r} step {SANITY_STEP_INDEX} changed shape: "
+            f"expected {SANITY_STEP!r}, got {actual!r}"
+        )
+    return steps
+
+
 
 def write_data_files(names: list[str], buckets: list[int],
                      berries: list[str], mulches: list[str],
                      types: list[list[int]],
                      forms: dict[str, dict],
                      egg_items: list[str], evolution_items: list[str],
-                     mega_stones: list[dict]) -> list[Path]:
+                     mega_stones: list[dict],
+                     quest_steps: dict[str, list[dict]]) -> list[Path]:
     """Write the reference-data JSON files the editors read.
 
     Layout mirrors the Python constants 1:1 so each file diffs cleanly when
@@ -493,6 +828,7 @@ def write_data_files(names: list[str], buckets: list[int],
         _dump("egg-items.json", egg_items),
         _dump("evolution-items.json", evolution_items),
         _dump("mega-stones.json", mega_stones),
+        _dump("quest-steps.json", quest_steps),
     ]
     return written
 
@@ -526,8 +862,12 @@ def main() -> int:
     print(f"  {len(egg_items)} egg items, {len(evolution_items)} evolution items, "
           f"{len(mega_stones)} mega stones")
 
+    quest_steps = fetch_quest_line_steps()
+    print(f"  {len(quest_steps)} quest lines parsed")
+
     written = write_data_files(names, buckets, berries, mulches, types, forms,
-                               egg_items, evolution_items, mega_stones)
+                               egg_items, evolution_items, mega_stones,
+                               quest_steps)
     print(f"\nWrote {len(written)} files to {DATA_DIR.relative_to(REPO_ROOT)}/:")
     for path in written:
         print(f"  {path.name}  ({path.stat().st_size} bytes)")
