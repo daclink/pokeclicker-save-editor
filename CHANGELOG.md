@@ -11,6 +11,23 @@ Release notes.
 
 ## [Unreleased]
 
+### Added
+- **Quests tab (web).** A new 📜 **Quests** section examines both PokeClicker
+  quest systems: the 10 rotating **Board Quests** (`save.quests.questList`)
+  and the **Quest Lines** (`save.quests.questLines`; started/suspended by
+  default, a toggle shows the rest). Where the editor can read the live value
+  a quest tracks — board quests for money, dungeon tokens, farm points and
+  gems; quest-line steps that count an item (Zero's Ambition shards, Silvally
+  memories, Lair of Giants Wishing Pieces) — it shows `progress / target`.
+  Negative progress is the stale-`initial` bug caused by editing a save after
+  a quest started (e.g. "-962/10 Purple Shards"): those rows are flagged
+  with a **Repair** button that resets `initial` to the live value, so
+  progress reads 0. Everything else shows *can't verify*: no guessed numbers,
+  no repair. Step data is generated from the game's `QuestLineHelper.ts`
+  (`data/quest-steps.json`) and stamped with its game version. If your save
+  is from a different version, quest-line checks switch off and the tab says
+  why.
+
 ## [0.9.1] — 2026-10-10
 
 ### Added

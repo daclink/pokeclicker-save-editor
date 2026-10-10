@@ -1,7 +1,7 @@
 # Web Quests Tab — Board Quests & Quest Lines Examiner
 
 **Date:** 2026-07-28
-**Status:** Approved design (pending user review)
+**Status:** Implemented 2026-10-10 on `feat/web-quests-tab`. Amendments made during implementation (from review against game source v0.10.26): the parser handles inline `addQuest(new …)`, helper closures and comments; `quest-steps.json` is `{gameVersion, lines}` and quest-line checks require the save's `update.version` to match; only started/suspended lines and unclaimed, started board quests are verified; there are now 67 quest lines, not 33.
 **Branch:** TBD (created at plan/implementation time)
 
 ## Context
