@@ -11,7 +11,7 @@
  * off by default because it changes Trainer Card numbers (and, downstream,
  * achievement progress).
  */
-import { nameFor, statBucketFor } from './data'
+import { POKEMON_FORMS, nameFor, statBucketFor } from './data'
 import type { RegionRange } from './data'
 import type { SaveData } from './save'
 
@@ -20,9 +20,46 @@ const NEW_ENTRY_EXP = 1
 
 export type DexRow = { pid: number; name: string; caught: boolean }
 
+export type RowOptions = {
+  /**
+   * Also list each species' alternate forms (fractional ids such as Unown
+   * `201.06` or Alcremie `869.04`) right after the base species. Default false.
+   */
+  includeForms?: boolean
+}
+
 export type MarkOptions = {
   /** Also bump `save.statistics` capture counters. Default false. */
   bumpStats?: boolean
+}
+
+// --- form index --------------------------------------------------------------
+
+/**
+ * Base species id → its form ids, numerically sorted (`869.09` before
+ * `869.1`). Built once from the static form table. Forms are grouped by base
+ * id, so a regional form (Alolan Raichu) lists under its base species'
+ * region, not its native one.
+ */
+const FORMS_BY_BASE: ReadonlyMap<number, readonly number[]> = (() => {
+  const map = new Map<number, number[]>()
+  for (const key of Object.keys(POKEMON_FORMS)) {
+    const pid = Number(key)
+    if (!Number.isFinite(pid)) continue
+    const base = Math.trunc(pid)
+    const list = map.get(base)
+    if (list) list.push(pid)
+    else map.set(base, [pid])
+  }
+  for (const list of map.values()) list.sort((a, b) => a - b)
+  return map
+})()
+
+const NO_FORMS: readonly number[] = []
+
+/** Form ids of a base species (empty if it has none). */
+export function formsOf(base: number): readonly number[] {
+  return FORMS_BY_BASE.get(base) ?? NO_FORMS
 }
 
 // --- accessors --------------------------------------------------------------
@@ -53,20 +90,26 @@ export function caughtIdSet(data: SaveData): Set<number> {
 }
 
 /**
- * Rows for a region's dex (one per id in `[lo, hi]`). With `uncaughtOnly`,
- * already-caught ids are omitted.
+ * Rows for a region's dex (one per id in `[lo, hi]`, plus each species' forms
+ * when `includeForms` is set). With `uncaughtOnly`, already-caught ids are
+ * omitted. Pure read — never touches `data`.
  */
 export function regionRows(
   data: SaveData,
   region: RegionRange,
   uncaughtOnly = false,
+  opts: RowOptions = {},
 ): DexRow[] {
   const caught = caughtIdSet(data)
   const rows: DexRow[] = []
-  for (let pid = region.lo; pid <= region.hi; pid++) {
+  const push = (pid: number): void => {
     const isCaught = caught.has(pid)
-    if (uncaughtOnly && isCaught) continue
+    if (uncaughtOnly && isCaught) return
     rows.push({ pid, name: nameFor(pid), caught: isCaught })
+  }
+  for (let base = region.lo; base <= region.hi; base++) {
+    push(base)
+    if (opts.includeForms) for (const form of formsOf(base)) push(form)
   }
   return rows
 }

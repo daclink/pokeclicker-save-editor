@@ -11,6 +11,16 @@ Release notes.
 
 ## [Unreleased]
 
+### Added
+- **Mark alternate forms caught (web Pokédex tab).** A new **Show forms**
+  toggle lists each species' forms — Unown letters (`#201.06` Unown (G)),
+  Alcremie flavor/sweet combos (`#869.04`), Pikachu caps, regional forms —
+  right under the base species, so you can select them or include them in
+  **Mark all uncaught**. Forms are grouped under their base species' region
+  (Alolan Raichu lists under Kanto). Every listed id comes from the game's
+  `PokemonList.ts`, which the game requires: it can't load a party id it
+  doesn't know.
+
 ### Fixed
 - **Berries tab wouldn't open with PokeClicker v0.10.26 saves (web).** The
   game renamed `save.farming.berryList` → `berryInventory` (same 70 counts).
