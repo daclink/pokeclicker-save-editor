@@ -1826,29 +1826,6 @@
       "type": "CustomQuest"
     }
   ],
-  "Mina's Trial": [
-    {
-      "type": "DefeatTemporaryBattleQuest"
-    },
-    {
-      "type": "DefeatTemporaryBattleQuest"
-    },
-    {
-      "type": "DefeatTemporaryBattleQuest"
-    },
-    {
-      "type": "DefeatTemporaryBattleQuest"
-    },
-    {
-      "type": "DefeatTemporaryBattleQuest"
-    },
-    {
-      "type": "DefeatTemporaryBattleQuest"
-    },
-    {
-      "type": "DefeatTemporaryBattleQuest"
-    }
-  ],
   "Typing some Memories": [
     {
       "type": "TalkToNPCQuest"

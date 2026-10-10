@@ -589,6 +589,40 @@ def _skip_literal(text: str, i: int) -> int:
     return i
 
 
+def strip_comments(src: str) -> str:
+    """Blank out `//` and `/* */` comments with spaces (newlines kept) so
+    offsets are unchanged. String and template literals are left intact."""
+    out = list(src)
+    i = 0
+    n = len(src)
+    while i < n:
+        c = src[i]
+        if c in _QUOTES:
+            i = _skip_literal(src, i)
+        elif c == _TEMPLATE_QUOTE:
+            i += 1
+            while i < n and src[i] != _TEMPLATE_QUOTE:
+                if src[i] == "\\":
+                    i += 2
+                elif src.startswith("${", i):
+                    i = _find_close(src, i + 1) + 1
+                else:
+                    i += 1
+        elif src.startswith("//", i) or src.startswith("/*", i):
+            if src.startswith("//", i):
+                nl = src.find("\n", i)
+                end = n if nl < 0 else nl
+            else:
+                close = src.find("*/", i + 2)
+                end = n if close < 0 else close + 2
+            for j in range(i, end):
+                if out[j] != "\n":
+                    out[j] = " "
+            i = end - 1
+        i += 1
+    return "".join(out)
+
+
 def _custom_quest_meta(src: str, after_ctor: int) -> dict:
     am = _CUSTOM_QUEST_ITEMLIST_RE.match(src, after_ctor)
     if am:
@@ -749,7 +783,7 @@ def parse_quest_line_steps(src: str, *, with_site_count: bool = False):
     With ``with_site_count=True`` returns ``(steps, addQuest_sites_handled)``
     for use with `check_step_count`.
     """
-    steps, sites = _parse_quest_lines(src)
+    steps, sites = _parse_quest_lines(strip_comments(src))
     return (steps, sites) if with_site_count else steps
 
 
@@ -760,7 +794,7 @@ def check_step_count(sites_handled: int, src: str) -> None:
     """Fail loudly unless every `.addQuest(` occurrence in ``src`` was handled
     by the parser exactly once (closure bodies count once, however many times
     they are called)."""
-    expected = src.count(ADD_QUEST_CALL)
+    expected = strip_comments(src).count(ADD_QUEST_CALL)
     if sites_handled != expected:
         raise SystemExit(
             f"QuestLineHelper.ts parser handled {sites_handled} addQuest calls "

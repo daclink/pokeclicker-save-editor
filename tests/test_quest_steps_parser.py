@@ -12,6 +12,7 @@ sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
 from fetch_pokeclicker_data import (  # noqa: E402
     check_step_count,
+    strip_comments,
     parse_quest_line_steps,
 )
 
@@ -190,6 +191,43 @@ class CheckStepCountTest(unittest.TestCase):
         for src in (FIXTURE_SRC, INLINE_SRC, NESTED_SRC, CLOSURE_SRC, HELPER_SRC):
             result = parse_quest_line_steps(src, with_site_count=True)[1]
             check_step_count(result, src)
+
+
+COMMENT_SRC = r"""
+const lineE = new QuestLine('Live Line', 'd');
+const s1 = new TalkToNPCQuest(Npc, "it's fine // not a comment");
+lineE.addQuest(s1);
+// lineE.addQuest(ghost);
+/* lineE.addQuest(new TalkToNPCQuest(Npc, 'x')); */
+const s2 = new CustomQuest(7, 0, 'Get 7.', () => player.itemList.Fire_stone());
+lineE.addQuest(s2);
+/*
+const lineF = new QuestLine('Dead Line', 'd');
+lineF.addQuest(new TalkToNPCQuest(Npc, 'y'));
+*/
+"""
+
+
+class CommentHandlingTest(unittest.TestCase):
+    def test_commented_code_is_ignored(self) -> None:
+        steps = parse_quest_line_steps(COMMENT_SRC)
+        self.assertEqual(set(steps), {"Live Line"})
+        self.assertEqual(
+            steps["Live Line"],
+            [{"type": "TalkToNPCQuest"},
+             {"type": "CustomQuest", "itemKey": "Fire_stone", "amount": 7}],
+        )
+
+    def test_invariant_ignores_comments(self) -> None:
+        _, sites = parse_quest_line_steps(COMMENT_SRC, with_site_count=True)
+        self.assertEqual(sites, 2)
+        check_step_count(sites, COMMENT_SRC)
+
+    def test_strip_preserves_offsets_and_strings(self) -> None:
+        out = strip_comments(COMMENT_SRC)
+        self.assertEqual(len(out), len(COMMENT_SRC))
+        self.assertIn("it's fine // not a comment", out)
+        self.assertNotIn("ghost", out)
 
 
 if __name__ == "__main__":
