@@ -35,6 +35,10 @@
  *     `scripts/fetch_pokeclicker_data.py` from PokeClicker's
  *     `QuestLineHelper.ts`).
  *
+ * Board quests that are already `claimed` are finished: they report
+ * progress null, are never flagged, and repair no-ops on them (the
+ * live-minus-initial number is meaningless after claiming).
+ *
  * Quest lines are only verified in the `started`/`suspended` states; an
  * `ended` line is saved with `quest: 0` and an `inactive` one never began,
  * so their step index/`initial` carry no meaning (progress null, never
@@ -165,7 +169,7 @@ function liveBoardFocus(data: SaveData, entry: QuestListEntry): number | null {
 
 export function readBoardQuests(data: SaveData): BoardQuestRow[] {
   return getQuestList(data).map((entry, i) => {
-    const focus = liveBoardFocus(data, entry)
+    const focus = entry.claimed ? null : liveBoardFocus(data, entry)
     const canVerify = focus !== null && typeof entry.initial === 'number'
     const progress = canVerify ? (focus as number) - (entry.initial as number) : null
     const amount = typeof entry.data?.[QUEST_AMOUNT_DATA_INDEX] === 'number'
@@ -188,7 +192,7 @@ export function readBoardQuests(data: SaveData): BoardQuestRow[] {
 export function repairBoardQuest(data: SaveData, index: number): void {
   const list = getQuestList(data)
   const entry = list[index]
-  if (!entry) return
+  if (!entry || entry.claimed) return
   const focus = liveBoardFocus(data, entry)
   if (focus === null || typeof entry.initial !== 'number') return
   if (focus - entry.initial >= 0) return

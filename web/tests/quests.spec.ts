@@ -130,6 +130,17 @@ describe('readBoardQuests', () => {
     expect(JSON.stringify(data)).toBe(before)
   })
 
+  test('claimed quest with regressed stat: progress null, not flagged', () => {
+    const data = baseSave({
+      questList: [{ name: 'GainMoneyQuest', data: [1000, 50], initial: 500, claimed: true, index: 0 }],
+      statistics: { totalMoney: 100 },
+    })
+    const row = readBoardQuests(data)[0]
+    expect(row.progress).toBeNull()
+    expect(row.amount).toBeNull()
+    expect(row.flagged).toBe(false)
+  })
+
   test('missing save.quests.questList reads as empty', () => {
     const data = { player: {}, save: {} } as unknown as SaveData
     expect(readBoardQuests(data)).toEqual([])
@@ -152,6 +163,15 @@ describe('repairBoardQuest', () => {
     const data = baseSave({
       questList: [{ name: 'GainMoneyQuest', data: [1000, 50], initial: 500, claimed: false, index: 0 }],
       statistics: { totalMoney: 900 },
+    })
+    repairBoardQuest(data, 0)
+    expect((data.save as any).quests.questList[0].initial).toBe(500)
+  })
+
+  test('no-ops on a claimed row', () => {
+    const data = baseSave({
+      questList: [{ name: 'GainMoneyQuest', data: [1000, 50], initial: 500, claimed: true, index: 0 }],
+      statistics: { totalMoney: 100 },
     })
     repairBoardQuest(data, 0)
     expect((data.save as any).quests.questList[0].initial).toBe(500)
