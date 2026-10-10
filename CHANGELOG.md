@@ -11,6 +11,8 @@ Release notes.
 
 ## [Unreleased]
 
+## [0.10.0] — 2026-10-10
+
 ### Added
 - **Quests tab (web).** A new 📜 **Quests** section examines both PokeClicker
   quest systems: the 10 rotating **Board Quests** (`save.quests.questList`)
@@ -696,7 +698,8 @@ Release notes.
   - **Caught Pokémon**: editable table with double-click dialog.
 - Round-trip verified byte-exact on the v0.10.25 sample save.
 
-[Unreleased]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.9.1...HEAD
+[Unreleased]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.9.1...v0.10.0
 [0.9.1]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/daclink/pokeclicker-save-editor/compare/v0.7.0...v0.8.0
