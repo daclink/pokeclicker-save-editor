@@ -44,10 +44,20 @@
  * so their step index/`initial` carry no meaning (progress null, never
  * flagged, never repaired).
  *
+ * Quest-line step metadata is tied to one game version
+ * (`data/quest-steps.json` -> `gameVersion`). Step indices shift between
+ * releases, so line progress/flag/repair require `save.update.version` to
+ * equal it exactly; otherwise the step type is shown for display only and
+ * nothing is verified (see `questStepsMatchSave`). Board quests don't depend
+ * on step data and are unaffected.
+ *
  * Repair (on flagged rows only) resets `initial` to the current live
- * value — this exactly replicates PokeClicker's own live-decrease
- * compensation in `Quest.ts`'s focus subscriber, which only fires during
- * an active browser session and never for an out-of-band save edit.
+ * value. This is the closest safe approximation of PokeClicker's own
+ * live-decrease compensation (`initial -= oldFocus - newFocus` in
+ * `Quest.ts`'s focus subscriber), which only fires during an active browser
+ * session and never for an out-of-band save edit. The game's version keeps
+ * pre-decrease progress, which can't be recovered offline; resetting to the
+ * live value restores progress 0.
  */
 import type { SaveData } from './save'
 import questStepsJson from '../../../data/quest-steps.json'
@@ -62,12 +72,18 @@ export type QuestStepMeta = {
   amount?: number
 }
 
-export type QuestStepsData = Record<string, QuestStepMeta[]>
+export type QuestStepsData = {
+  /** PokeClicker version the step metadata was generated from. */
+  gameVersion: string
+  lines: Record<string, QuestStepMeta[]>
+}
 
 export type BoardQuestRow = {
   index: number
   name: string
   claimed: boolean
+  /** False when the quest has no `initial` snapshot yet (game: not inProgress). */
+  started: boolean
   amount: number | null
   progress: number | null
   flagged: boolean
@@ -97,6 +113,21 @@ const QUEST_LINE_STATES: readonly QuestLineState[] = [
 const VERIFIABLE_LINE_STATES: ReadonlySet<QuestLineState> = new Set(['started', 'suspended'])
 
 const CUSTOM_QUEST_TYPE = 'CustomQuest'
+
+/** Version of the loaded save, or null if it has none. */
+export function saveGameVersion(data: SaveData): string | null {
+  const save = (data.save ?? {}) as Record<string, unknown>
+  const update = save.update
+  if (update === null || typeof update !== 'object') return null
+  const v = (update as Record<string, unknown>).version
+  return typeof v === 'string' ? v : null
+}
+
+/** True when the quest-step metadata was generated for exactly this save's
+ *  game version. When false, quest-line checks are disabled. */
+export function questStepsMatchSave(data: SaveData, steps: QuestStepsData = QUEST_STEPS): boolean {
+  return saveGameVersion(data) === steps.gameVersion
+}
 
 // --- board quests --------------------------------------------------------
 
@@ -179,6 +210,7 @@ export function readBoardQuests(data: SaveData): BoardQuestRow[] {
       index: i,
       name: entry.name ?? '',
       claimed: entry.claimed ?? false,
+      started: entry.initial !== null && entry.initial !== undefined,
       amount: canVerify ? amount : null,
       progress,
       flagged: progress !== null && progress < 0,
@@ -208,9 +240,12 @@ type QuestLineEntry = {
   initial?: unknown
 }
 
-function getItemList(data: SaveData): Record<string, unknown> {
+/** The player's item counts, or null if `_itemList` is absent/not a plain object. */
+function getItemList(data: SaveData): Record<string, unknown> | null {
   const player = (data.player ?? {}) as Record<string, unknown>
-  return (player._itemList ?? {}) as Record<string, unknown>
+  const items = player._itemList
+  if (items === null || typeof items !== 'object' || Array.isArray(items)) return null
+  return items as Record<string, unknown>
 }
 
 function getQuestLines(data: SaveData): QuestLineEntry[] {
@@ -226,8 +261,8 @@ function stateLabel(n: number | undefined): QuestLineState {
 
 function stepMetaFor(steps: QuestStepsData, name: string, stepIndex: unknown): QuestStepMeta | null {
   if (typeof stepIndex !== 'number' || !Number.isInteger(stepIndex)) return null
-  if (!Object.hasOwn(steps, name)) return null
-  return steps[name][stepIndex] ?? null
+  if (!Object.hasOwn(steps.lines, name)) return null
+  return steps.lines[name][stepIndex] ?? null
 }
 
 /** Live focus + target amount for a quest-line step, or `null` if the step
@@ -235,14 +270,17 @@ function stepMetaFor(steps: QuestStepsData, name: string, stepIndex: unknown): Q
  *  CustomQuest whose focus isn't a player.itemList read). */
 function liveLineFocus(
   data: SaveData,
+  steps: QuestStepsData,
   state: QuestLineState,
   meta: QuestStepMeta | null,
 ): { focus: number; amount: number } | null {
   if (!VERIFIABLE_LINE_STATES.has(state)) return null
+  if (!questStepsMatchSave(data, steps)) return null
   if (!meta || meta.type !== CUSTOM_QUEST_TYPE || meta.itemKey === undefined || meta.amount === undefined) {
     return null
   }
   const items = getItemList(data)
+  if (items === null) return null
   // Absent key means the player holds 0: the game deletes zero-count items
   // when serializing (Player.ts toJSON) and re-initializes them to 0 on load
   // (Save.ts initializeItemlist). A present non-number value is corrupt.
@@ -254,13 +292,18 @@ function liveLineFocus(
 
 export function readQuestLines(data: SaveData, steps: QuestStepsData = QUEST_STEPS): QuestLineRow[] {
   return getQuestLines(data).map((entry) => {
-    const meta = stepMetaFor(steps, entry.name ?? '', entry.quest)
-    const live = liveLineFocus(data, stateLabel(entry.state), meta)
+    const state = stateLabel(entry.state)
+    // Ended lines are saved with quest 0 and inactive ones never began, so
+    // their step index is not a real step: show none.
+    const meta = VERIFIABLE_LINE_STATES.has(state)
+      ? stepMetaFor(steps, entry.name ?? '', entry.quest)
+      : null
+    const live = liveLineFocus(data, steps, state, meta)
     const canVerify = live !== null && typeof entry.initial === 'number'
     const progress = canVerify ? live!.focus - (entry.initial as number) : null
     return {
       name: entry.name ?? '',
-      state: stateLabel(entry.state),
+      state,
       step: entry.quest ?? 0,
       stepType: meta?.type ?? null,
       amount: canVerify ? live!.amount : null,
@@ -282,7 +325,7 @@ export function repairQuestLine(
   const entry = lines.find((e) => e.name === name)
   if (!entry) return
   const meta = stepMetaFor(steps, entry.name ?? '', entry.quest)
-  const live = liveLineFocus(data, stateLabel(entry.state), meta)
+  const live = liveLineFocus(data, steps, stateLabel(entry.state), meta)
   if (live === null || typeof entry.initial !== 'number') return
   if (live.focus - entry.initial >= 0) return
   entry.initial = live.focus

@@ -9,6 +9,7 @@ import { describe, expect, test } from 'vitest'
 import type { SaveData } from '../src/lib/save'
 import {
   readBoardQuests,
+  questStepsMatchSave,
   readQuestLines,
   repairBoardQuest,
   repairQuestLine,
@@ -18,15 +19,21 @@ import {
 // avoids relying on dynamic-JSON-import behavior in the test runner.
 import realQuestStepsJson from '../../data/quest-steps.json'
 
+const TEST_VERSION = '0.10.26'
+
 function baseSave(overrides: {
   questList?: unknown[]
   questLines?: unknown[]
   statistics?: Record<string, unknown>
   itemList?: Record<string, unknown>
+  noItemList?: boolean
+  version?: string | null
 }): SaveData {
+  const version = overrides.version === undefined ? TEST_VERSION : overrides.version
   return {
-    player: { _itemList: overrides.itemList ?? {} },
+    player: overrides.noItemList ? {} : { _itemList: overrides.itemList ?? {} },
     save: {
+      ...(version === null ? {} : { update: { version } }),
       statistics: overrides.statistics ?? {},
       quests: {
         questList: overrides.questList ?? [],
@@ -184,14 +191,17 @@ describe('repairBoardQuest', () => {
 })
 
 const TEST_STEPS: QuestStepsData = {
-  "Zero's Ambition": [
-    { type: 'TalkToNPCQuest' },
-    { type: 'TalkToNPCQuest' },
-    { type: 'TalkToNPCQuest' },
-    { type: 'TalkToNPCQuest' },
-    { type: 'CustomQuest', itemKey: 'Purple_shard', amount: 10 },
-  ],
-  'Tutorial Quests': [{ type: 'TalkToNPCQuest' }],
+  gameVersion: TEST_VERSION,
+  lines: {
+    "Zero's Ambition": [
+      { type: 'TalkToNPCQuest' },
+      { type: 'TalkToNPCQuest' },
+      { type: 'TalkToNPCQuest' },
+      { type: 'TalkToNPCQuest' },
+      { type: 'CustomQuest', itemKey: 'Purple_shard', amount: 10 },
+    ],
+    'Tutorial Quests': [{ type: 'TalkToNPCQuest' }],
+  },
 }
 
 describe('readQuestLines', () => {
@@ -362,10 +372,141 @@ describe('repairQuestLine', () => {
 describe('real generated data/quest-steps.json', () => {
   test("Zero's Ambition step 4 matches the diagnosed bug shape", () => {
     const real = realQuestStepsJson as unknown as QuestStepsData
-    expect(real["Zero's Ambition"][4]).toEqual({
+    expect(real.lines["Zero's Ambition"][4]).toEqual({
       type: 'CustomQuest',
       itemKey: 'Purple_shard',
       amount: 10,
     })
+  })
+
+  test('carries a gameVersion string and The Lair of Giants Wishing Piece steps resolve', () => {
+    const real = realQuestStepsJson as unknown as QuestStepsData
+    expect(real.gameVersion).toMatch(/^\d+\.\d+\.\d+$/)
+    expect(real.lines['The Lair of Giants'][18]).toMatchObject({
+      type: 'CustomQuest',
+      itemKey: 'Wishing_Piece',
+    })
+  })
+})
+
+describe('game-version tie', () => {
+  const zero = (version: string | null) =>
+    baseSave({
+      questLines: [{ state: 1, name: "Zero's Ambition", quest: 4, initial: 10479 }],
+      itemList: { Purple_shard: 9517 },
+      version,
+    })
+
+  test('questStepsMatchSave: true on exact match, false otherwise', () => {
+    expect(questStepsMatchSave(zero(TEST_VERSION), TEST_STEPS)).toBe(true)
+    expect(questStepsMatchSave(zero('0.10.27'), TEST_STEPS)).toBe(false)
+    expect(questStepsMatchSave(zero(null), TEST_STEPS)).toBe(false)
+  })
+
+  test('mismatch: stepType still shown, progress null, not flagged, repair no-op', () => {
+    const data = zero('0.10.25')
+    const row = readQuestLines(data, TEST_STEPS)[0]
+    expect(row.stepType).toBe('CustomQuest')
+    expect(row.progress).toBeNull()
+    expect(row.amount).toBeNull()
+    expect(row.flagged).toBe(false)
+    repairQuestLine(data, "Zero's Ambition", TEST_STEPS)
+    expect((data.save as any).quests.questLines[0].initial).toBe(10479)
+  })
+
+  test('missing save.update behaves like a mismatch', () => {
+    const data = zero(null)
+    const row = readQuestLines(data, TEST_STEPS)[0]
+    expect(row.progress).toBeNull()
+    expect(row.flagged).toBe(false)
+    repairQuestLine(data, "Zero's Ambition", TEST_STEPS)
+    expect((data.save as any).quests.questLines[0].initial).toBe(10479)
+  })
+
+  test('board quests are unaffected by a version mismatch', () => {
+    const data = baseSave({
+      questList: [{ name: 'GainMoneyQuest', data: [1000, 5], initial: 900, claimed: false }],
+      statistics: { totalMoney: 500 },
+      version: '0.0.1',
+    })
+    expect(readBoardQuests(data)[0]).toMatchObject({ progress: -400, flagged: true })
+  })
+})
+
+describe('missing _itemList', () => {
+  test.each([['absent', undefined], ['array', []], ['string', 'x'], ['null', null]])(
+    '%s player._itemList: unverifiable, not flagged, repair no-op',
+    (_label, value) => {
+      const data = baseSave({
+        questLines: [{ state: 1, name: "Zero's Ambition", quest: 4, initial: 10479 }],
+        noItemList: true,
+      })
+      if (value !== undefined) (data.player as any)._itemList = value
+      const row = readQuestLines(data, TEST_STEPS)[0]
+      expect(row.progress).toBeNull()
+      expect(row.flagged).toBe(false)
+      repairQuestLine(data, "Zero's Ambition", TEST_STEPS)
+      expect((data.save as any).quests.questLines[0].initial).toBe(10479)
+    },
+  )
+})
+
+describe('step display for non-active lines', () => {
+  test.each([[0], [2]])('state %i: stepType is null (no fake step)', (state) => {
+    const data = baseSave({
+      questLines: [{ state, name: "Zero's Ambition", quest: 0, initial: 0 }],
+    })
+    expect(readQuestLines(data, TEST_STEPS)[0].stepType).toBeNull()
+  })
+
+  test.each([[1], [3]])('state %i keeps stepType', (state) => {
+    const data = baseSave({
+      questLines: [{ state, name: "Zero's Ambition", quest: 4, initial: 0 }],
+    })
+    expect(readQuestLines(data, TEST_STEPS)[0].stepType).toBe('CustomQuest')
+  })
+})
+
+describe('board quest started flag', () => {
+  test('initial null is not started; numeric initial is started', () => {
+    const data = baseSave({
+      questList: [
+        { name: 'GainMoneyQuest', data: [10, 1], initial: null, claimed: false },
+        { name: 'GainMoneyQuest', data: [10, 1], initial: 0, claimed: false },
+        { name: 'HatchEggsQuest', data: [10, 1], initial: null, claimed: false },
+      ],
+      statistics: { totalMoney: 5 },
+    })
+    const rows = readBoardQuests(data)
+    expect(rows.map((r) => r.started)).toEqual([false, true, false])
+    expect(rows[0].progress).toBeNull()
+  })
+})
+
+describe('extra no-op guards', () => {
+  test('repairBoardQuest no-ops on an unresolvable type', () => {
+    const data = baseSave({
+      questList: [{ name: 'HatchEggsQuest', data: [10, 1], initial: 99, claimed: false }],
+    })
+    repairBoardQuest(data, 0)
+    expect((data.save as any).quests.questList[0].initial).toBe(99)
+  })
+
+  test('repairBoardQuest no-ops on a non-numeric initial', () => {
+    const data = baseSave({
+      questList: [{ name: 'GainMoneyQuest', data: [10, 1], initial: '900', claimed: false }],
+      statistics: { totalMoney: 5 },
+    })
+    repairBoardQuest(data, 0)
+    expect((data.save as any).quests.questList[0].initial).toBe('900')
+  })
+
+  test('repairQuestLine repairs a flagged suspended (state 3) line', () => {
+    const data = baseSave({
+      questLines: [{ state: 3, name: "Zero's Ambition", quest: 4, initial: 10479 }],
+      itemList: { Purple_shard: 9517 },
+    })
+    repairQuestLine(data, "Zero's Ambition", TEST_STEPS)
+    expect((data.save as any).quests.questLines[0].initial).toBe(9517)
   })
 })
