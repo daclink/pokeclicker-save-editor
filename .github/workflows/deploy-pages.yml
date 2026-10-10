@@ -11,6 +11,9 @@ on:
     paths:
       - 'web/**'
       - 'data/**'
+      # The sidebar version badge is built from _version.py, so a release
+      # bump must redeploy even when nothing under web/ changed.
+      - '_version.py'
       - '.github/workflows/deploy-pages.yml'
   workflow_dispatch:
 
