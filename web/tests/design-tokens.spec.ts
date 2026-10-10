@@ -18,6 +18,7 @@ const MIGRATED_COMPONENTS = [
   'src/components/NumberField.svelte',
   'src/tabs/CurrenciesTab.svelte',
   'src/tabs/EggsTab.svelte',
+  'src/tabs/QuestsTab.svelte',
 ] as const
 
 const WEB_ROOT = resolve(__dirname, '..')

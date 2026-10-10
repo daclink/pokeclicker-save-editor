@@ -17,6 +17,7 @@ describe('App shell', () => {
       'Berries',
       'Caught Pokémon',
       'Pokédex',
+      'Quests',
     ]) {
       expect(getByText(label)).toBeTruthy()
     }

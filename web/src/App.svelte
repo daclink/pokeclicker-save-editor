@@ -17,6 +17,7 @@
   import InventoryTab from './tabs/InventoryTab.svelte'
   import CaughtTab from './tabs/CaughtTab.svelte'
   import PokedexTab from './tabs/PokedexTab.svelte'
+  import QuestsTab from './tabs/QuestsTab.svelte'
 
   let active = $state<SectionId>(SECTIONS[0].id)
 </script>
@@ -47,6 +48,8 @@
       <CaughtTab />
     {:else if active === 'pokedex'}
       <PokedexTab />
+    {:else if active === 'quests'}
+      <QuestsTab />
     {/if}
 
     <footer>

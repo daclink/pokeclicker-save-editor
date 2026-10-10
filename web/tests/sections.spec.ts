@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest'
 import { SECTIONS } from '../src/lib/sections'
 
 describe('SECTIONS', () => {
-  test('lists the nine editor sections in order', () => {
+  test('lists the ten editor sections in order', () => {
     expect(SECTIONS.map((s) => s.id)).toEqual([
       'currencies',
       'eggs',
@@ -13,6 +13,7 @@ describe('SECTIONS', () => {
       'inventory',
       'caught',
       'pokedex',
+      'quests',
     ])
   })
 
