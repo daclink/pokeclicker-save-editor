@@ -286,6 +286,42 @@ describe('readQuestLines gating', () => {
   })
 })
 
+describe('readQuestLines item-list edge cases', () => {
+  const line = (itemList: Record<string, unknown>, quest: unknown = 4) =>
+    baseSave({
+      questLines: [{ state: 1, name: "Zero's Ambition", quest, initial: 10479 }],
+      itemList,
+    })
+
+  test('absent itemList key means 0 held: progress = -initial, flagged, repair sets initial to 0', () => {
+    const data = line({})
+    const row = readQuestLines(data, TEST_STEPS)[0]
+    expect(row.progress).toBe(-10479)
+    expect(row.flagged).toBe(true)
+    repairQuestLine(data, "Zero's Ambition", TEST_STEPS)
+    expect((data.save as any).quests.questLines[0].initial).toBe(0)
+  })
+
+  test.each([['string', '9517'], ['null', null], ['boolean', true], ['object', {}]])(
+    'present non-number itemList value (%s): null, not flagged, repair no-op',
+    (_label, value) => {
+      const data = line({ Purple_shard: value })
+      const row = readQuestLines(data, TEST_STEPS)[0]
+      expect(row.progress).toBeNull()
+      expect(row.flagged).toBe(false)
+      repairQuestLine(data, "Zero's Ambition", TEST_STEPS)
+      expect((data.save as any).quests.questLines[0].initial).toBe(10479)
+    },
+  )
+
+  test('non-integer quest index ("4"): stepType null, progress null, not flagged', () => {
+    const row = readQuestLines(line({ Purple_shard: 9517 }, '4'), TEST_STEPS)[0]
+    expect(row.stepType).toBeNull()
+    expect(row.progress).toBeNull()
+    expect(row.flagged).toBe(false)
+  })
+})
+
 describe('repairQuestLine', () => {
   test('no-ops on an ended line even with a stale initial', () => {
     const data = baseSave({

@@ -224,7 +224,8 @@ function stateLabel(n: number | undefined): QuestLineState {
   return QUEST_LINE_STATES[n ?? 0] ?? 'inactive'
 }
 
-function stepMetaFor(steps: QuestStepsData, name: string, stepIndex: number): QuestStepMeta | null {
+function stepMetaFor(steps: QuestStepsData, name: string, stepIndex: unknown): QuestStepMeta | null {
+  if (typeof stepIndex !== 'number' || !Number.isInteger(stepIndex)) return null
   if (!Object.hasOwn(steps, name)) return null
   return steps[name][stepIndex] ?? null
 }
@@ -241,13 +242,19 @@ function liveLineFocus(
   if (!meta || meta.type !== CUSTOM_QUEST_TYPE || meta.itemKey === undefined || meta.amount === undefined) {
     return null
   }
-  const v = getItemList(data)[meta.itemKey]
-  return { focus: typeof v === 'number' ? v : 0, amount: meta.amount }
+  const items = getItemList(data)
+  // Absent key means the player holds 0: the game deletes zero-count items
+  // when serializing (Player.ts toJSON) and re-initializes them to 0 on load
+  // (Save.ts initializeItemlist). A present non-number value is corrupt.
+  if (!Object.hasOwn(items, meta.itemKey)) return { focus: 0, amount: meta.amount }
+  const v = items[meta.itemKey]
+  if (typeof v !== 'number') return null
+  return { focus: v, amount: meta.amount }
 }
 
 export function readQuestLines(data: SaveData, steps: QuestStepsData = QUEST_STEPS): QuestLineRow[] {
   return getQuestLines(data).map((entry) => {
-    const meta = stepMetaFor(steps, entry.name ?? '', entry.quest ?? 0)
+    const meta = stepMetaFor(steps, entry.name ?? '', entry.quest)
     const live = liveLineFocus(data, stateLabel(entry.state), meta)
     const canVerify = live !== null && typeof entry.initial === 'number'
     const progress = canVerify ? live!.focus - (entry.initial as number) : null
@@ -274,7 +281,7 @@ export function repairQuestLine(
   const lines = getQuestLines(data)
   const entry = lines.find((e) => e.name === name)
   if (!entry) return
-  const meta = stepMetaFor(steps, entry.name ?? '', entry.quest ?? 0)
+  const meta = stepMetaFor(steps, entry.name ?? '', entry.quest)
   const live = liveLineFocus(data, stateLabel(entry.state), meta)
   if (live === null || typeof entry.initial !== 'number') return
   if (live.focus - entry.initial >= 0) return
