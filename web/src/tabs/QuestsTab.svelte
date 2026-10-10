@@ -3,17 +3,22 @@
   // with a guarded one-click repair for the "stale initial" bug class: a
   // save edit that lowers a tracked value (e.g. a shard count) after a
   // quest snapshotted it produces permanently negative, stuck progress.
-  // Repair mirrors what PokeClicker's own live-decrease compensation does
-  // (see lib/quests.ts) and is only ever offered on rows this tool can
-  // actually verify — everything else reads "can't verify", never a guess.
+  // Repair is the closest safe approximation of PokeClicker's own
+  // live-decrease compensation (see lib/quests.ts: the game keeps
+  // pre-decrease progress, which can't be recovered offline, so we restore
+  // progress 0) and is only ever offered on rows this tool can actually
+  // verify — everything else reads "can't verify", never a guess.
 
   import { store } from '../lib/store.svelte'
   import {
     readBoardQuests,
+    QUEST_STEPS_GAME_VERSION,
+    questStepsMatchSave,
     readQuestLines,
     repairBoardQuest,
     repairQuestLine,
     type BoardQuestRow,
+    saveGameVersion,
     type QuestLineRow,
   } from '../lib/quests'
 
@@ -29,6 +34,9 @@
     void tick
     return store.data ? readQuestLines(store.data) : []
   })
+
+  let stepsMatch = $derived(store.data ? questStepsMatchSave(store.data) : true)
+  let saveVersion = $derived(store.data ? saveGameVersion(store.data) : null)
 
   let visibleLines = $derived(
     showAllLines
@@ -53,14 +61,24 @@
 
   const NO_PROGRESS = '—'
   const CANT_VERIFY = "can't verify"
+  const NOT_STARTED = 'not started'
+  const UNKNOWN_VERSION = 'unknown'
 
   function progressText(
     row: { progress: number | null; amount: number | null },
     finished = false,
+    started = true,
   ): string {
     if (finished) return NO_PROGRESS
+    if (!started) return NOT_STARTED
     if (row.progress === null || row.amount === null) return CANT_VERIFY
     return `${row.progress.toLocaleString('en-US')} / ${row.amount.toLocaleString('en-US')}`
+  }
+
+  /** Step cell: only started/suspended lines have a meaningful active step. */
+  function stepText(row: QuestLineRow): string {
+    if (row.state !== 'started' && row.state !== 'suspended') return NO_PROGRESS
+    return `${row.step + 1}${row.stepType ? ` (${row.stepType})` : ''}`
   }
 </script>
 
@@ -88,7 +106,7 @@
           <tr class:flagged={row.flagged}>
             <td>{row.name}</td>
             <td>{row.claimed ? 'Yes' : 'No'}</td>
-            <td>{progressText(row, row.claimed)}</td>
+            <td>{progressText(row, row.claimed, row.started)}</td>
             <td>
               {#if row.flagged}
                 <button type="button" onclick={() => repairBoard(row)}>Repair</button>
@@ -113,6 +131,12 @@
       currently active step of each line can be checked — earlier and later
       steps aren't tracked by the save.
     </p>
+    {#if !stepsMatch}
+      <p class="note warn">
+        Quest-line checks are off: this editor's quest data is for PokeClicker
+        v{QUEST_STEPS_GAME_VERSION}, your save is v{saveVersion ?? UNKNOWN_VERSION}.
+      </p>
+    {/if}
     <table>
       <thead>
         <tr>
@@ -128,7 +152,7 @@
           <tr class:flagged={row.flagged}>
             <td>{row.name}</td>
             <td>{row.state}</td>
-            <td>{row.step + 1}{row.stepType ? ` (${row.stepType})` : ''}</td>
+            <td>{stepText(row)}</td>
             <td>{progressText(row, row.state === 'ended' || row.state === 'inactive')}</td>
             <td>
               {#if row.flagged}
@@ -180,10 +204,13 @@
     color: var(--text-muted);
     font-size: 0.9em;
   }
+  .note.warn {
+    color: var(--danger);
+  }
   .note code {
     background: var(--surface-2);
     padding: 0 0.25rem;
-    border-radius: 3px;
+    border-radius: var(--radius-sm);
     font-size: 0.95em;
   }
   table {

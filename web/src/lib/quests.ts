@@ -101,6 +101,9 @@ export type QuestLineRow = {
 
 const QUEST_STEPS = questStepsJson as QuestStepsData
 
+/** PokeClicker version this editor's quest-line step data was built for. */
+export const QUEST_STEPS_GAME_VERSION = QUEST_STEPS.gameVersion
+
 const QUEST_LINE_STATES: readonly QuestLineState[] = [
   'inactive',
   'started',
