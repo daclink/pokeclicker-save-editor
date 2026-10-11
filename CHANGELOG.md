@@ -26,6 +26,12 @@ Release notes.
   Checked rows stay selected while you change the filter, so you can gather
   picks from several searches and mark them in one go.
 
+### Deprecated
+- **Desktop app.** The desktop editor now shows a banner, plus a Help menu
+  item, linking to the web app. It still works and installers are still
+  built, but new features land only in the web app. The README leads with
+  the web app and labels the installers as the deprecated desktop app.
+
 ### Fixed
 - **Shards tab listed the wrong colours.** It showed an *Indigo* shard that
   doesn't exist in PokeClicker and was missing **Brown** and **Slate**. The
