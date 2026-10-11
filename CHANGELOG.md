@@ -20,6 +20,11 @@ Release notes.
   does. The roster is generated from the game's `UndergroundItems.ts`
   (`data/underground-items.json`). Shards, evolution stones and mega stones
   are mined too but stay on the Shards and Inventory tabs.
+- **Pokédex search and sort (web).** A filter box matches a name ("unown")
+  or an id prefix ("201", "#869.1"), so a species brings its forms along.
+  The **ID** and **Name** column headers sort (click again to reverse).
+  Checked rows stay selected while you change the filter, so you can gather
+  picks from several searches and mark them in one go.
 
 ### Fixed
 - **Shards tab listed the wrong colours.** It showed an *Indigo* shard that
