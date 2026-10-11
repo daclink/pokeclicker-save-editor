@@ -15,6 +15,7 @@ describe('App shell', () => {
       'Gems',
       'Flutes',
       'Berries',
+      'Underground',
       'Caught Pokémon',
       'Pokédex',
       'Quests',

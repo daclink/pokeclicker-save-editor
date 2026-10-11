@@ -23,6 +23,7 @@ import pokemonFormsJson from '../../../data/pokemon-forms.json'
 import pokemonNamesJson from '../../../data/pokemon-names.json'
 import pokemonTypesJson from '../../../data/pokemon-types.json'
 import regionRangesJson from '../../../data/region-ranges.json'
+import undergroundItemsJson from '../../../data/underground-items.json'
 
 // --- types -----------------------------------------------------------------
 
@@ -66,6 +67,27 @@ export const EVOLUTION_ITEMS: readonly string[] = evolutionItemsJson as readonly
 export type MegaStone = { readonly stone: string; readonly base: string }
 /** `MegaStoneType` members, each with the base pokémon it mega-evolves. */
 export const MEGA_STONES: readonly MegaStone[] = megaStonesJson as readonly MegaStone[]
+
+/** PokeClicker's `UndergroundItemValueType` names. */
+export type UndergroundValueType =
+  | 'Diamond'
+  | 'Gem'
+  | 'Shard'
+  | 'Fossil'
+  | 'FossilPiece'
+  | 'EvolutionItem'
+  | 'MegaStone'
+  | 'Special'
+
+/** One mineable item: its underground id, `_itemList` key and value type. */
+export type UndergroundItem = {
+  readonly id: number
+  readonly key: string
+  readonly valueType: UndergroundValueType
+}
+/** Every item the Underground can yield, in the game's order (UndergroundItems.ts). */
+export const UNDERGROUND_ITEMS: readonly UndergroundItem[] =
+  undergroundItemsJson as readonly UndergroundItem[]
 
 /** Display label for an `_itemList` key: `Kings_rock` → `Kings rock`. */
 export function itemDisplayName(key: string): string {
@@ -168,6 +190,12 @@ if (EVOLUTION_ITEMS.length < 50 || EVOLUTION_ITEMS.includes('None')) {
 for (const { stone, base } of MEGA_STONES) {
   if (!NATIONAL_NAMES.includes(base)) {
     throw new Error(`mega-stones.json: ${stone} base ${JSON.stringify(base)} is not a national-dex name`)
+  }
+}
+{
+  const ids = UNDERGROUND_ITEMS.map((i) => i.id)
+  if (UNDERGROUND_ITEMS.length === 0 || new Set(ids).size !== ids.length) {
+    throw new Error('underground-items.json: expected a non-empty roster with unique ids')
   }
 }
 for (const key of Object.keys(POKEMON_FORMS)) {
