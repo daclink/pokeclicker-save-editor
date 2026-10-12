@@ -11,6 +11,21 @@ Release notes.
 
 ## [Unreleased]
 
+### Added
+- **Underground tab (web).** A new ⛏️ **Underground** section edits the
+  mining loot that had no editor: **Treasures** (Rare Bone, Heart Scale,
+  Everstone, …), **Plates**, **Fossils** (including Galar fossil pieces) and
+  the **Palaeontologist Token**. All are plain item counts, with "All to
+  0/10/100" and "Set all to…" per category. 0 removes the item, as the game
+  does. The roster is generated from the game's `UndergroundItems.ts`
+  (`data/underground-items.json`). Shards, evolution stones and mega stones
+  are mined too but stay on the Shards and Inventory tabs.
+
+### Fixed
+- **Shards tab listed the wrong colours.** It showed an *Indigo* shard that
+  doesn't exist in PokeClicker and was missing **Brown** and **Slate**. The
+  shard list now comes from the game's own underground item list.
+
 ## [0.10.0] — 2026-10-10
 
 ### Added

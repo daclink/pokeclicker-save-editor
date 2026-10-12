@@ -11,6 +11,7 @@ describe('SECTIONS', () => {
       'flutes',
       'berries',
       'inventory',
+      'underground',
       'caught',
       'pokedex',
       'quests',

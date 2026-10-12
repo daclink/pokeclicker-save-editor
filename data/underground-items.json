@@ -1,0 +1,407 @@
+[
+  {
+    "id": 1,
+    "key": "Rare_bone",
+    "valueType": "Diamond"
+  },
+  {
+    "id": 2,
+    "key": "Star_piece",
+    "valueType": "Diamond"
+  },
+  {
+    "id": 3,
+    "key": "Revive",
+    "valueType": "Diamond"
+  },
+  {
+    "id": 4,
+    "key": "Max_revive",
+    "valueType": "Diamond"
+  },
+  {
+    "id": 5,
+    "key": "Iron_ball",
+    "valueType": "Diamond"
+  },
+  {
+    "id": 6,
+    "key": "Heart_scale",
+    "valueType": "Diamond"
+  },
+  {
+    "id": 7,
+    "key": "Light_clay",
+    "valueType": "Diamond"
+  },
+  {
+    "id": 8,
+    "key": "Odd_keystone",
+    "valueType": "Diamond"
+  },
+  {
+    "id": 9,
+    "key": "Hard_stone",
+    "valueType": "Diamond"
+  },
+  {
+    "id": 10,
+    "key": "Oval_stone",
+    "valueType": "Diamond"
+  },
+  {
+    "id": 11,
+    "key": "Everstone",
+    "valueType": "Diamond"
+  },
+  {
+    "id": 12,
+    "key": "Smooth_rock",
+    "valueType": "Diamond"
+  },
+  {
+    "id": 13,
+    "key": "Heat_rock",
+    "valueType": "Diamond"
+  },
+  {
+    "id": 14,
+    "key": "Icy_rock",
+    "valueType": "Diamond"
+  },
+  {
+    "id": 15,
+    "key": "Damp_rock",
+    "valueType": "Diamond"
+  },
+  {
+    "id": 100,
+    "key": "Draco_plate",
+    "valueType": "Gem"
+  },
+  {
+    "id": 101,
+    "key": "Dread_plate",
+    "valueType": "Gem"
+  },
+  {
+    "id": 102,
+    "key": "Earth_plate",
+    "valueType": "Gem"
+  },
+  {
+    "id": 103,
+    "key": "Fist_plate",
+    "valueType": "Gem"
+  },
+  {
+    "id": 104,
+    "key": "Flame_plate",
+    "valueType": "Gem"
+  },
+  {
+    "id": 105,
+    "key": "Icicle_plate",
+    "valueType": "Gem"
+  },
+  {
+    "id": 106,
+    "key": "Insect_plate",
+    "valueType": "Gem"
+  },
+  {
+    "id": 107,
+    "key": "Iron_plate",
+    "valueType": "Gem"
+  },
+  {
+    "id": 108,
+    "key": "Meadow_plate",
+    "valueType": "Gem"
+  },
+  {
+    "id": 109,
+    "key": "Mind_plate",
+    "valueType": "Gem"
+  },
+  {
+    "id": 110,
+    "key": "Sky_plate",
+    "valueType": "Gem"
+  },
+  {
+    "id": 111,
+    "key": "Splash_plate",
+    "valueType": "Gem"
+  },
+  {
+    "id": 112,
+    "key": "Spooky_plate",
+    "valueType": "Gem"
+  },
+  {
+    "id": 113,
+    "key": "Stone_plate",
+    "valueType": "Gem"
+  },
+  {
+    "id": 114,
+    "key": "Toxic_plate",
+    "valueType": "Gem"
+  },
+  {
+    "id": 115,
+    "key": "Zap_plate",
+    "valueType": "Gem"
+  },
+  {
+    "id": 116,
+    "key": "Pixie_plate",
+    "valueType": "Gem"
+  },
+  {
+    "id": 117,
+    "key": "Blank_plate",
+    "valueType": "Gem"
+  },
+  {
+    "id": 200,
+    "key": "Helix_fossil",
+    "valueType": "Fossil"
+  },
+  {
+    "id": 201,
+    "key": "Dome_fossil",
+    "valueType": "Fossil"
+  },
+  {
+    "id": 202,
+    "key": "Old_amber",
+    "valueType": "Fossil"
+  },
+  {
+    "id": 203,
+    "key": "Root_fossil",
+    "valueType": "Fossil"
+  },
+  {
+    "id": 204,
+    "key": "Claw_fossil",
+    "valueType": "Fossil"
+  },
+  {
+    "id": 205,
+    "key": "Armor_fossil",
+    "valueType": "Fossil"
+  },
+  {
+    "id": 206,
+    "key": "Skull_fossil",
+    "valueType": "Fossil"
+  },
+  {
+    "id": 207,
+    "key": "Cover_fossil",
+    "valueType": "Fossil"
+  },
+  {
+    "id": 208,
+    "key": "Plume_fossil",
+    "valueType": "Fossil"
+  },
+  {
+    "id": 209,
+    "key": "Jaw_fossil",
+    "valueType": "Fossil"
+  },
+  {
+    "id": 210,
+    "key": "Sail_fossil",
+    "valueType": "Fossil"
+  },
+  {
+    "id": 211,
+    "key": "Fossilized_bird",
+    "valueType": "FossilPiece"
+  },
+  {
+    "id": 212,
+    "key": "Fossilized_fish",
+    "valueType": "FossilPiece"
+  },
+  {
+    "id": 213,
+    "key": "Fossilized_drake",
+    "valueType": "FossilPiece"
+  },
+  {
+    "id": 214,
+    "key": "Fossilized_dino",
+    "valueType": "FossilPiece"
+  },
+  {
+    "id": 300,
+    "key": "Fire_stone",
+    "valueType": "EvolutionItem"
+  },
+  {
+    "id": 301,
+    "key": "Water_stone",
+    "valueType": "EvolutionItem"
+  },
+  {
+    "id": 302,
+    "key": "Thunder_stone",
+    "valueType": "EvolutionItem"
+  },
+  {
+    "id": 303,
+    "key": "Leaf_stone",
+    "valueType": "EvolutionItem"
+  },
+  {
+    "id": 304,
+    "key": "Moon_stone",
+    "valueType": "EvolutionItem"
+  },
+  {
+    "id": 305,
+    "key": "Sun_stone",
+    "valueType": "EvolutionItem"
+  },
+  {
+    "id": 306,
+    "key": "Shiny_stone",
+    "valueType": "EvolutionItem"
+  },
+  {
+    "id": 307,
+    "key": "Dusk_stone",
+    "valueType": "EvolutionItem"
+  },
+  {
+    "id": 308,
+    "key": "Dawn_stone",
+    "valueType": "EvolutionItem"
+  },
+  {
+    "id": 309,
+    "key": "Ice_stone",
+    "valueType": "EvolutionItem"
+  },
+  {
+    "id": 310,
+    "key": "Black_augurite",
+    "valueType": "EvolutionItem"
+  },
+  {
+    "id": 311,
+    "key": "Peat_block",
+    "valueType": "EvolutionItem"
+  },
+  {
+    "id": 400,
+    "key": "Red_shard",
+    "valueType": "Shard"
+  },
+  {
+    "id": 401,
+    "key": "Yellow_shard",
+    "valueType": "Shard"
+  },
+  {
+    "id": 402,
+    "key": "Green_shard",
+    "valueType": "Shard"
+  },
+  {
+    "id": 403,
+    "key": "Blue_shard",
+    "valueType": "Shard"
+  },
+  {
+    "id": 404,
+    "key": "Grey_shard",
+    "valueType": "Shard"
+  },
+  {
+    "id": 405,
+    "key": "Purple_shard",
+    "valueType": "Shard"
+  },
+  {
+    "id": 406,
+    "key": "Ochre_shard",
+    "valueType": "Shard"
+  },
+  {
+    "id": 407,
+    "key": "Black_shard",
+    "valueType": "Shard"
+  },
+  {
+    "id": 408,
+    "key": "Crimson_shard",
+    "valueType": "Shard"
+  },
+  {
+    "id": 409,
+    "key": "Lime_shard",
+    "valueType": "Shard"
+  },
+  {
+    "id": 410,
+    "key": "White_shard",
+    "valueType": "Shard"
+  },
+  {
+    "id": 411,
+    "key": "Pink_shard",
+    "valueType": "Shard"
+  },
+  {
+    "id": 412,
+    "key": "Cyan_shard",
+    "valueType": "Shard"
+  },
+  {
+    "id": 413,
+    "key": "Rose_shard",
+    "valueType": "Shard"
+  },
+  {
+    "id": 414,
+    "key": "Brown_shard",
+    "valueType": "Shard"
+  },
+  {
+    "id": 415,
+    "key": "Beige_shard",
+    "valueType": "Shard"
+  },
+  {
+    "id": 416,
+    "key": "Slate_shard",
+    "valueType": "Shard"
+  },
+  {
+    "id": 500,
+    "key": "Aerodactylite",
+    "valueType": "MegaStone"
+  },
+  {
+    "id": 501,
+    "key": "Mawilite",
+    "valueType": "MegaStone"
+  },
+  {
+    "id": 502,
+    "key": "Sablenite",
+    "valueType": "MegaStone"
+  },
+  {
+    "id": 600,
+    "key": "Palaeontologist_token",
+    "valueType": "Special"
+  }
+]

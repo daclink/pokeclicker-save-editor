@@ -2,8 +2,8 @@
  * Read/write helpers for the Shards tab — port of pcedit_gui.ShardsTab.
  *
  * Shards are stored in `player._itemList` as `<Color>_shard` keys (e.g.
- * `Red_shard`, `Cyan_shard`). The desktop tab exposes the 16 canonical
- * shard colours unlocked across regions; any extra `*_shard` keys that
+ * `Red_shard`, `Cyan_shard`). The grid lists every shard colour the
+ * game's Underground yields (KNOWN_SHARD_COLORS); any other `*_shard` keys that
  * aren't predeclared show up in a separate "Other" panel below the grid.
  *
  * Both runtimes share the same write-time discipline: an entry whose
@@ -11,19 +11,17 @@
  * to match real saves (the game never persists a 0-count item) and to
  * keep fresh saves clean.
  */
+import { UNDERGROUND_ITEMS } from './data'
 import type { SaveData } from './save'
 
-/** The 16 PokeClicker-canonical shard colours, in unlock order. Names
- *  match the underscore-suffixed keys in `player._itemList`. */
-export const KNOWN_SHARD_COLORS: readonly string[] = [
-  'Red',     'Yellow', 'Green',  'Blue',     // Kanto
-  'Black',   'Grey',                         // Hoenn
-  'Purple',  'Crimson',                      // Sinnoh
-  'Pink',    'White',                        // Unova
-  'Cyan',    'Lime',                         // Kalos
-  'Rose',    'Ochre',                        // Alola
-  'Beige',   'Indigo',                       // Galar / later
-]
+/** Suffix on every shard's `_itemList` key (`Red` → `Red_shard`). */
+const SHARD_KEY_SUFFIX = '_shard'
+
+/** Every shard colour the Underground can yield, in the game's order
+ *  (generated from UndergroundItems.ts, not hand-kept). */
+export const KNOWN_SHARD_COLORS: readonly string[] = UNDERGROUND_ITEMS
+  .filter((i) => i.valueType === 'Shard')
+  .map((i) => i.key.slice(0, -SHARD_KEY_SUFFIX.length))
 
 export type ShardCounts = Record<string, number>
 
@@ -38,12 +36,12 @@ function getItemList(data: SaveData): Record<string, unknown> {
   return items
 }
 
-/** Read counts for the 16 canonical colours. Missing entries default to 0. */
+/** Read counts for every known colour. Missing entries default to 0. */
 export function readKnownShards(data: SaveData): ShardCounts {
   const items = getItemList(data)
   const out: ShardCounts = {}
   for (const color of KNOWN_SHARD_COLORS) {
-    const key = `${color}_shard`
+    const key = `${color}${SHARD_KEY_SUFFIX}`
     const v = items[key]
     out[color] = typeof v === 'number' ? v : 0
   }
@@ -52,15 +50,15 @@ export function readKnownShards(data: SaveData): ShardCounts {
 
 /**
  * Return any `*_shard` keys present in `_itemList` that are NOT one of the
- * 16 canonical colours — same surface as the desktop tab's "Other" panel.
+ * known colours — same surface as the desktop tab's "Other" panel.
  * Keyed by the full item name (e.g. `Sapphire_shard`), value is the count.
  */
 export function readExtraShards(data: SaveData): ShardCounts {
   const items = getItemList(data)
-  const known = new Set(KNOWN_SHARD_COLORS.map((c) => `${c}_shard`))
+  const known = new Set(KNOWN_SHARD_COLORS.map((c) => `${c}${SHARD_KEY_SUFFIX}`))
   const out: ShardCounts = {}
   for (const [key, value] of Object.entries(items)) {
-    if (key.endsWith('_shard') && !known.has(key) && typeof value === 'number') {
+    if (key.endsWith(SHARD_KEY_SUFFIX) && !known.has(key) && typeof value === 'number') {
       out[key] = value
     }
   }
@@ -78,7 +76,7 @@ export function readExtraShards(data: SaveData): ShardCounts {
 export function writeKnownShards(data: SaveData, edits: ShardCounts): void {
   const items = getItemList(data)
   for (const color of KNOWN_SHARD_COLORS) {
-    const key = `${color}_shard`
+    const key = `${color}${SHARD_KEY_SUFFIX}`
     const v = edits[color]
     if (v === undefined) continue
     if (!Number.isInteger(v) || v < 0) {

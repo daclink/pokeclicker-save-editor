@@ -19,6 +19,7 @@ const MIGRATED_COMPONENTS = [
   'src/tabs/CurrenciesTab.svelte',
   'src/tabs/EggsTab.svelte',
   'src/tabs/QuestsTab.svelte',
+  'src/tabs/UndergroundTab.svelte',
 ] as const
 
 const WEB_ROOT = resolve(__dirname, '..')
