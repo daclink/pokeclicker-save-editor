@@ -77,6 +77,14 @@ Release notes.
   active flute turns it off. If a save already holds an extra copy (from an
   older "Give all"), the tab warns and offers to remove it. Reading the tab
   no longer adds empty item lists to saves that lack them.
+- **Caught tab: Pokérus "Uninfected" is no longer written as 0.** The game
+  leaves the key out for Uninfected Pokémon, so the editor now does too.
+- **Caught tab: you can't strand a Pokémon by marking it "in egg".** The game
+  keeps in-egg Pokémon out of your party until they hatch, so ticking the box
+  for one that isn't in an egg or the hatchery queue is now refused with a
+  message. Unticking is always allowed.
+- **Currencies tab: price multipliers below 1 are rejected.** The game ignores
+  them, so they did nothing. A multiplier of exactly 1 still resets it.
 - **Gems tab edited the wrong types.** It listed the gem types in the
   main-series order (Normal, Fighting, Flying, …), but PokeClicker stores
   gems in its own `PokemonType` order (Normal, Fire, Water, …). Every type

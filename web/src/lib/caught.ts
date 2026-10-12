@@ -26,7 +26,9 @@
  * The "4" (breeding/in-egg) and "5" (shiny) flags follow the "key absent"
  * vs "value false" distinction: setting either to false **removes** the
  * key. That matches what real saves look like (the game writes the keys
- * only when true) and keeps byte-identical round-trips clean.
+ * only when true) and keeps byte-identical round-trips clean. Pokerus "8"
+ * follows the same rule for Uninfected (0): PartyPokemon.toJSON deletes
+ * every key equal to its default, and fromJSON uses `?? default`.
  */
 import { nameFor } from './data'
 import type { SaveData } from './save'
@@ -109,6 +111,18 @@ export const POKERUS_LABELS: readonly string[] = Object.keys(POKERUS)
  */
 export const POKERUS_RESISTANT_EVS = 50
 
+/**
+ * Hatchery queue entry kind for a pokémon (`EggType.Pokemon`, game
+ * `src/modules/breeding/EggType.ts`). The other kind (EggItem = 1) holds an
+ * item type, not a pokédex id.
+ */
+const QUEUE_EGG_TYPE_POKEMON = 0
+
+/** Shown when the in-egg flag would strand a pokémon. */
+export function strandedInEggMessage(name: string): string {
+  return `${name} isn't in an egg or the hatchery queue; it would be stuck out of your party`
+}
+
 function ensurePokerus(v: number): void {
   if (!Number.isInteger(v) || v < POKERUS.Uninfected || v > POKERUS.Resistant) {
     throw new RangeError(`pokerus: expected integer 0..3 (Uninfected..Resistant), got ${v}`)
@@ -136,6 +150,48 @@ export function readCaughtRows(data: SaveData): CaughtRow[] {
   return out
 }
 
+/**
+ * True iff pokédex `id` is in a hatchery egg slot (`save.breeding.eggList`,
+ * matched on `pokemon`) or in the hatchery queue (`save.breeding.queueList`).
+ * Queue entries are `[type, id]` arrays or bare ids — the game's
+ * Breeding.fromJSON accepts both and treats a bare id as `[Pokemon, id]`.
+ */
+export function isInEggOrQueue(data: SaveData, id: number): boolean {
+  const save = data.save as Record<string, unknown> | undefined
+  const breeding = save?.breeding as Record<string, unknown> | undefined
+  const eggs = breeding?.eggList
+  if (Array.isArray(eggs)) {
+    for (const egg of eggs) {
+      if (egg && typeof egg === 'object' && Number((egg as { pokemon?: unknown }).pokemon) === id) {
+        return true
+      }
+    }
+  }
+  const queue = breeding?.queueList
+  if (Array.isArray(queue)) {
+    for (const q of queue) {
+      if (Array.isArray(q)) {
+        if (q[0] === QUEUE_EGG_TYPE_POKEMON && Number(q[1]) === id) return true
+      } else if (Number(q) === id) {
+        return true
+      }
+    }
+  }
+  return false
+}
+
+/**
+ * Refusal message if turning the in-egg flag ON for `id` would strand it
+ * (flag not already set and the pokémon isn't in an egg/queue — the game
+ * excludes `breeding` pokémon from the party and only Egg.hatch() clears the
+ * flag). `null` when the write is fine. Turning it OFF is never refused.
+ */
+export function inEggBlocker(data: SaveData, id: number): string | null {
+  const entry = findEntry(data, id)
+  if (!entry || entry['4']) return null
+  return isInEggOrQueue(data, id) ? null : strandedInEggMessage(nameFor(id))
+}
+
 // --- public writes ----------------------------------------------------------
 
 /**
@@ -149,13 +205,17 @@ export function setCaughtEntry(
   patch: CaughtPatch,
 ): void {
   const entry = requireEntry(data, id)
+  if (patch.inEgg) {
+    const blocker = inEggBlocker(data, id)
+    if (blocker) throw new RangeError(blocker)
+  }
   if (patch.atkBonus !== undefined) {
     ensureNonNegInt('atkBonus', patch.atkBonus)
     entry['0'] = patch.atkBonus
   }
   if (patch.pokerus !== undefined) {
     ensurePokerus(patch.pokerus)
-    entry['8'] = patch.pokerus
+    writePokerus(entry, patch.pokerus)
   }
   if (patch.exp !== undefined) {
     ensureNonNegInt('exp', patch.exp)
@@ -169,6 +229,12 @@ export function setCaughtEntry(
     if (patch.shiny) entry['5'] = true
     else delete entry['5']
   }
+}
+
+/** Uninfected is the game's default, so it is absent from real saves. */
+function writePokerus(entry: Record<string, unknown>, level: number): void {
+  if (level === POKERUS.Uninfected) delete entry['8']
+  else entry['8'] = level
 }
 
 /** Bulk: set `shiny` (key "5") on multiple ids. Off → delete the key (no `false`). */
@@ -187,8 +253,8 @@ export function setCaughtShiny(
 
 /**
  * Bulk: set pokérus (key "8") on multiple ids. The level is validated before
- * any write; ids missing from the save are skipped. Uninfected writes 0 — the
- * game always persists this key.
+ * any write; ids missing from the save are skipped. Uninfected deletes the
+ * key (the game omits default-valued keys; `fromJSON` defaults to 0).
  */
 export function setCaughtPokerus(
   data: SaveData,
@@ -199,16 +265,26 @@ export function setCaughtPokerus(
   for (const id of ids) {
     const entry = findEntry(data, id)
     if (!entry) continue
-    entry['8'] = level
+    writePokerus(entry, level)
   }
 }
 
-/** Bulk: set `inEgg` on multiple ids. Off → delete the key. */
+/**
+ * Bulk: set `inEgg` on multiple ids. Off → delete the key. On is validated
+ * for every id first and throws RangeError (nothing written) if any would be
+ * stranded outside the party — see `inEggBlocker`.
+ */
 export function setCaughtInEgg(
   data: SaveData,
   ids: number[],
   on: boolean,
 ): void {
+  if (on) {
+    for (const id of ids) {
+      const blocker = inEggBlocker(data, id)
+      if (blocker) throw new RangeError(blocker)
+    }
+  }
   for (const id of ids) {
     const entry = findEntry(data, id)
     if (!entry) continue

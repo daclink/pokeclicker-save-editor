@@ -37,6 +37,12 @@ safe — but the tests are explicit about what's actually guaranteed:
 
 See `src/lib/save.ts` for the full note.
 
+Limits: numbers above 2^53 (`Number.MAX_SAFE_INTEGER`) lose precision
+when parsed, exactly as they do inside the game itself, so very large
+counters can't round-trip digit-for-digit. The game also percent-encodes
+non-Latin-1 characters and `%` in save strings; the editor passes those
+sequences through untouched (see `src/lib/latin1.ts`).
+
 ## Dev
 
 ```sh

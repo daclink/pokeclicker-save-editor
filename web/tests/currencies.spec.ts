@@ -140,8 +140,24 @@ describe('multipliers', () => {
     expect(bag['Masterball|farmPoint']).toBe(1.4)
   })
 
-  test('setMultiplier rejects negative inputs', () => {
+  test.each([-0.5, 0, 0.5, 0.999, Number.NaN, Number.POSITIVE_INFINITY])(
+    'setMultiplier rejects %s (the game ignores values below 1)',
+    (bad) => {
+      const data = loadFixture()
+      const before = JSON.stringify((data.player as any)._itemMultipliers)
+      expect(() => setMultiplier(data, 'Protein|money', bad)).toThrow(RangeError)
+      expect(JSON.stringify((data.player as any)._itemMultipliers)).toBe(before)
+    },
+  )
+
+  test('setMultiplier error message names the minimum', () => {
     const data = loadFixture()
-    expect(() => setMultiplier(data, 'Protein|money', -0.5)).toThrow(/non-negative/)
+    expect(() => setMultiplier(data, 'Protein|money', 0.5)).toThrow(/at least 1/)
+  })
+
+  test('setMultiplier accepts a value just above 1', () => {
+    const data = loadFixture()
+    setMultiplier(data, 'Calcium|money', 1.01)
+    expect((data.player as any)._itemMultipliers['Calcium|money']).toBe(1.01)
   })
 })

@@ -22,6 +22,7 @@ import {
   setCaughtInEgg,
   setCaughtPokerus,
   setCaughtShiny,
+  isInEggOrQueue,
   POKERUS,
 } from '../src/lib/caught'
 
@@ -36,6 +37,16 @@ const FIXTURE = resolve(
 )
 
 const loadFixture = () => decodeBytes(readFileSync(FIXTURE, 'utf8').trim())
+
+/** Put a pokémon in a hatchery egg slot so the in-egg flag may be set. */
+function withEgg(data: ReturnType<typeof loadFixture>, pokemon: number) {
+  const save = data.save as any
+  save.breeding = save.breeding ?? {}
+  save.breeding.eggList = [
+    { type: 0, pokemon, steps: 0, totalSteps: 100, shinyChance: 1024, notified: false },
+  ]
+  return data
+}
 
 // Convenience: pull the raw save-side entry for a given id so we can check
 // for actual key presence (not just truthiness).
@@ -110,7 +121,7 @@ describe('setCaughtEntry', () => {
   })
 
   test('inEgg=true sets the "4" key; inEgg=false deletes it', () => {
-    const data = loadFixture()
+    const data = withEgg(loadFixture(), 4)
     setCaughtEntry(data, 4, { inEgg: true })
     expect(rawEntry(data, 4)['4']).toBe(true)
     setCaughtEntry(data, 4, { inEgg: false })
@@ -159,7 +170,7 @@ describe('quick-action bulk helpers', () => {
   })
 
   test('setCaughtInEgg true sets the key, false deletes it', () => {
-    const data = loadFixture()
+    const data = withEgg(loadFixture(), 4)
     setCaughtInEgg(data, [4], true)
     expect(rawEntry(data, 4)['4']).toBe(true)
     setCaughtInEgg(data, [4], false)
@@ -196,11 +207,19 @@ describe('setCaughtPokerus (bulk)', () => {
     expect(rawEntry(data, 25)['8']).toBe(2)
   })
 
-  test('Uninfected writes 0 (the game always persists key "8")', () => {
+  test('Uninfected deletes key "8" (the game drops default-valued keys)', () => {
     const data = loadFixture()
     setCaughtPokerus(data, [4], POKERUS.Resistant)
     setCaughtPokerus(data, [4], POKERUS.Uninfected)
-    expect(rawEntry(data, 4)['8']).toBe(0)
+    expect('8' in rawEntry(data, 4)).toBe(false)
+  })
+
+  test('Uninfected via setCaughtEntry also deletes key "8"', () => {
+    const data = loadFixture()
+    setCaughtEntry(data, 4, { pokerus: POKERUS.Infected })
+    expect(rawEntry(data, 4)['8']).toBe(1)
+    setCaughtEntry(data, 4, { pokerus: POKERUS.Uninfected })
+    expect('8' in rawEntry(data, 4)).toBe(false)
   })
 
   test.each([-1, 4, 1.5, Number.NaN])('rejects level %s without touching any entry', (bad) => {
@@ -222,5 +241,57 @@ describe('setCaughtPokerus (bulk)', () => {
     const before = { ...rawEntry(data, 4) }
     setCaughtPokerus(data, [4], POKERUS.Contagious)
     expect(rawEntry(data, 4)).toEqual({ ...before, 8: 2 })
+  })
+})
+
+describe('in-egg footgun guard', () => {
+  test('isInEggOrQueue: false with empty egg list and queue', () => {
+    const data = loadFixture()
+    ;(data.save as any).breeding = { eggList: [], queueList: [] }
+    expect(isInEggOrQueue(data, 4)).toBe(false)
+  })
+
+  test('isInEggOrQueue: matches eggList by pokemon id', () => {
+    const data = withEgg(loadFixture(), 25)
+    expect(isInEggOrQueue(data, 25)).toBe(true)
+    expect(isInEggOrQueue(data, 4)).toBe(false)
+  })
+
+  test('isInEggOrQueue: matches [type, id] and bare-id queue entries', () => {
+    const data = loadFixture()
+    ;(data.save as any).breeding = { eggList: [], queueList: [[0, 4], 25, [1, 7]] }
+    expect(isInEggOrQueue(data, 4)).toBe(true)
+    expect(isInEggOrQueue(data, 25)).toBe(true)
+    // [1, 7] is an EggItem entry: 7 is an item type, not a pokémon id.
+    expect(isInEggOrQueue(data, 7)).toBe(false)
+  })
+
+  test('setCaughtEntry refuses to turn inEgg ON for a pokémon not in an egg or queue', () => {
+    const data = loadFixture()
+    ;(data.save as any).breeding = { eggList: [], queueList: [] }
+    expect(() => setCaughtEntry(data, 4, { inEgg: true })).toThrow(/stuck out of your party/)
+    expect('4' in rawEntry(data, 4)).toBe(false)
+  })
+
+  test('setCaughtInEgg refuses atomically (no entry touched) if any id is stranded', () => {
+    const data = withEgg(loadFixture(), 4)
+    expect(() => setCaughtInEgg(data, [4, 25], true)).toThrow(RangeError)
+    expect('4' in rawEntry(data, 4)).toBe(false)
+    expect('4' in rawEntry(data, 25)).toBe(false)
+  })
+
+  test('turning inEgg OFF is always allowed (repair path)', () => {
+    const data = loadFixture()
+    ;(data.save as any).breeding = { eggList: [], queueList: [] }
+    rawEntry(data, 4)['4'] = true
+    setCaughtEntry(data, 4, { inEgg: false })
+    expect('4' in rawEntry(data, 4)).toBe(false)
+  })
+
+  test('re-saving an already-flagged pokémon with inEgg=true is not refused', () => {
+    const data = loadFixture()
+    ;(data.save as any).breeding = { eggList: [], queueList: [] }
+    rawEntry(data, 4)['4'] = true
+    expect(() => setCaughtEntry(data, 4, { inEgg: true, exp: 5 })).not.toThrow()
   })
 })
