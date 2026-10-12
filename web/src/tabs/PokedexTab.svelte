@@ -4,12 +4,34 @@
   // Pick a region, see its dex with caught marks, and mark uncaught pokémon
   // caught (selected rows, or the whole region). Already-caught entries are
   // left untouched. "Show forms" lists each species' alternate forms
-  // (fractional ids like Unown 201.06) under it. The "Also bump capture
-  // stats" toggle (off by default) keeps the Trainer Card counters consistent.
+  // (fractional ids like Unown 201.06) under it. The filter box matches a
+  // name or an id prefix, and the ID/Name headers sort (click again to
+  // reverse); both only change the view — selections survive them. The
+  // "Also bump capture stats" toggle (off by default) keeps the Trainer Card
+  // counters consistent.
 
   import { store } from '../lib/store.svelte'
   import { ALL_REGIONS, DEX_REGION_OPTIONS, REGION_RANGES } from '../lib/data'
-  import { markCaught, regionRows, type DexRow } from '../lib/pokedex'
+  import {
+    filterRows,
+    markCaught,
+    regionRows,
+    sortRows,
+    type DexRow,
+    type DexSortKey,
+    type SortDir,
+  } from '../lib/pokedex'
+
+  /** Sortable columns, in header order. */
+  const SORT_COLUMNS: readonly { key: DexSortKey; label: string }[] = [
+    { key: 'id', label: 'ID' },
+    { key: 'name', label: 'Name' },
+  ]
+  const SORT_ARROW: Record<SortDir, string> = { asc: '▲', desc: '▼' }
+  const ARIA_SORT: Record<SortDir, 'ascending' | 'descending'> = {
+    asc: 'ascending',
+    desc: 'descending',
+  }
 
   let tick = $state(0)
   let regionLabel = $state(REGION_RANGES[0].label)
@@ -17,6 +39,9 @@
   let bumpStats = $state(false)
   let showForms = $state(false)
   let selected = $state<Set<number>>(new Set())
+  let query = $state('')
+  let sortKey = $state<DexSortKey>('id')
+  let sortDir = $state<SortDir>('asc')
 
   let region = $derived(
     DEX_REGION_OPTIONS.find((r) => r.label === regionLabel) ?? REGION_RANGES[0],
@@ -34,11 +59,23 @@
     void tick
     return store.data ? regionRows(store.data, region, false, { includeForms: showForms }) : []
   })
-  let rows = $derived(uncaughtOnly ? allRows.filter((r) => !r.caught) : allRows)
+  let rows = $derived(
+    sortRows(filterRows(uncaughtOnly ? allRows.filter((r) => !r.caught) : allRows, query), sortKey, sortDir),
+  )
+  let filtering = $derived(query.trim() !== '')
   let caughtSet = $derived(new Set(allRows.filter((r) => r.caught).map((r) => r.pid)))
 
   let caughtInRegion = $derived(caughtSet.size)
   let regionTotal = $derived(allRows.length)
+
+  /** Click a header: sort by it ascending, or flip direction if already active. */
+  function sortBy(key: DexSortKey): void {
+    if (sortKey === key) sortDir = sortDir === 'asc' ? 'desc' : 'asc'
+    else {
+      sortKey = key
+      sortDir = 'asc'
+    }
+  }
 
   function toggle(pid: number): void {
     const next = new Set(selected)
@@ -108,7 +145,16 @@
         <input type="checkbox" bind:checked={showForms} />
         Show forms (Unown letters, Alcremie flavors, …)
       </label>
-      <span class="status">{region.label}: {caughtInRegion}/{regionTotal} caught</span>
+      <input
+        class="filter"
+        type="search"
+        bind:value={query}
+        placeholder="Filter by name or #"
+        aria-label="Filter by name or #"
+      />
+      <span class="status">
+        {region.label}: {caughtInRegion}/{regionTotal} caught{#if filtering}{` · showing ${rows.length} of ${regionTotal}`}{/if}
+      </span>
     </div>
 
     <div class="table-wrap">
@@ -116,8 +162,17 @@
         <thead>
           <tr>
             <th class="sel"></th>
-            <th>ID</th>
-            <th class="name-col">Name</th>
+            {#each SORT_COLUMNS as col (col.key)}
+              <th
+                class:name-col={col.key === 'name'}
+                aria-sort={sortKey === col.key ? ARIA_SORT[sortDir] : 'none'}
+              >
+                <button type="button" class="sort" onclick={() => sortBy(col.key)}>
+                  {col.label}
+                  <span class="arrow" aria-hidden="true">{sortKey === col.key ? SORT_ARROW[sortDir] : ''}</span>
+                </button>
+              </th>
+            {/each}
             <th>caught</th>
           </tr>
         </thead>
@@ -199,6 +254,27 @@
     gap: 0.35rem;
     font-size: 0.9em;
     color: #444;
+  }
+  .filter {
+    font: inherit;
+    padding: 0.25rem 0.4rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text);
+    min-width: 12rem;
+  }
+  th .sort {
+    font: inherit;
+    font-weight: inherit;
+    color: inherit;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+  }
+  th .arrow {
+    font-size: 0.75em;
   }
   .status {
     margin-left: auto;

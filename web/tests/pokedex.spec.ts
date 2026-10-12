@@ -16,7 +16,15 @@ import {
   nameFor,
   statBucketFor,
 } from '../src/lib/data'
-import { caughtIdSet, formsOf, markCaught, regionRows } from '../src/lib/pokedex'
+import {
+  caughtIdSet,
+  filterRows,
+  formsOf,
+  markCaught,
+  regionRows,
+  sortRows,
+  type DexRow,
+} from '../src/lib/pokedex'
 
 const FIXTURE = resolve(
   __dirname,
@@ -200,5 +208,75 @@ describe('markCaught with form ids', () => {
     markCaught(data, [PIKACHU_FORM], { bumpStats: true })
     expect(stats(data).pokemonCaptured[String(PIKACHU_FORM)]).toBeGreaterThanOrEqual(1)
     expect(Number(stats(data)[bucket])).toBe(bucket0 + 1)
+  })
+})
+
+// --- filter + sort ------------------------------------------------------------
+
+const ROWS: DexRow[] = [
+  { pid: 25, name: 'Pikachu', caught: true },
+  { pid: 25.01, name: 'Flying Pikachu', caught: false },
+  { pid: 201, name: 'Unown', caught: false },
+  { pid: 201.06, name: 'Unown (G)', caught: false },
+  { pid: 26, name: 'Raichu', caught: false },
+  { pid: 250, name: 'Ho-Oh', caught: false },
+]
+const pids = (rows: readonly DexRow[]) => rows.map((r) => r.pid)
+
+describe('filterRows', () => {
+  test('an empty or blank query keeps every row', () => {
+    expect(filterRows(ROWS, '')).toEqual(ROWS)
+    expect(filterRows(ROWS, '   ')).toEqual(ROWS)
+  })
+
+  test('text matches anywhere in the name, ignoring case', () => {
+    expect(pids(filterRows(ROWS, 'pika'))).toEqual([25, 25.01])
+    expect(pids(filterRows(ROWS, 'UNOWN'))).toEqual([201, 201.06])
+  })
+
+  test('a number matches ids by prefix, so a species brings its forms', () => {
+    expect(pids(filterRows(ROWS, '201'))).toEqual([201, 201.06])
+    expect(pids(filterRows(ROWS, '25'))).toEqual([25, 25.01, 250])
+  })
+
+  test('a leading # is allowed on an id query', () => {
+    expect(pids(filterRows(ROWS, '#201.06'))).toEqual([201.06])
+  })
+
+  test('a query matching nothing returns no rows', () => {
+    expect(filterRows(ROWS, 'zzz')).toEqual([])
+  })
+
+  test('never mutates the input', () => {
+    const copy = structuredClone(ROWS)
+    filterRows(ROWS, 'pika')
+    expect(ROWS).toEqual(copy)
+  })
+})
+
+describe('sortRows', () => {
+  test('id ascending is numeric (forms right after their species)', () => {
+    expect(pids(sortRows(ROWS, 'id', 'asc'))).toEqual([25, 25.01, 26, 201, 201.06, 250])
+  })
+
+  test('id descending reverses it', () => {
+    expect(pids(sortRows(ROWS, 'id', 'desc'))).toEqual([250, 201.06, 201, 26, 25.01, 25])
+  })
+
+  test('name sorts alphabetically, ignoring case', () => {
+    expect(sortRows(ROWS, 'name', 'asc').map((r) => r.name)).toEqual([
+      'Flying Pikachu', 'Ho-Oh', 'Pikachu', 'Raichu', 'Unown', 'Unown (G)',
+    ])
+  })
+
+  test('name descending reverses it', () => {
+    expect(sortRows(ROWS, 'name', 'desc')[0].name).toBe('Unown (G)')
+  })
+
+  test('returns a new array and leaves the input order alone', () => {
+    const before = pids(ROWS)
+    const sorted = sortRows(ROWS, 'name', 'asc')
+    expect(sorted).not.toBe(ROWS)
+    expect(pids(ROWS)).toEqual(before)
   })
 })
