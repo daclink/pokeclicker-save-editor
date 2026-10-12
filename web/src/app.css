@@ -53,6 +53,7 @@
   --backdrop: rgba(0, 0, 0, 0.4);
   --brand: #ee1515;
   --brand-contrast: #ffffff;
+  --success: #2b8a3e; /* darker green: readable as text on white surfaces */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
   --shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 

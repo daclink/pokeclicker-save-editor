@@ -4,6 +4,11 @@
   // `{ maxAmount: 1 }`), so the UI uses checkboxes and writes 1 on
   // check / deletes the key on uncheck.
   //
+  // A running flute lives in `player.effectList`, not `_itemList` — it
+  // reads as checked with an "Active" badge. The lib's write rules keep
+  // it from being duplicated and turn it off when unchecked; a warning
+  // offers to drop the extra copy if a save already holds two.
+  //
   // Each active flute consumes one gem/sec from the gemWallet — same
   // wallet the Gems tab edits, so this tab pairs naturally with it.
   // Forward-compat: any `*_Flute` key in `_itemList` that isn't one
@@ -14,18 +19,30 @@
 
   import { store } from '../lib/store.svelte'
   import {
+    FLUTE_STATE,
     KNOWN_FLUTES,
     readExtraFlutes,
-    readKnownFlutes,
+    readFluteStatus,
+    repairDuplicateFlutes,
     writeExtraFlutes,
     writeKnownFlutes,
   } from '../lib/flutes'
 
   let tick = $state(0)
 
-  let known = $derived.by(() => {
+  let status = $derived.by(() => {
     void tick
-    return store.data ? readKnownFlutes(store.data) : {}
+    return store.data ? readFluteStatus(store.data) : { states: {}, duplicates: [] }
+  })
+
+  const isOwned = (name: string): boolean =>
+    (status.states[name] ?? FLUTE_STATE.NotOwned) !== FLUTE_STATE.NotOwned
+  const isActive = (name: string): boolean => status.states[name] === FLUTE_STATE.Active
+
+  /** "Yellow Flute is" / "Yellow Flute and Red Flute are". */
+  let duplicateText = $derived.by(() => {
+    const names = status.duplicates.map((n) => `${n} Flute`)
+    return `${names.join(' and ')} ${names.length === 1 ? 'is' : 'are'}`
   })
 
   let extras = $derived.by(() => {
@@ -56,6 +73,10 @@
 
   function toggleKnown(name: string, checked: boolean): void {
     refreshAfter(() => writeKnownFlutes(store.data!, { [name]: checked }))
+  }
+
+  function repairDuplicates(): void {
+    refreshAfter(() => repairDuplicateFlutes(store.data!))
   }
 
   function fillAll(owned: boolean): void {
@@ -100,16 +121,29 @@
       flutes consume one gem/sec from the gem wallet, so pairing with
       the <strong>Gems</strong> tab is common.
     </p>
+    <p class="note">Active flutes are in use; removing one also turns it off.</p>
+    {#if status.duplicates.length > 0}
+      <div class="dup-warning" role="alert">
+        <p>
+          {duplicateText} active and also in your items. When it stops, the
+          game hands it back, so you'd end up with two.
+        </p>
+        <button type="button" onclick={repairDuplicates}>Remove extra copies</button>
+      </div>
+    {/if}
     <ul class="grid">
       {#each KNOWN_FLUTES as name (name)}
         <li class="cell">
           <label>
             <input
               type="checkbox"
-              checked={known[name] ?? false}
+              checked={isOwned(name)}
               onchange={(e) => toggleKnown(name, (e.currentTarget as HTMLInputElement).checked)}
             />
             <span class="flute-name">{name} Flute</span>
+            {#if isActive(name)}
+              <span class="badge-active">Active</span>
+            {/if}
           </label>
         </li>
       {/each}
@@ -209,12 +243,38 @@
     color: var(--text);
   }
 
+  .badge-active {
+    padding: 0 var(--space-2);
+    border: 1px solid var(--success);
+    border-radius: var(--radius-sm);
+    color: var(--success);
+    font-size: 0.8em;
+  }
+
+  .dup-warning {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    margin: 0 0 var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--danger);
+    border-radius: var(--radius-sm);
+    color: var(--danger);
+    font-size: 0.9em;
+  }
+  .dup-warning p {
+    margin: 0;
+    flex: 1 1 16rem;
+  }
+
   .actions {
     margin-top: 0.75rem;
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
   }
+  .dup-warning button,
   .actions button {
     padding: 0.35rem 0.8rem;
     border: 1px solid var(--border);
@@ -225,6 +285,7 @@
     font: inherit;
     font-size: 0.9em;
   }
+  .dup-warning button:hover,
   .actions button:hover {
     border-color: var(--text-muted);
   }

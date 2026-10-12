@@ -58,6 +58,13 @@ Release notes.
   item eggs like the shop's. The old "Mystery" preset hatched Ditto.
 - **Unknown egg Pokémon ids are refused.** The Edit dialog no longer saves
   an id the game doesn't have (it would hatch MissingNo) and says why.
+- **Flutes tab missed flutes that are running.** While a flute is active
+  the game moves it out of your items, so the tab showed it as not owned.
+  It now shows active flutes as owned with an **Active** badge. "Give all"
+  no longer creates a second copy of an active flute, and removing an
+  active flute turns it off. If a save already holds an extra copy (from an
+  older "Give all"), the tab warns and offers to remove it. Reading the tab
+  no longer adds empty item lists to saves that lack them.
 - **Gems tab edited the wrong types.** It listed the gem types in the
   main-series order (Normal, Fighting, Flying, …), but PokeClicker stores
   gems in its own `PokemonType` order (Normal, Fire, Water, …). Every type
