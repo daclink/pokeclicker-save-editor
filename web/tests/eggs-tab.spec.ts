@@ -11,6 +11,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/svelte'
 import { decodeBytes } from '../src/lib/save'
 import { store } from '../src/lib/store.svelte'
 import EggsTab from '../src/tabs/EggsTab.svelte'
+import { DEFAULT_NEW_EGG } from '../src/lib/breeding'
 
 const FIXTURE = resolve(__dirname, '..', '..', 'tests', 'fixtures', 'v0.10.25', 'minimal.txt')
 
@@ -58,5 +59,77 @@ describe('EggsTab edit dialog: Pokémon ID', () => {
     await fireEvent.blur(field)
     await fireEvent.click(screen.getByRole('button', { name: 'OK' }))
     expect(eggPokemon()).toBe(129.02)
+  })
+})
+
+const breeding = () => (store.data!.save as any).breeding
+
+/** A non-empty egg occupying a slot. */
+const fullEgg = (pokemon: number) => ({ ...DEFAULT_NEW_EGG, pokemon })
+
+describe('EggsTab slots', () => {
+  test('rows show their slot number out of the 4-slot cap', () => {
+    render(EggsTab)
+    expect(screen.getByText('1 of 4')).toBeTruthy()
+  })
+
+  test('quick-add with all 4 slots full is refused with a status message', async () => {
+    breeding().eggList = [fullEgg(1), fullEgg(4), fullEgg(7), fullEgg(25)]
+    breeding().eggSlots = 4
+    const before = JSON.stringify(breeding())
+    render(EggsTab)
+    await fireEvent.click(screen.getByRole('button', { name: '+ Dratini egg' }))
+    expect(store.status).toMatch(/All 4 egg slots are full/)
+    expect(JSON.stringify(breeding())).toBe(before)
+  })
+
+  test('add egg with all 4 slots full is refused with a status message', async () => {
+    breeding().eggList = [fullEgg(1), fullEgg(4), fullEgg(7), fullEgg(25)]
+    breeding().eggSlots = 4
+    const before = JSON.stringify(breeding())
+    render(EggsTab)
+    await fireEvent.click(screen.getByRole('button', { name: /Add egg/ }))
+    expect(store.status).toMatch(/All 4 egg slots are full/)
+    expect(JSON.stringify(breeding())).toBe(before)
+  })
+
+  test('one Empty button per row (no separate Remove); emptying keeps other slots in place', async () => {
+    breeding().eggList = [fullEgg(1), fullEgg(4), fullEgg(7)]
+    render(EggsTab)
+    expect(screen.queryByRole('button', { name: 'Remove' })).toBeNull()
+    await fireEvent.click(screen.getAllByRole('button', { name: 'Empty' })[0])
+    expect(breeding().eggList.map((e: { pokemon: number }) => e.pokemon)).toEqual([0, 4, 7])
+  })
+})
+
+describe('EggsTab edit dialog: validation and type', () => {
+  test('an unknown Pokémon id is not saved and shows an error', async () => {
+    render(EggsTab)
+    await fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    const field = screen.getByLabelText('Pokémon ID') as HTMLInputElement
+    await fireEvent.input(field, { target: { value: '99999' } })
+    await fireEvent.blur(field)
+    await fireEvent.click(screen.getByRole('button', { name: 'OK' }))
+    expect(eggPokemon()).toBe(FORM_ID)
+    expect(screen.getByRole('alert').textContent).toMatch(/99999/)
+  })
+
+  test('the Type select offers only the game\'s three egg types', async () => {
+    render(EggsTab)
+    await fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    const select = screen.getByLabelText('Type') as HTMLSelectElement
+    expect(Array.from(select.options).map((o) => o.value)).toEqual(['-1', '0', '1'])
+  })
+
+  test('a legacy type value is kept as an extra Unknown option', async () => {
+    breeding().eggList[0].type = 3
+    render(EggsTab)
+    await fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    const select = screen.getByLabelText('Type') as HTMLSelectElement
+    expect(Array.from(select.options).map((o) => o.value)).toEqual(['-1', '0', '1', '3'])
+    expect(select.value).toBe('3')
+    expect(select.selectedOptions[0].textContent).toMatch(/Unknown \(#3\)/)
+    await fireEvent.click(screen.getByRole('button', { name: 'OK' }))
+    expect(breeding().eggList[0].type).toBe(3)
   })
 })

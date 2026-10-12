@@ -41,6 +41,22 @@ Release notes.
 - **Egg Pokémon ID dropped form decimals.** Opening an egg's Edit dialog and
   tabbing through the Pokémon ID turned a form id like `306.01` into `306`.
   The field now keeps decimals.
+- **Eggs: a 5th egg was silently lost.** PokeClicker has exactly 4 egg
+  slots, but Add egg and the quick-add buttons appended a 5th egg (and set
+  egg slots to 5) once all 4 were full; the game drops it on load. Adds are
+  now refused with "All 4 egg slots are full", egg slots can't go above 4,
+  and the table shows "slot N of 4".
+- **Eggs: removing an egg moved the others.** Remove shifted every later
+  egg into a different slot, and so under a different hatchery helper. It is
+  merged into **Empty**, which clears the slot in place.
+- **Egg types and quick-add presets match the game.** The game has three
+  egg types (Empty, Pokémon, Egg item), not Fire/Water/Grass/…; the Type
+  menu now offers only those, and older values show as "Unknown (#n)"
+  rather than being changed. Quick-add buttons are named for the species
+  they hatch (Bulbasaur, Charmander, Squirtle, Dratini, Eevee) and create
+  item eggs like the shop's. The old "Mystery" preset hatched Ditto.
+- **Unknown egg Pokémon ids are refused.** The Edit dialog no longer saves
+  an id the game doesn't have (it would hatch MissingNo) and says why.
 - **Gems tab edited the wrong types.** It listed the gem types in the
   main-series order (Normal, Fighting, Flying, …), but PokeClicker stores
   gems in its own `PokemonType` order (Normal, Fire, Water, …). Every type

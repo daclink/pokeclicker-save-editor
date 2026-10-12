@@ -1,7 +1,9 @@
 <script lang="ts">
   // Eggs tab — port of pcedit_gui.EggsTab. Reads save.breeding.{eggSlots,
-  // eggList}. Per-row actions (Hatch / Empty / Remove / Edit), bulk
-  // actions (Add egg, Quick-add presets), eggSlots editable above. Edit
+  // eggList}. Per-row actions (Edit / Hatch / Empty), bulk actions (Add
+  // egg, Quick-add presets), eggSlots editable above. The game has
+  // MAX_EGG_SLOTS slots: adds are refused once they're full, and emptying
+  // an egg never shifts the others (hatchery helpers are per slot). Edit
   // uses a native <dialog> for the form — accessible, no third-party deps.
   //
   // The store's data is read directly, with `tick` as a refresh signal
@@ -12,14 +14,17 @@
   import {
     addEgg,
     clearEgg,
-    EGG_TYPE_LABELS,
+    EGG_TYPE,
+    eggPokemonError,
     eggTypeLabel,
+    EMPTY_EGG,
     hatchEgg,
+    MAX_EGG_SLOTS,
     quickAddEgg,
+    SHINY_CHANCE_BREEDING,
     QUICK_ADD_PRESETS,
     readEggs,
     readEggSlots,
-    removeEgg,
     setEgg,
     writeEggSlots,
     type Egg,
@@ -65,33 +70,55 @@
     refreshAfter(() => clearEgg(store.data!, i))
   }
 
-  function onRemove(i: number): void {
-    refreshAfter(() => removeEgg(store.data!, i))
+  const SLOTS_FULL_STATUS = `All ${MAX_EGG_SLOTS} egg slots are full: empty one first`
+
+  /** Run an add that returns the slot it used (or null when full) and
+   *  report the outcome. A refused add leaves the save clean. */
+  function addWith(add: () => number | null, what: string): void {
+    if (!store.data) return
+    let idx: number | null
+    try {
+      idx = add()
+    } catch (e) {
+      store.errorDetail = e instanceof Error ? e.message : String(e)
+      store.status = 'invalid value rejected'
+      return
+    }
+    if (idx === null) {
+      store.status = SLOTS_FULL_STATUS
+      return
+    }
+    store.markDirty()
+    tick++
+    store.status = `added ${what} in slot ${idx + 1}`
   }
 
   function onAdd(): void {
-    refreshAfter(() => addEgg(store.data!))
+    addWith(() => addEgg(store.data!), 'egg')
   }
 
   function onQuickAdd(preset: QuickAddPreset): void {
-    refreshAfter(() => {
-      const idx = quickAddEgg(store.data!, preset)
-      store.status = `added ${eggTypeLabel(preset.template.type)} egg in slot ${idx}`
-    })
+    addWith(() => quickAddEgg(store.data!, preset), preset.label)
   }
 
   // --- edit dialog -------------------------------------------------------
 
   let dialogEl: HTMLDialogElement | undefined = $state()
   let editIndex: number | null = $state(null)
-  let draft: Egg = $state(blankEgg())
+  let draft: Egg = $state({ ...EMPTY_EGG })
+  let editError: string | null = $state(null)
 
-  function blankEgg(): Egg {
-    return { type: -1, pokemon: 0, steps: 0, totalSteps: 0, shinyChance: 1024, notified: false }
-  }
+  /** The real egg types, plus the draft's own value when it's a legacy one
+   *  (2–8 from older editor versions) so opening the dialog doesn't
+   *  silently change it. */
+  let typeOptions = $derived.by<number[]>(() => {
+    const real = Object.values(EGG_TYPE) as number[]
+    return real.includes(draft.type) ? real : [...real, draft.type]
+  })
 
   function openEdit(i: number): void {
     editIndex = i
+    editError = null
     // Shallow copy so the dialog form doesn't mutate the live save until OK.
     draft = { ...eggs[i] }
     dialogEl?.showModal()
@@ -100,11 +127,18 @@
   function closeEdit(): void {
     dialogEl?.close()
     editIndex = null
+    editError = null
   }
 
   function saveEdit(): void {
     if (editIndex === null) {
       closeEdit()
+      return
+    }
+    // Unknown ids hatch MissingNo in the game: keep the dialog open.
+    editError = eggPokemonError(draft)
+    if (editError !== null) {
+      store.status = 'invalid value rejected'
       return
     }
     const i = editIndex
@@ -121,7 +155,7 @@
       label="Egg slots"
       value={slots}
       onCommit={onSlotsChange}
-      suffix="(save.breeding.eggSlots)"
+      suffix={`(save.breeding.eggSlots, max ${MAX_EGG_SLOTS})`}
     />
   </section>
 
@@ -129,7 +163,7 @@
     <table>
       <thead>
         <tr>
-          <th>#</th>
+          <th>Slot</th>
           <th>Pokémon</th>
           <th>Type</th>
           <th>Steps</th>
@@ -141,8 +175,11 @@
       </thead>
       <tbody>
         {#each eggs as egg, i (i)}
-          <tr class:empty={egg.type === -1}>
-            <td>{i}</td>
+          <tr class:empty={egg.type === EGG_TYPE.None}>
+            <td>
+              {i + 1} of {MAX_EGG_SLOTS}
+              {#if i >= MAX_EGG_SLOTS}<span class="muted">(dropped by the game)</span>{/if}
+            </td>
             <td>{egg.pokemon}</td>
             <td>{egg.type} <span class="muted">({eggTypeLabel(egg.type)})</span></td>
             <td>{egg.steps}</td>
@@ -151,9 +188,8 @@
             <td>{egg.notified ? 'yes' : ''}</td>
             <td class="actions-cell">
               <button type="button" onclick={() => openEdit(i)}>Edit</button>
-              <button type="button" onclick={() => onHatch(i)} disabled={egg.type === -1}>Hatch</button>
+              <button type="button" onclick={() => onHatch(i)} disabled={egg.type === EGG_TYPE.None}>Hatch</button>
               <button type="button" onclick={() => onClear(i)}>Empty</button>
-              <button type="button" onclick={() => onRemove(i)}>Remove</button>
             </td>
           </tr>
         {:else}
@@ -168,10 +204,11 @@
   </section>
 
   <section class="block">
-    <h3>Quick-add type egg</h3>
+    <h3>Quick-add egg</h3>
     <p class="note">
-      Fills the first empty slot, or appends if all are full (bumps egg slots
-      to match).
+      Adds an item egg of that species (like a shop egg) to the first empty
+      slot, raising egg slots to match. The game has {MAX_EGG_SLOTS} slots;
+      when all are full, empty one first.
     </p>
     <div class="actions">
       {#each QUICK_ADD_PRESETS as preset (preset.label)}
@@ -188,7 +225,7 @@
        use a compact 10rem label column so the input column gets enough
        room inside the dialog. -->
   <dialog bind:this={dialogEl} aria-labelledby="egg-dialog-title">
-    <h3 id="egg-dialog-title">Edit egg {editIndex !== null ? `#${editIndex}` : ''}</h3>
+    <h3 id="egg-dialog-title">Edit egg {editIndex !== null ? `in slot ${editIndex + 1}` : ''}</h3>
 
     <NumberField
       label="Pokémon ID"
@@ -203,8 +240,8 @@
         value={String(draft.type)}
         onchange={(e) => (draft.type = Number((e.target as HTMLSelectElement).value))}
       >
-        {#each Object.entries(EGG_TYPE_LABELS) as [val, name] (val)}
-          <option value={val}>{val} ({name})</option>
+        {#each typeOptions as val (val)}
+          <option value={String(val)}>{val} ({eggTypeLabel(val)})</option>
         {/each}
       </select>
     </label>
@@ -224,7 +261,7 @@
       label="Shiny chance"
       value={draft.shinyChance}
       onCommit={(n) => (draft.shinyChance = n)}
-      suffix="(lower = more likely)"
+      suffix={`(lower = more likely; game default ${SHINY_CHANCE_BREEDING})`}
       labelWidth="10rem"
     />
     <label class="row checkbox">
@@ -235,6 +272,8 @@
       />
       <span>notified</span>
     </label>
+
+    {#if editError}<p class="error" role="alert">{editError}</p>{/if}
 
     <div class="dialog-actions">
       <button type="button" onclick={closeEdit}>Cancel</button>
@@ -358,6 +397,10 @@
     border: 1px solid var(--border);
     border-radius: 4px;
     font: inherit;
+  }
+  .error {
+    color: var(--danger);
+    margin: var(--space-3) 0 0;
   }
   .dialog-actions {
     display: flex;
