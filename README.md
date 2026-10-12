@@ -2,17 +2,16 @@
 USE AT YOUR OWN RISK. UNOFFICIAL, educational use only. 
 
 
-A save editor for [PokeClicker](https://www.pokeclicker.com/) save exports. Tested against `v0.10.25`.
+A save editor for [PokeClicker](https://www.pokeclicker.com/) save exports. Tested against `v0.10.26`.
 
 > **🌐 Use it in your browser — no install:** **<https://daclink.github.io/pokeclicker-save-editor/>**
-> Everything runs client-side; your save never leaves the tab. The web app is the recommended editor going forward.
+> Everything runs client-side; your save never leaves the tab. **The web app is the editor** — new features
+> (Gems, Flutes, Inventory, Underground, Quests, Pokédex search) only land there.
 
-There's also a Python CLI and a desktop GUI (below).
+> **⚠️ The desktop app is deprecated.** It still works and installers are still attached to releases, but it
+> gets no new features and shows a banner pointing to the web app. There's also a Python CLI (below).
 
-> **Latest release:** see <https://github.com/daclink/pokeclicker-save-editor/releases/latest>.
-> Pre-built installers are attached for macOS, Windows, and Linux — see *Download & install* below.
-
-## Download & install
+## Download & install (deprecated desktop app)
 
 | platform | file | install |
 |---|---|---|
@@ -22,7 +21,7 @@ There's also a Python CLI and a desktop GUI (below).
 
 All three downloads are at the **Assets** section of every release on the [Releases page](https://github.com/daclink/pokeclicker-save-editor/releases).
 
-A **browser version** is in early development under `web/`. Once enough tabs land it'll deploy to GitHub Pages so you can edit a save without installing anything; in the meantime see [`web/README.md`](web/README.md) for the current state and dev instructions. Your save still never leaves your machine — the browser app is purely client-side.
+For web-app development, see [`web/README.md`](web/README.md).
 
 If you want the source instead of a binary, see [Build](#build).
 
