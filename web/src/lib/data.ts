@@ -234,6 +234,18 @@ function formFor(pid: unknown): PokemonForm | undefined {
 }
 
 /**
+ * True when the game has a pokémon with this id: a base species
+ * (integer 1..NATIONAL_NAMES.length) or a form listed in POKEMON_FORMS.
+ * Unknown ids degrade to MissingNo in the game (`pokemonMap` proxy
+ * fallback in PokemonList.ts), so editors should refuse them.
+ */
+export function isKnownPokemonId(pid: number): boolean {
+  if (!Number.isFinite(pid)) return false
+  if (Number.isInteger(pid)) return pid >= 1 && pid <= NATIONAL_NAMES.length
+  return formFor(pid) !== undefined
+}
+
+/**
  * Friendly name for a pokémon id, or `'?'` if unknown. Forms (fractional ids)
  * get their own name; an unknown form falls back to its base species.
  */
