@@ -10,6 +10,7 @@ import { describe, expect, test } from 'vitest'
 import { decodeBytes } from '../src/lib/save'
 import {
   ALL_REGIONS,
+  DATA_GAME_VERSION,
   NATIONAL_NAMES,
   POKEMON_FORMS,
   REGION_RANGES,
@@ -19,6 +20,7 @@ import {
 import {
   caughtIdSet,
   filterRows,
+  formsMarkableFor,
   formsOf,
   markCaught,
   regionRows,
@@ -36,6 +38,17 @@ const FIXTURE = resolve(
   'minimal.txt',
 )
 const load = () => decodeBytes(readFileSync(FIXTURE, 'utf8').trim())
+
+/** Set (or with `null`, remove) `save.update.version` on a loaded save. */
+function withVersion<T extends ReturnType<typeof load>>(data: T, version: string | null): T {
+  const save = data.save as Record<string, any>
+  if (version === null) delete save.update
+  else save.update = { ...(save.update ?? {}), version }
+  return data
+}
+/** The fixture is a v0.10.25 export; form marking needs a save at least as
+ *  new as the editor's data, so form tests load it as the data's version. */
+const loadCurrent = () => withVersion(load(), DATA_GAME_VERSION)
 
 // Fixture has exactly Charmander (#4) and Pikachu (#25) caught, both in Kanto.
 const KANTO = REGION_RANGES[0]
@@ -174,7 +187,7 @@ describe('regionRows with includeForms', () => {
   })
 
   test('a caught form is marked caught and dropped by uncaughtOnly', () => {
-    const data = load()
+    const data = loadCurrent()
     markCaught(data, [PIKACHU_FORM])
     const all = regionRows(data, KANTO, false, { includeForms: true })
     expect(all.find((r) => r.pid === PIKACHU_FORM)?.caught).toBe(true)
@@ -193,7 +206,7 @@ describe('regionRows with includeForms', () => {
 
 describe('markCaught with form ids', () => {
   test('stores the form id as a number and skips re-marks', () => {
-    const data = load()
+    const data = loadCurrent()
     expect(markCaught(data, [PIKACHU_FORM])).toBe(1)
     const entry = rawParty(data).find((e) => e.id === PIKACHU_FORM)
     expect(typeof entry?.id).toBe('number')
@@ -202,12 +215,70 @@ describe('markCaught with form ids', () => {
   })
 
   test('bumpStats uses the form key and the base species gender bucket', () => {
-    const data = load()
+    const data = loadCurrent()
     const bucket = statBucketFor(PIKACHU)!
     const bucket0 = Number(stats(data)[bucket] ?? 0)
     markCaught(data, [PIKACHU_FORM], { bumpStats: true })
     expect(stats(data).pokemonCaptured[String(PIKACHU_FORM)]).toBeGreaterThanOrEqual(1)
     expect(Number(stats(data)[bucket])).toBe(bucket0 + 1)
+  })
+})
+
+// Forms come from the editor's data (data/manifest.json gameVersion); a save
+// from an older game build may lack them, and the game can't load a party id
+// missing from its PokemonList.ts.
+describe('form marking is gated on the save game version', () => {
+  const OLDER = '0.10.25'
+  const NEWER = '0.10.27'
+
+  test('the test versions bracket the data version', () => {
+    expect(DATA_GAME_VERSION).toBe('0.10.26')
+  })
+
+  test('formsMarkableFor: older refuses, equal and newer allow', () => {
+    expect(formsMarkableFor(withVersion(load(), OLDER))).toBe(false)
+    expect(formsMarkableFor(withVersion(load(), DATA_GAME_VERSION))).toBe(true)
+    expect(formsMarkableFor(withVersion(load(), NEWER))).toBe(true)
+  })
+
+  test('formsMarkableFor compares numerically (0.9.x is older than 0.10.x)', () => {
+    expect(formsMarkableFor(withVersion(load(), '0.9.99'), '0.10.0')).toBe(false)
+    expect(formsMarkableFor(withVersion(load(), '0.10.3'), '0.10.26')).toBe(false)
+  })
+
+  test('missing or unparseable save version is allowed (old exports may lack it)', () => {
+    expect(formsMarkableFor(withVersion(load(), null))).toBe(true)
+    expect(formsMarkableFor(withVersion(load(), 'not-a-version'))).toBe(true)
+  })
+
+  test('markCaught skips form ids on an older save but still adds base species', () => {
+    const data = withVersion(load(), OLDER)
+    expect(markCaught(data, [1, PIKACHU_FORM])).toBe(1)
+    const ids = caughtIdSet(data)
+    expect(ids.has(1)).toBe(true)
+    expect(ids.has(PIKACHU_FORM)).toBe(false)
+  })
+
+  test('markCaught on an older save with only forms writes nothing', () => {
+    const data = withVersion(load(), OLDER)
+    const before = JSON.stringify(data)
+    expect(markCaught(data, [PIKACHU_FORM], { bumpStats: true })).toBe(0)
+    expect(JSON.stringify(data)).toBe(before)
+  })
+
+  test('markCaught adds forms on an equal or newer save, and with no version', () => {
+    for (const v of [DATA_GAME_VERSION, NEWER, null]) {
+      const data = withVersion(load(), v)
+      expect(markCaught(data, [PIKACHU_FORM]), String(v)).toBe(1)
+      expect(caughtIdSet(data).has(PIKACHU_FORM)).toBe(true)
+    }
+  })
+
+  test('formsMarkableFor never mutates the save', () => {
+    const data = withVersion(load(), OLDER)
+    const before = JSON.stringify(data)
+    formsMarkableFor(data)
+    expect(JSON.stringify(data)).toBe(before)
   })
 })
 

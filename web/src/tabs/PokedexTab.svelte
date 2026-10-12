@@ -11,9 +11,12 @@
   // counters consistent.
 
   import { store } from '../lib/store.svelte'
-  import { ALL_REGIONS, DEX_REGION_OPTIONS, REGION_RANGES } from '../lib/data'
+  import { ALL_REGIONS, DATA_GAME_VERSION, DEX_REGION_OPTIONS, REGION_RANGES } from '../lib/data'
+  import { saveGameVersion } from '../lib/quests'
   import {
     filterRows,
+    formsMarkableFor,
+    isFormId,
     markCaught,
     regionRows,
     sortRows,
@@ -65,6 +68,11 @@
   let filtering = $derived(query.trim() !== '')
   let caughtSet = $derived(new Set(allRows.filter((r) => r.caught).map((r) => r.pid)))
 
+  // Forms come from the editor's data release; a save from an older game
+  // build may not have them, so markCaught skips form ids there.
+  let formsBlocked = $derived(store.data ? !formsMarkableFor(store.data) : false)
+  let saveVersion = $derived(store.data ? saveGameVersion(store.data) : null)
+
   let caughtInRegion = $derived(caughtSet.size)
   let regionTotal = $derived(allRows.length)
 
@@ -84,12 +92,28 @@
     selected = next
   }
 
-  function applyMark(ids: number[]): void {
-    if (!store.data || ids.length === 0) return
+  /** Drop form ids when the save is older than the data (markCaught would skip
+   *  them anyway); `skipped` is how many were dropped, for the status line. */
+  function splitMarkable(ids: number[]): { markable: number[]; skipped: number } {
+    const markable = formsBlocked ? ids.filter((pid) => !isFormId(pid)) : ids
+    return { markable, skipped: ids.length - markable.length }
+  }
+
+  function skippedNote(skipped: number): string {
+    if (skipped === 0) return ''
+    return `; skipped ${skipped} form${skipped === 1 ? '' : 's'} (save v${saveVersion} is older than data v${DATA_GAME_VERSION})`
+  }
+
+  function applyMark(ids: number[], skipped: number): void {
+    if (!store.data) return
+    if (ids.length === 0) {
+      if (skipped) store.status = `marked 0 caught${skippedNote(skipped)}`
+      return
+    }
     try {
       const added = markCaught(store.data, ids, { bumpStats })
       store.markDirty()
-      store.status = `marked ${added} caught${bumpStats ? ' (+stats)' : ''}`
+      store.status = `marked ${added} caught${bumpStats ? ' (+stats)' : ''}${skippedNote(skipped)}`
       selected = new Set()
       tick++
     } catch (e) {
@@ -102,19 +126,26 @@
     // Only rows still listed — a form selected before "Show forms" was
     // unticked must not be marked invisibly.
     const listed = new Set(allRows.map((r) => r.pid))
-    applyMark([...selected].filter((pid) => listed.has(pid) && !caughtSet.has(pid)))
+    const { markable, skipped } = splitMarkable(
+      [...selected].filter((pid) => listed.has(pid) && !caughtSet.has(pid)),
+    )
+    applyMark(markable, skipped)
   }
 
   function onMarkAllUncaught(): void {
-    const ids = allRows.filter((r) => !r.caught).map((r) => r.pid)
+    const { markable: ids, skipped } = splitMarkable(
+      allRows.filter((r) => !r.caught).map((r) => r.pid),
+    )
     if (ids.length === 0) {
-      store.status = `all ${regionTotal} ${regionPhrase} already caught`
+      store.status = skipped
+        ? `marked 0 caught${skippedNote(skipped)}`
+        : `all ${regionTotal} ${regionPhrase} already caught`
       return
     }
     if (!confirm(`Mark all ${ids.length} uncaught pokémon ${regionPhrase} as caught?`)) {
       return
     }
-    applyMark(ids)
+    applyMark(ids, skipped)
   }
 
 </script>
@@ -156,6 +187,14 @@
         {region.label}: {caughtInRegion}/{regionTotal} caught{#if filtering}{` · showing ${rows.length} of ${regionTotal}`}{/if}
       </span>
     </div>
+
+    {#if showForms && formsBlocked}
+      <p class="note warn">
+        Forms won't be marked caught: your save is from PokeClicker
+        v{saveVersion}, older than this editor's data (v{DATA_GAME_VERSION}),
+        so your game may not have them. Update the game, then re-export.
+      </p>
+    {/if}
 
     <div class="table-wrap">
       <table>
@@ -234,6 +273,9 @@
     margin: 0 0 0.75rem;
     color: var(--text-muted);
     font-size: 0.9em;
+  }
+  .note.warn {
+    color: var(--danger);
   }
   .controls {
     display: flex;

@@ -8,10 +8,11 @@ Two upstream sources, both stdlib-only:
    ``.cache/pokeapi/<id>.json`` so re-runs are instant. The cache directory
    is gitignored (covered by the existing ``.cache`` rule).
 
-2. **PokeClicker source** (``BerryType.ts`` on GitHub) — the canonical 70-name
-   ``BerryType`` enum. Fetched verbatim and parsed into a ``BERRY_NAMES``
-   list whose indices match ``save.farming.berryList`` /
-   ``save.farming.unlockedBerries`` positions.
+2. **PokeClicker source** (``BerryType.ts``, ``PokemonList.ts``, … on GitHub)
+   — fetched from the tagged release ``v{GAME_VERSION}`` (``PC_REF``), not the
+   ``develop`` branch, so the data never describes content the released game
+   lacks. ``--game-ref develop`` previews an unreleased tree. The run writes
+   ``data/manifest.json`` recording the game version and ref it came from.
 
 Run once locally; commit the regenerated module. The end product:
 
@@ -26,6 +27,7 @@ Stdlib only — no requests, no toml.
 """
 from __future__ import annotations
 
+import argparse
 import json
 import re
 import sys
@@ -59,24 +61,62 @@ THROTTLE_SEC = 0.05      # ~20 req/s; PokeAPI rate-limits are far more generous
 TIMEOUT_SEC = 10
 USER_AGENT = "pcedit-fetcher/1.0 (+https://github.com/daclink/pokeclicker-save-editor)"
 
-# PokeClicker source — enum modules live here. Default branch is `develop`.
-PC_RAW = "https://raw.githubusercontent.com/pokeclicker/pokeclicker/develop"
-BERRY_TYPE_URL = f"{PC_RAW}/src/modules/enums/BerryType.ts"
-MULCH_TYPE_URL = f"{PC_RAW}/src/modules/enums/MulchType.ts"
-POKEMON_LIST_URL = f"{PC_RAW}/src/modules/pokemons/PokemonList.ts"
-GAME_CONSTANTS_URL = f"{PC_RAW}/src/modules/GameConstants.ts"
-ITEM_LIST_URL = f"{PC_RAW}/src/modules/items/ItemList.ts"
+# PokeClicker release this editor targets. Data is fetched from its git tag;
+# bump this (and regenerate) when moving the editor to a new game release.
+GAME_VERSION = "0.10.26"
+# Upstream tags releases as `v<version>` (refs/tags/v0.10.26).
+PC_REF = f"v{GAME_VERSION}"
+PC_REPO_RAW = "https://raw.githubusercontent.com/pokeclicker/pokeclicker"
 
-# Canonical PokeClicker PokemonType enum order (0 Normal .. 17 Fairy).
-POKEMON_TYPE_ORDER = [
-    "Normal", "Fire", "Water", "Electric", "Grass", "Ice", "Fighting",
-    "Poison", "Ground", "Flying", "Psychic", "Bug", "Rock", "Ghost",
-    "Dragon", "Dark", "Steel", "Fairy",
-]
+
+def pc_raw(ref: str) -> str:
+    """Raw-file base URL for a PokeClicker git ref (tag or branch)."""
+    return f"{PC_REPO_RAW}/{ref}"
+
+
+PC_RAW = pc_raw(PC_REF)
+
+
+def pc_url(path: str, ref: str = PC_REF) -> str:
+    """Raw URL of ``path`` (repo-relative) in the PokeClicker repo at ``ref``."""
+    return f"{pc_raw(ref)}/{path}"
+
+
+# Repo-relative source paths (joined to a ref by ``pc_url``).
+PACKAGE_JSON_PATH = "package.json"
+BERRY_TYPE_PATH = "src/modules/enums/BerryType.ts"
+MULCH_TYPE_PATH = "src/modules/enums/MulchType.ts"
+POKEMON_TYPE_PATH = "src/modules/enums/PokemonType.ts"
+POKEMON_LIST_PATH = "src/modules/pokemons/PokemonList.ts"
+GAME_CONSTANTS_PATH = "src/modules/GameConstants.ts"
+ITEM_LIST_PATH = "src/modules/items/ItemList.ts"
+
+# data/manifest.json — which game build the whole data/ directory describes.
+MANIFEST_FILE = "manifest.json"
+MANIFEST_VERSION_KEY = "gameVersion"
+MANIFEST_REF_KEY = "gameRef"
+
+# TypeScript enums' ``None = -1`` sentinel member (dropped by the parsers).
+ENUM_NONE_MEMBER = "None"
+# PokemonType.ts: Normal = 0 … Fairy = 17, plus the None sentinel.
+EXPECTED_POKEMON_TYPE_COUNT = 18
+
+# Species whose types pin the PokemonType index mapping and the per-entry
+# parse (PokemonList.ts): Bulbasaur is Grass/Poison, Pikachu Electric.
+POKEMON_TYPE_SENTINELS: dict[int, list[str]] = {
+    1: ["Grass", "Poison"],
+    25: ["Electric"],
+}
+# A form whose name pins the per-entry form parse (PokemonList.ts, id 25.01).
+FORM_SENTINEL_ID = "25.01"
+FORM_SENTINEL_NAME = "Pikachu (Original Cap)"
+
 EXPECTED_BERRY_COUNT = 70
 EXPECTED_FIRST_BERRY = "Cheri"
 EXPECTED_LAST_BERRY = "Hopo"
-EXPECTED_MULCH_MIN = 6   # save.farming.mulchList may carry extra slots
+# MulchType.ts members (Boost … Gooey). Saves' mulchList may carry an extra
+# slot; the editors label that generically, so the enum itself is exact.
+EXPECTED_MULCH_COUNT = 6
 EXPECTED_EGG_ITEM_COUNT = 7     # EggItemType: Fire/Water/Grass/Fighting/Electric/Dragon/Mystery
 EXPECTED_EVOLUTION_ITEMS_MIN = 50  # StoneType minus None (51 as of 2026-09)
 EXPECTED_MEGA_STONES_MIN = 50   # MegaStoneType (50 as of 2026-09)
@@ -204,7 +244,7 @@ def display_name(species: dict, pid: int) -> str:
 # Members may be bare (`Cheri,`) or quoted (`'Leaf_stone',` in StoneType /
 # EggItemType); the backreference requires matching quotes on both sides.
 _ENUM_LINE = re.compile(
-    r"^\s*(['\"]?)([A-Za-z_][A-Za-z0-9_]*)\1\s*(?:=\s*-?\d+\s*)?,?\s*$"
+    r"^\s*(['\"]?)([A-Za-z_][A-Za-z0-9_]*)\1\s*(?:=\s*(-?\d+)\s*)?,?\s*$"
 )
 
 
@@ -223,43 +263,79 @@ def _fetch_with_retry(url: str, *, label: str, retries: int = 3) -> str:
     raise SystemExit(f"{label} fetch failed: {last_err}")
 
 
-def _parse_enum_idents(src: str, enum_name: str) -> list[str]:
-    """Return identifiers in declaration order from ``enum <name> { ... }``,
-    skipping the ``None = -1`` sentinel and blank/comment lines.
+def _parse_enum_members(src: str, enum_name: str) -> list[tuple[str, int]]:
+    """Return ``(identifier, value)`` pairs in declaration order from
+    ``enum <name> { ... }``, including the ``None = -1`` sentinel.
 
-    The parser is permissive: section comments like ``// Fourth Generation
-    (Typed)`` (parens inside the comment) are stripped, and it tolerates
-    optional trailing commas or explicit ``= <int>`` assignments.
+    Comments (``//`` and ``/* */``, e.g. ``// Fourth Generation (Typed)``)
+    are stripped first; every remaining non-blank line must be exactly one
+    member, optionally quoted, with an optional ``= <int>`` and trailing
+    comma. Anything else aborts the run: a skipped or merged member would
+    silently shift every later index. Values follow TypeScript numbering
+    (an implicit member is the previous value + 1, starting at 0).
     """
+    clean = strip_comments(src)
     m = re.search(r"enum\s+" + re.escape(enum_name) + r"\s*\{(.*?)\}",
-                  src, re.DOTALL)
+                  clean, re.DOTALL)
     if not m:
         raise SystemExit(f"could not locate `enum {enum_name} {{ ... }}` in source")
     body = m.group(1)
 
-    idents: list[str] = []
+    members: list[tuple[str, int]] = []
+    next_value = 0
     for raw in body.splitlines():
-        line = raw.split("//", 1)[0].strip()
+        line = raw.strip()
         if not line:
             continue
         match = _ENUM_LINE.match(line)
         if not match:
-            sys.stderr.write(f"  {enum_name}: skipping unrecognized line: {raw!r}\n")
-            continue
-        ident = match.group(2)
-        if ident == "None":
-            continue
-        idents.append(ident)
-    return idents
+            raise SystemExit(f"{enum_name}: unrecognized enum line: {raw!r}")
+        value = int(match.group(3)) if match.group(3) is not None else next_value
+        members.append((match.group(2), value))
+        next_value = value + 1
+    return members
 
 
-def fetch_berry_names(*, retries: int = 3) -> list[str]:
+def _parse_enum_idents(src: str, enum_name: str) -> list[str]:
+    """Identifiers of ``enum <name>`` in declaration order, ``None`` dropped
+    (strict — see ``_parse_enum_members``)."""
+    return [ident for ident, _value in _parse_enum_members(src, enum_name)
+            if ident != ENUM_NONE_MEMBER]
+
+
+def parse_pokemon_type_names(src: str) -> list[str]:
+    """``PokemonType`` member names indexed by enum value (0 Normal … 17 Fairy).
+
+    Aborts unless, after dropping ``None = -1``, the values are exactly
+    ``0 .. EXPECTED_POKEMON_TYPE_COUNT - 1`` in declaration order — this list
+    is the index space for ``pokemon-types.json`` and the gem wallet.
+    """
+    members = [(n, v) for n, v in _parse_enum_members(src, "PokemonType")
+               if n != ENUM_NONE_MEMBER]
+    values = [v for _n, v in members]
+    if values != list(range(EXPECTED_POKEMON_TYPE_COUNT)):
+        raise SystemExit(
+            f"PokemonType.ts: expected values 0..{EXPECTED_POKEMON_TYPE_COUNT - 1} "
+            f"in order, got {members!r}"
+        )
+    return [n for n, _v in members]
+
+
+def fetch_pokemon_type_names(*, ref: str = PC_REF, retries: int = 3) -> list[str]:
+    """Pull PokemonType.ts at ``ref`` and parse it (see ``parse_pokemon_type_names``)."""
+    src = _fetch_with_retry(pc_url(POKEMON_TYPE_PATH, ref), label="PokemonType.ts",
+                            retries=retries)
+    return parse_pokemon_type_names(src)
+
+
+def fetch_berry_names(*, ref: str = PC_REF, retries: int = 3) -> list[str]:
     """Pull BerryType.ts from the PokeClicker repo and parse out the 70 names.
 
     Hard-asserts length 70, first == 'Cheri', last == 'Hopo' — the cheapest
     defense against an upstream rename or section reorder.
     """
-    src = _fetch_with_retry(BERRY_TYPE_URL, label="BerryType.ts", retries=retries)
+    src = _fetch_with_retry(pc_url(BERRY_TYPE_PATH, ref), label="BerryType.ts",
+                            retries=retries)
     names = _parse_enum_idents(src, "BerryType")
 
     if len(names) != EXPECTED_BERRY_COUNT:
@@ -278,18 +354,19 @@ def fetch_berry_names(*, retries: int = 3) -> list[str]:
     return names
 
 
-def fetch_mulch_names(*, retries: int = 3) -> list[str]:
+def fetch_mulch_names(*, ref: str = PC_REF, retries: int = 3) -> list[str]:
     """Pull MulchType.ts and return display names (``Boost_Mulch`` -> ``Boost``).
 
-    Hard-asserts at least ``EXPECTED_MULCH_MIN`` entries. Real saves often
+    Hard-asserts exactly ``EXPECTED_MULCH_COUNT`` entries. Real saves often
     carry one more slot in ``mulchList`` than the enum names; the GUI
     handles that by labeling extra slots generically.
     """
-    src = _fetch_with_retry(MULCH_TYPE_URL, label="MulchType.ts", retries=retries)
+    src = _fetch_with_retry(pc_url(MULCH_TYPE_PATH, ref), label="MulchType.ts",
+                            retries=retries)
     raw = _parse_enum_idents(src, "MulchType")
-    if len(raw) < EXPECTED_MULCH_MIN:
+    if len(raw) != EXPECTED_MULCH_COUNT:
         raise SystemExit(
-            f"expected at least {EXPECTED_MULCH_MIN} mulch entries, "
+            f"expected {EXPECTED_MULCH_COUNT} mulch entries, "
             f"got {len(raw)}: {raw!r}"
         )
     # 'Boost_Mulch' -> 'Boost'; if a future entry doesn't end with '_Mulch',
@@ -297,34 +374,42 @@ def fetch_mulch_names(*, retries: int = 3) -> list[str]:
     return [n[:-len("_Mulch")] if n.endswith("_Mulch") else n for n in raw]
 
 
-def fetch_pokemon_types(*, retries: int = 3) -> list[list[int]]:
-    """Pull PokemonList.ts and return per-species type indices, id 1..MAX_ID.
+def _type_indexes(type_list_src: str, type_names: list[str], where: str) -> list[int]:
+    """``PokemonType.A, PokemonType.B`` → enum indexes; ``None`` is dropped and
+    an unknown member name aborts (it would otherwise vanish silently)."""
+    tidx = {name: i for i, name in enumerate(type_names)}
+    out: list[int] = []
+    for name in re.findall(r"PokemonType\.(\w+)", type_list_src):
+        if name == ENUM_NONE_MEMBER:
+            continue
+        if name not in tidx:
+            raise SystemExit(f"PokemonList.ts: {where} has unknown type {name!r}")
+        out.append(tidx[name])
+    return out
 
-    Each entry has an ``'id': N`` then a ``'type': [PokemonType.A, ...]``.
-    We map type names to the canonical enum indices and keep only integer
-    national-dex ids (regional forms use fractional ids like 19.01). Returns
-    a list of length MAX_ID where entry ``i`` is the type list for dex id
-    ``i + 1`` (one or two indices).
+
+def parse_pokemon_types(src: str, type_names: list[str]) -> list[list[int]]:
+    """Per-species type indexes from PokemonList.ts, dex id 1..MAX_ID.
+
+    Parses each entry's own chunk (see ``_iter_entries``), which must hold
+    exactly one ``'type': [...]`` list. Forms (fractional ids) and ids
+    outside 1..MAX_ID are skipped. Returns a list of length MAX_ID where
+    entry ``i`` is the type list for dex id ``i + 1``. A missing, duplicate
+    or typeless species aborts the run.
     """
-    src = _fetch_with_retry(POKEMON_LIST_URL, label="PokemonList.ts",
-                            retries=retries)
-    tidx = {name: i for i, name in enumerate(POKEMON_TYPE_ORDER)}
     by_id: dict[int, list[int]] = {}
-    cur_id: float | None = None
-    token = re.compile(r"'id':\s*(-?\d+(?:\.\d+)?)|'type':\s*\[([^\]]*)\]")
-    for m in token.finditer(src):
-        if m.group(1) is not None:
-            cur_id = float(m.group(1))
+    for literal, chunk in _iter_entries(src):
+        type_list = _entry_type_list(chunk, literal)
+        value = float(literal)
+        if not value.is_integer() or not 1 <= value <= MAX_ID:
             continue
-        if cur_id is None:
-            continue
-        if cur_id == int(cur_id) and 1 <= cur_id <= MAX_ID:
-            iid = int(cur_id)
-            names = re.findall(r"PokemonType\.(\w+)", m.group(2))
-            idxs = [tidx[n] for n in names if n in tidx]  # drops None (-1)
-            if iid not in by_id and idxs:
-                by_id[iid] = idxs
-        cur_id = None
+        iid = int(value)
+        if iid in by_id:
+            raise SystemExit(f"PokemonList.ts: duplicate species id {iid}")
+        idxs = _type_indexes(type_list, type_names, f"#{iid}")
+        if not idxs:
+            raise SystemExit(f"PokemonList.ts: #{iid} has no types")
+        by_id[iid] = idxs
 
     missing = [i for i in range(1, MAX_ID + 1) if i not in by_id]
     if missing:
@@ -333,6 +418,28 @@ def fetch_pokemon_types(*, retries: int = 3) -> list[list[int]]:
             f"{missing[:10]}{' …' if len(missing) > 10 else ''}"
         )
     return [by_id[i] for i in range(1, MAX_ID + 1)]
+
+
+def check_pokemon_type_sentinels(types: list[list[int]], type_names: list[str]) -> None:
+    """Abort unless each ``POKEMON_TYPE_SENTINELS`` species has its known types."""
+    for pid, expected in POKEMON_TYPE_SENTINELS.items():
+        actual = [type_names[i] for i in types[pid - 1]]
+        if actual != expected:
+            raise SystemExit(
+                f"PokemonList.ts: #{pid} should be {expected}, parsed {actual} — "
+                "type parser or PokemonType order regressed"
+            )
+
+
+def fetch_pokemon_types(type_names: list[str], *, ref: str = PC_REF,
+                        retries: int = 3) -> list[list[int]]:
+    """Pull PokemonList.ts at ``ref``; return per-species type indexes
+    (see ``parse_pokemon_types``), sentinel-checked."""
+    src = _fetch_with_retry(pc_url(POKEMON_LIST_PATH, ref), label="PokemonList.ts",
+                            retries=retries)
+    types = parse_pokemon_types(src, type_names)
+    check_pokemon_type_sentinels(types, type_names)
+    return types
 
 
 def normalize_form_id(literal: str) -> str:
@@ -352,39 +459,70 @@ def normalize_form_id(literal: str) -> str:
 _ENTRY_START = re.compile(r"'id':\s*(-?\d+(?:\.\d+)?)\s*,")
 _ENTRY_NAME = re.compile(r"'name':\s*'((?:[^'\\]|\\.)*)'")
 _ENTRY_REGION = re.compile(r"'nativeRegion':\s*Region\.(\w+)")
+# The species' own type list. Nested objects also use a `'type'` key (e.g.
+# `'gender': { 'type': Genders.Genderless }`) but never with an array value.
 _ENTRY_TYPE = re.compile(r"'type':\s*\[([^\]]*)\]")
+_ENTRY_OPEN = "{"
 
 
-def parse_pokemon_forms(src: str) -> dict[str, dict]:
+def _iter_entries(src: str):
+    """Yield ``(id_literal, chunk)`` for every PokemonList.ts entry, where
+    ``chunk`` runs from after ``'id': N,`` to the next entry's ``'id'``.
+
+    Chunking from one ``'id'`` to the next is only right while ``'id'`` is
+    each entry's first field, so that is enforced: anything but whitespace
+    between the entry's opening ``{`` and ``'id'`` aborts the run (otherwise
+    a field placed before ``'id'`` would be credited to the previous entry).
+    """
+    starts = list(_ENTRY_START.finditer(src))
+    for n, m in enumerate(starts):
+        open_idx = src.rfind(_ENTRY_OPEN, 0, m.start())
+        if open_idx < 0 or src[open_idx + 1:m.start()].strip():
+            raise SystemExit(
+                f"PokemonList.ts: 'id': {m.group(1)} is not the first field of its "
+                "entry — per-entry parsing assumes 'id' comes first"
+            )
+        end = starts[n + 1].start() if n + 1 < len(starts) else len(src)
+        yield m.group(1), src[m.end():end]
+
+
+def _entry_type_list(chunk: str, literal: str) -> str:
+    """The single ``'type': [...]`` body in an entry chunk; zero or several abort."""
+    found = _ENTRY_TYPE.findall(chunk)
+    if len(found) != 1:
+        raise SystemExit(
+            f"PokemonList.ts: entry {literal} has {len(found)} 'type' lists, expected 1"
+        )
+    return found[0]
+
+
+def parse_pokemon_forms(src: str, type_names: list[str]) -> dict[str, dict]:
     """Parse every fractional-id entry of PokemonList.ts into a lookup table.
 
     Returns ``{normalized_id: {"name", "types"[, "region"]}}``. ``region`` is
     set only when ``nativeRegion`` names one of ``REGION_RANGES`` (e.g. Alolan
     forms → ``'Alola'``); for anything else (Hisui, none) the web app falls
     back to the base species' dex region. ``PokemonType.None`` is dropped.
-    Duplicate ids or entries missing a name/type abort the run.
+    Duplicate ids, entries missing a name or holding other than one type
+    list, unknown type names, or an ``'id'`` that isn't its entry's first
+    field abort the run.
     """
-    tidx = {name: i for i, name in enumerate(POKEMON_TYPE_ORDER)}
     region_by_enum = {lbl.lower(): lbl for lbl, _lo, _hi in REGION_RANGES}
-    starts = list(_ENTRY_START.finditer(src))
     forms: dict[str, dict] = {}
-    for n, m in enumerate(starts):
+    for literal, chunk in _iter_entries(src):
         try:
-            key = normalize_form_id(m.group(1))
+            key = normalize_form_id(literal)
         except ValueError:
             continue  # base species
-        end = starts[n + 1].start() if n + 1 < len(starts) else len(src)
-        chunk = src[m.end():end]
         name_m = _ENTRY_NAME.search(chunk)
-        type_m = _ENTRY_TYPE.search(chunk)
-        if not name_m or not type_m:
+        if not name_m or not _ENTRY_TYPE.search(chunk):
             raise SystemExit(f"PokemonList.ts: form {key} lacks a name or type")
         if key in forms:
             raise SystemExit(f"PokemonList.ts: duplicate form id {key}")
-        names = re.findall(r"PokemonType\.(\w+)", type_m.group(1))
         entry: dict = {
             "name": name_m.group(1).replace("\\'", "'"),
-            "types": [tidx[t] for t in names if t in tidx],
+            "types": _type_indexes(_entry_type_list(chunk, literal), type_names,
+                                   f"form {key}"),
         }
         region_m = _ENTRY_REGION.search(chunk)
         if region_m and region_m.group(1) in region_by_enum:
@@ -393,15 +531,29 @@ def parse_pokemon_forms(src: str) -> dict[str, dict]:
     return forms
 
 
-def fetch_pokemon_forms(*, retries: int = 3) -> dict[str, dict]:
-    """Pull PokemonList.ts and return the form table (see ``parse_pokemon_forms``)."""
-    src = _fetch_with_retry(POKEMON_LIST_URL, label="PokemonList.ts",
+def check_form_sentinel(forms: dict[str, dict]) -> None:
+    """Abort unless ``FORM_SENTINEL_ID`` parsed with ``FORM_SENTINEL_NAME`` —
+    a field-order change upstream would shift names onto neighbours."""
+    actual = forms.get(FORM_SENTINEL_ID, {}).get("name")
+    if actual != FORM_SENTINEL_NAME:
+        raise SystemExit(
+            f"PokemonList.ts: form {FORM_SENTINEL_ID} should be "
+            f"{FORM_SENTINEL_NAME!r}, parsed {actual!r} — form parser regressed"
+        )
+
+
+def fetch_pokemon_forms(type_names: list[str], *, ref: str = PC_REF,
+                        retries: int = 3) -> dict[str, dict]:
+    """Pull PokemonList.ts at ``ref`` and return the form table
+    (see ``parse_pokemon_forms``), sentinel-checked."""
+    src = _fetch_with_retry(pc_url(POKEMON_LIST_PATH, ref), label="PokemonList.ts",
                             retries=retries)
-    forms = parse_pokemon_forms(src)
+    forms = parse_pokemon_forms(src, type_names)
     if len(forms) < EXPECTED_FORMS_MIN:
         raise SystemExit(
             f"PokemonList.ts: expected >= {EXPECTED_FORMS_MIN} forms, got {len(forms)}"
         )
+    check_form_sentinel(forms)
     return forms
 
 
@@ -438,11 +590,13 @@ def parse_mega_stones(game_constants_src: str, item_list_src: str) -> list[dict]
     return out
 
 
-def fetch_item_rosters(*, retries: int = 3) -> tuple[list[str], list[str], list[dict]]:
+def fetch_item_rosters(*, ref: str = PC_REF,
+                       retries: int = 3) -> tuple[list[str], list[str], list[dict]]:
     """Fetch GameConstants.ts + ItemList.ts; return (eggs, evolution items, mega stones)."""
-    consts = _fetch_with_retry(GAME_CONSTANTS_URL, label="GameConstants.ts",
+    consts = _fetch_with_retry(pc_url(GAME_CONSTANTS_PATH, ref), label="GameConstants.ts",
                                retries=retries)
-    items = _fetch_with_retry(ITEM_LIST_URL, label="ItemList.ts", retries=retries)
+    items = _fetch_with_retry(pc_url(ITEM_LIST_PATH, ref), label="ItemList.ts",
+                              retries=retries)
     eggs = parse_egg_items(consts)
     evolution = parse_evolution_items(consts)
     megas = parse_mega_stones(consts, items)
@@ -457,9 +611,9 @@ def fetch_item_rosters(*, retries: int = 3) -> tuple[list[str], list[str], list[
 
 # --- underground items --------------------------------------------------------
 
-UNDERGROUND_ITEMS_URL = f"{PC_RAW}/src/modules/underground/UndergroundItems.ts"
-UNDERGROUND_NAME_TYPE_URL = f"{PC_RAW}/src/modules/underground/UndergroundItemNameType.ts"
-EXPECTED_UNDERGROUND_ITEMS_MIN = 70  # 76 as of 2026-10 (v0.10.26)
+UNDERGROUND_ITEMS_PATH = "src/modules/underground/UndergroundItems.ts"
+UNDERGROUND_NAME_TYPE_PATH = "src/modules/underground/UndergroundItemNameType.ts"
+EXPECTED_UNDERGROUND_ITEMS_MIN = 70  # 81 at v0.10.26
 
 # Plain ``UndergroundItem`` without an explicit ``UndergroundItemValueType``
 # argument is a Diamond treasure (constructor default).
@@ -528,9 +682,10 @@ def check_underground_items(items: list[dict], name_type_src: str) -> None:
         raise SystemExit(f"UndergroundItems.ts parser missed {missed}")
 
 
-def fetch_underground_items(*, retries: int = 3) -> list[dict]:
-    src = _fetch_with_retry(UNDERGROUND_ITEMS_URL, label="UndergroundItems.ts", retries=retries)
-    name_type = _fetch_with_retry(UNDERGROUND_NAME_TYPE_URL,
+def fetch_underground_items(*, ref: str = PC_REF, retries: int = 3) -> list[dict]:
+    src = _fetch_with_retry(pc_url(UNDERGROUND_ITEMS_PATH, ref),
+                            label="UndergroundItems.ts", retries=retries)
+    name_type = _fetch_with_retry(pc_url(UNDERGROUND_NAME_TYPE_PATH, ref),
                                   label="UndergroundItemNameType.ts", retries=retries)
     items = parse_underground_items(src)
     check_underground_items(items, name_type)
@@ -553,8 +708,7 @@ def _dump(name: str, obj) -> Path:
 
 # --- quest-line step parser --------------------------------------------------
 
-QUEST_LINE_HELPER_URL = f"{PC_RAW}/src/scripts/quests/QuestLineHelper.ts"
-PACKAGE_JSON_URL = f"{PC_RAW}/package.json"
+QUEST_LINE_HELPER_PATH = "src/scripts/quests/QuestLineHelper.ts"
 GAME_VERSION_RE = re.compile(r"^\d+\.\d+\.\d+$")
 QUEST_STEPS_VERSION_KEY = "gameVersion"
 QUEST_STEPS_LINES_KEY = "lines"
@@ -905,10 +1059,28 @@ def parse_game_version(package_json_text: str) -> str:
     return version
 
 
-def fetch_game_version(*, retries: int = 3) -> str:
-    """Game version at the same ref the quest data is fetched from."""
-    return parse_game_version(
-        _fetch_with_retry(PACKAGE_JSON_URL, label="package.json", retries=retries))
+def check_game_version(version: str, ref: str) -> str:
+    """Return ``version``; abort if the default (pinned) ref reports anything
+    but ``GAME_VERSION`` — a mis-tagged or wrong ref must not ship as the
+    targeted release. An explicit ``--game-ref`` override accepts any version."""
+    if ref == PC_REF and version != GAME_VERSION:
+        raise SystemExit(
+            f"package.json at {ref} says {version}, expected {GAME_VERSION} — "
+            "fix GAME_VERSION or the ref"
+        )
+    return version
+
+
+def fetch_game_version(*, ref: str = PC_REF, retries: int = 3) -> str:
+    """Game version (package.json) at ``ref``, checked by ``check_game_version``."""
+    text = _fetch_with_retry(pc_url(PACKAGE_JSON_PATH, ref), label="package.json",
+                             retries=retries)
+    return check_game_version(parse_game_version(text), ref)
+
+
+def build_manifest(game_version: str, game_ref: str) -> dict:
+    """The on-disk shape of data/manifest.json."""
+    return {MANIFEST_VERSION_KEY: game_version, MANIFEST_REF_KEY: game_ref}
 
 
 def build_quest_steps_payload(game_version: str,
@@ -917,7 +1089,8 @@ def build_quest_steps_payload(game_version: str,
     return {QUEST_STEPS_VERSION_KEY: game_version, QUEST_STEPS_LINES_KEY: lines}
 
 
-def fetch_quest_line_steps(*, retries: int = 3) -> dict[str, list[dict]]:
+def fetch_quest_line_steps(*, ref: str = PC_REF,
+                           retries: int = 3) -> dict[str, list[dict]]:
     """Pull QuestLineHelper.ts from the PokeClicker repo and parse it.
 
     Hard-asserts the exact shape of the bug diagnosed in this repo's
@@ -925,8 +1098,8 @@ def fetch_quest_line_steps(*, retries: int = 3) -> dict[str, list[dict]]:
     cheapest defense against an upstream restructure silently breaking the
     parser.
     """
-    src = _fetch_with_retry(QUEST_LINE_HELPER_URL, label="QuestLineHelper.ts",
-                            retries=retries)
+    src = _fetch_with_retry(pc_url(QUEST_LINE_HELPER_PATH, ref),
+                            label="QuestLineHelper.ts", retries=retries)
     try:
         steps, sites = parse_quest_line_steps(src, with_site_count=True)
     except ValueError as e:
@@ -958,6 +1131,8 @@ def write_data_files(names: list[str], buckets: list[int],
                      mega_stones: list[dict],
                      quest_steps: dict,
                      underground_items: list[dict],
+                     type_names: list[str],
+                     manifest: dict,
                      ) -> list[Path]:
     """Write the reference-data JSON files the editors read.
 
@@ -974,19 +1149,32 @@ def write_data_files(names: list[str], buckets: list[int],
         _dump("berry-names.json", berries),
         _dump("mulch-names.json", mulches),
         _dump("pokemon-types.json", types),
+        _dump("pokemon-type-names.json", type_names),
         _dump("pokemon-forms.json", forms),
         _dump("egg-items.json", egg_items),
         _dump("evolution-items.json", evolution_items),
         _dump("mega-stones.json", mega_stones),
         _dump("quest-steps.json", quest_steps),
         _dump("underground-items.json", underground_items),
+        _dump(MANIFEST_FILE, manifest),
     ]
     return written
 
 
 # --- main --------------------------------------------------------------------
 
-def main() -> int:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
+    parser.add_argument(
+        "--game-ref", default=PC_REF,
+        help=f"PokeClicker git tag/branch to read (default {PC_REF}, the release "
+             f"the editor targets; e.g. 'develop' to preview unreleased data)",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    ref = parse_args(argv).game_ref
     print(f"Fetching {MAX_ID} species from PokeAPI...")
     print(f"  cache: {CACHE_DIR.relative_to(REPO_ROOT)}")
 
@@ -999,31 +1187,35 @@ def main() -> int:
         if pid % 50 == 0 or pid == MAX_ID:
             print(f"  {pid:4d}/{MAX_ID}  {names[-1]}")
 
-    print(f"\nFetching BerryType + MulchType enums from PokeClicker source...")
-    berries = fetch_berry_names()
+    print(f"\nFetching PokeClicker source at {ref}...")
+    game_version = fetch_game_version(ref=ref)
+    print(f"  game v{game_version}")
+    type_names = fetch_pokemon_type_names(ref=ref)
+    print(f"  {len(type_names)} pokemon types: {type_names[0]} ... {type_names[-1]}")
+    berries = fetch_berry_names(ref=ref)
     print(f"  {len(berries)} berries: {berries[0]} ... {berries[-1]}")
-    mulches = fetch_mulch_names()
+    mulches = fetch_mulch_names(ref=ref)
     print(f"  {len(mulches)} mulches: {', '.join(mulches)}")
-    types = fetch_pokemon_types()
+    types = fetch_pokemon_types(type_names, ref=ref)
     print(f"  {len(types)} pokemon type lists parsed")
-    forms = fetch_pokemon_forms()
+    forms = fetch_pokemon_forms(type_names, ref=ref)
     print(f"  {len(forms)} pokemon forms parsed")
 
-    egg_items, evolution_items, mega_stones = fetch_item_rosters()
+    egg_items, evolution_items, mega_stones = fetch_item_rosters(ref=ref)
     print(f"  {len(egg_items)} egg items, {len(evolution_items)} evolution items, "
           f"{len(mega_stones)} mega stones")
 
-    quest_lines = fetch_quest_line_steps()
-    game_version = fetch_game_version()
-    print(f"  {len(quest_lines)} quest lines parsed (game v{game_version})")
+    quest_lines = fetch_quest_line_steps(ref=ref)
+    print(f"  {len(quest_lines)} quest lines parsed")
     quest_steps = build_quest_steps_payload(game_version, quest_lines)
 
-    underground_items = fetch_underground_items()
+    underground_items = fetch_underground_items(ref=ref)
     print(f"  {len(underground_items)} underground items parsed")
 
     written = write_data_files(names, buckets, berries, mulches, types, forms,
                                egg_items, evolution_items, mega_stones,
-                               quest_steps, underground_items)
+                               quest_steps, underground_items, type_names,
+                               build_manifest(game_version, ref))
     print(f"\nWrote {len(written)} files to {DATA_DIR.relative_to(REPO_ROOT)}/:")
     for path in written:
         print(f"  {path.name}  ({path.stat().st_size} bytes)")

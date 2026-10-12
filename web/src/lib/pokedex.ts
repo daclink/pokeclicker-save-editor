@@ -11,9 +11,11 @@
  * off by default because it changes Trainer Card numbers (and, downstream,
  * achievement progress).
  */
-import { POKEMON_FORMS, nameFor, statBucketFor } from './data'
+import { DATA_GAME_VERSION, POKEMON_FORMS, nameFor, statBucketFor } from './data'
 import type { RegionRange } from './data'
+import { saveGameVersion } from './quests'
 import type { SaveData } from './save'
+import { compareGameVersions } from './version'
 
 /** Exp written into a freshly marked-caught entry (matches desktop default). */
 const NEW_ENTRY_EXP = 1
@@ -60,6 +62,25 @@ const NO_FORMS: readonly number[] = []
 /** Form ids of a base species (empty if it has none). */
 export function formsOf(base: number): readonly number[] {
   return FORMS_BY_BASE.get(base) ?? NO_FORMS
+}
+
+/** Forms have fractional ids (`25.01`); base species are integers. */
+export function isFormId(pid: number): boolean {
+  return !Number.isInteger(pid)
+}
+
+/**
+ * May form ids be added to this save's party? The form table comes from the
+ * game release in `data/manifest.json`; a save from an *older* game build
+ * may lack some of those forms, and the game can't load a party id missing
+ * from its PokemonList.ts. So: refused when `save.update.version` is older
+ * than `dataVersion`; allowed when equal or newer, and when the version is
+ * missing or unparseable (old exports may lack it — don't block). Pure read.
+ */
+export function formsMarkableFor(data: SaveData, dataVersion: string = DATA_GAME_VERSION): boolean {
+  const saveVersion = saveGameVersion(data)
+  if (saveVersion === null) return true
+  return compareGameVersions(saveVersion, dataVersion) !== -1
 }
 
 // --- accessors --------------------------------------------------------------
@@ -152,7 +173,8 @@ export function sortRows(rows: readonly DexRow[], key: DexSortKey, dir: SortDir)
 /**
  * Append caught entries for any `ids` not already in the party. Returns the
  * number of entries actually added. With `bumpStats`, also updates the
- * `save.statistics` capture counters for the newly-added ids.
+ * `save.statistics` capture counters for the newly-added ids. Form ids are
+ * skipped when `formsMarkableFor(data)` is false (save older than the data).
  */
 export function markCaught(
   data: SaveData,
@@ -161,9 +183,11 @@ export function markCaught(
 ): number {
   const party = caughtParty(data)
   const existing = caughtIdSet(data)
+  const formsAllowed = formsMarkableFor(data)
   const added: number[] = []
   for (const pid of ids) {
     if (existing.has(pid)) continue
+    if (!formsAllowed && isFormId(pid)) continue
     party.push({ '2': { '0': 0, '1': 0, '2': 0 }, '3': NEW_ENTRY_EXP, id: pid })
     existing.add(pid)
     added.push(pid)
