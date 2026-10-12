@@ -121,8 +121,8 @@
   .row {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.25rem 0;
+    gap: var(--space-2);
+    padding: var(--space-1) 0;
   }
   .row.disabled {
     opacity: 0.5;
@@ -130,7 +130,7 @@
   label {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--space-2);
     flex: 1;
   }
   .label {
@@ -139,7 +139,7 @@
   }
   input {
     flex: 0 0 9rem;
-    padding: 0.25rem 0.5rem;
+    padding: var(--space-1) var(--space-2);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     background: var(--surface-2);
@@ -156,7 +156,7 @@
     font-size: 0.9em;
   }
   button {
-    padding: 0.25rem 0.6rem;
+    padding: var(--space-1) var(--space-2);
     border: 1px solid var(--border);
     background: var(--surface-2);
     color: var(--text);

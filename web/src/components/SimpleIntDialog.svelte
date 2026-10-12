@@ -118,7 +118,7 @@
   }
   input {
     width: 100%;
-    padding: 0.35rem var(--space-2);
+    padding: var(--space-1) var(--space-2);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     background: var(--surface-2);
@@ -137,7 +137,7 @@
     margin-top: var(--space-4);
   }
   .actions button {
-    padding: 0.4rem 0.9rem;
+    padding: var(--space-2) var(--space-4);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     background: var(--surface-2);

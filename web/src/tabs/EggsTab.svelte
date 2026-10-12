@@ -286,24 +286,24 @@
 <style>
   .empty {
     color: var(--text-muted);
-    padding: 1rem;
+    padding: var(--space-4);
     background: var(--surface-2);
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
   }
   .block {
-    margin-bottom: 1.25rem;
-    padding: 1rem 1.25rem;
+    margin-bottom: var(--space-4);
+    padding: var(--space-4) var(--space-4);
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: var(--radius);
     background: var(--surface);
     color: var(--text);
   }
   .block h3 {
-    margin: 0 0 0.5rem;
+    margin: 0 0 var(--space-2);
     font-size: 1rem;
   }
   .note {
-    margin: 0 0 0.5rem;
+    margin: 0 0 var(--space-2);
     color: var(--text-muted);
     font-size: 0.9em;
   }
@@ -315,7 +315,7 @@
   th,
   td {
     text-align: left;
-    padding: 0.35rem 0.5rem;
+    padding: var(--space-1) var(--space-2);
     border-bottom: 1px solid var(--border);
   }
   th {
@@ -333,20 +333,20 @@
     white-space: nowrap;
   }
   .actions-cell button {
-    margin-left: 0.25rem;
+    margin-left: var(--space-1);
   }
   .actions {
-    margin-top: 0.5rem;
+    margin-top: var(--space-2);
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: var(--space-2);
   }
   button {
-    padding: 0.3rem 0.7rem;
+    padding: var(--space-1) var(--space-3);
     border: 1px solid var(--border);
     background: var(--surface-2);
     color: var(--text);
-    border-radius: 4px;
+    border-radius: var(--radius-xs);
     cursor: pointer;
     font: inherit;
     font-size: 0.85em;
@@ -365,8 +365,8 @@
      is shorter than the content. */
   dialog {
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 1.25rem;
+    border-radius: var(--radius);
+    padding: var(--space-4);
     width: min(38rem, 92vw);
     max-height: 85vh;
     overflow-y: auto;
@@ -378,25 +378,25 @@
     background: var(--backdrop);
   }
   dialog h3 {
-    margin: 0 0 0.75rem;
+    margin: 0 0 var(--space-3);
   }
   .row {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.25rem 0;
+    gap: var(--space-2);
+    padding: var(--space-1) 0;
   }
   .row .label {
     flex: 0 0 10rem;
     color: var(--text-muted);
   }
   .row.checkbox {
-    margin-top: 0.25rem;
+    margin-top: var(--space-1);
   }
   select {
-    padding: 0.25rem 0.4rem;
+    padding: var(--space-1) var(--space-2);
     border: 1px solid var(--border);
-    border-radius: 4px;
+    border-radius: var(--radius-xs);
     font: inherit;
   }
   .error {
@@ -406,8 +406,8 @@
   .dialog-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 0.5rem;
-    margin-top: 1rem;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
   }
   .dialog-actions .primary {
     background: var(--brand);

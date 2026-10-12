@@ -101,7 +101,7 @@
     gap: var(--space-2);
   }
   .actions button {
-    padding: 0.35rem 0.8rem;
+    padding: var(--space-1) var(--space-3);
     border: 1px solid var(--border);
     background: var(--surface-2);
     color: var(--text);

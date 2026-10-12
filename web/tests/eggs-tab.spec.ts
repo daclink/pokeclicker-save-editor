@@ -12,7 +12,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/svelte'
 import { decodeBytes } from '../src/lib/save'
 import { store } from '../src/lib/store.svelte'
 import EggsTab from '../src/tabs/EggsTab.svelte'
-import { DEFAULT_NEW_EGG } from '../src/lib/breeding'
+import { DEFAULT_NEW_EGG, SHINY_CHANCE_BREEDING } from '../src/lib/breeding'
 
 const FIXTURE = resolve(__dirname, '..', '..', 'tests', 'fixtures', 'v0.10.25', 'minimal.txt')
 
@@ -23,7 +23,7 @@ beforeEach(() => {
   store.data = decodeBytes(readFileSync(FIXTURE, 'utf8').trim())
   const breeding = (store.data!.save as any).breeding
   breeding.eggList = [
-    { type: 0, pokemon: FORM_ID, steps: 10, totalSteps: 100, shinyChance: 1024, notified: false },
+    { type: 0, pokemon: FORM_ID, steps: 10, totalSteps: 100, shinyChance: SHINY_CHANCE_BREEDING, notified: false },
   ]
   // happy-dom may lack HTMLDialogElement.showModal/close.
   if (!HTMLDialogElement.prototype.showModal) {

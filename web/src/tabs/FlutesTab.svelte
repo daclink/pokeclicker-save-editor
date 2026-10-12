@@ -184,31 +184,31 @@
 <style>
   .empty {
     color: var(--text-muted);
-    padding: 1rem;
+    padding: var(--space-4);
     background: var(--surface-2);
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
   }
   .block {
-    margin-bottom: 1.25rem;
-    padding: 1rem 1.25rem;
+    margin-bottom: var(--space-4);
+    padding: var(--space-4) var(--space-4);
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: var(--radius);
     background: var(--surface);
     color: var(--text);
   }
   .block h3 {
-    margin: 0 0 0.5rem;
+    margin: 0 0 var(--space-2);
     font-size: 1rem;
   }
   .note {
-    margin: 0 0 0.75rem;
+    margin: 0 0 var(--space-3);
     color: var(--text-muted);
     font-size: 0.9em;
   }
   .note code {
     background: var(--surface-2);
-    padding: 0 0.25rem;
-    border-radius: 3px;
+    padding: 0 var(--space-1);
+    border-radius: var(--radius-xs);
     font-size: 0.95em;
   }
 
@@ -220,7 +220,7 @@
     margin: 0;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.4rem 0.75rem;
+    gap: var(--space-2) var(--space-3);
   }
   @media (max-width: 420px) {
     .grid {
@@ -230,8 +230,8 @@
   .cell label {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.25rem 0;
+    gap: var(--space-2);
+    padding: var(--space-1) 0;
     cursor: pointer;
   }
   .cell input[type='checkbox'] {
@@ -269,18 +269,18 @@
   }
 
   .actions {
-    margin-top: 0.75rem;
+    margin-top: var(--space-3);
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: var(--space-2);
   }
   .dup-warning button,
   .actions button {
-    padding: 0.35rem 0.8rem;
+    padding: var(--space-1) var(--space-3);
     border: 1px solid var(--border);
     background: var(--surface-2);
     color: var(--text);
-    border-radius: 4px;
+    border-radius: var(--radius-xs);
     cursor: pointer;
     font: inherit;
     font-size: 0.9em;
@@ -293,12 +293,12 @@
   .extras {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
-    gap: 0.5rem 0.75rem;
+    gap: var(--space-2) var(--space-3);
   }
   .extra-row {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: var(--space-1);
   }
   .extra-key {
     color: var(--text-muted);
@@ -307,11 +307,11 @@
   }
   .extra-row input {
     width: 100%;
-    padding: 0.25rem 0.5rem;
+    padding: var(--space-1) var(--space-2);
     border: 1px solid var(--border);
     background: var(--surface-2);
     color: var(--text);
-    border-radius: 4px;
+    border-radius: var(--radius-xs);
     font: inherit;
     text-align: right;
   }

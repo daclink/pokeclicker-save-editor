@@ -8,6 +8,7 @@ import { resolve } from 'node:path'
 import { describe, expect, test } from 'vitest'
 
 import { decodeBytes } from '../src/lib/save'
+import { POKEMON_TYPE_COUNT } from '../src/lib/data'
 import {
   KNOWN_GEM_TYPES,
   readExtraGems,
@@ -107,7 +108,7 @@ describe('writeKnownGems', () => {
     writeKnownGems(data, { Normal: 0 })
     const wallet = (data.save as any).gems.gemWallet as number[]
     expect(wallet[0]).toBe(0)
-    expect(wallet).toHaveLength(18)
+    expect(wallet).toHaveLength(POKEMON_TYPE_COUNT)
   })
 
   test('rejects negative and non-integer values', () => {
@@ -121,7 +122,7 @@ describe('writeKnownGems', () => {
     writeKnownGems(data, { Stellar: 100 } as unknown as GemCounts)
     const wallet = (data.save as any).gems.gemWallet as number[]
     // Only 18 positions, no 19th appended.
-    expect(wallet).toHaveLength(18)
+    expect(wallet).toHaveLength(POKEMON_TYPE_COUNT)
   })
 
   test('does not touch sibling keys under save.gems', () => {
@@ -163,7 +164,7 @@ describe('extras (wallet entries beyond index 17)', () => {
     const data = loadFixture()
     // Doesn't match /Type #<n>/ — silently ignored, no wallet growth.
     writeExtraGems(data, { 'Lucky_egg': 7 })
-    expect((data.save as any).gems.gemWallet).toHaveLength(18)
+    expect((data.save as any).gems.gemWallet).toHaveLength(POKEMON_TYPE_COUNT)
   })
 })
 
@@ -227,6 +228,6 @@ describe('writers create/pad the wallet', () => {
     writeExtraGems(data, { 'Type #18': 5 })
     const wallet = (data.save as any).gems.gemWallet as number[]
     expect(wallet[18]).toBe(5)
-    expect(wallet.slice(0, 18).every((v) => v === 0)).toBe(true)
+    expect(wallet.slice(0, POKEMON_TYPE_COUNT).every((v) => v === 0)).toBe(true)
   })
 })

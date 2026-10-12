@@ -262,20 +262,20 @@
 <style>
   .empty {
     color: var(--text-muted);
-    padding: 1rem;
+    padding: var(--space-4);
     background: var(--surface-2);
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
   }
   .block {
-    margin-bottom: 1.25rem;
-    padding: 1rem 1.25rem;
+    margin-bottom: var(--space-4);
+    padding: var(--space-4) var(--space-4);
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: var(--radius);
     background: var(--surface);
     color: var(--text);
   }
   .note {
-    margin: 0 0 0.75rem;
+    margin: 0 0 var(--space-3);
     color: var(--text-muted);
     font-size: 0.9em;
   }
@@ -285,29 +285,29 @@
   .controls {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: var(--space-4);
     flex-wrap: wrap;
-    margin-bottom: 0.75rem;
+    margin-bottom: var(--space-3);
   }
   .controls select {
     font: inherit;
-    padding: 0.25rem 0.4rem;
+    padding: var(--space-1) var(--space-2);
     border: 1px solid var(--border);
     background: var(--surface-2);
     color: var(--text);
-    border-radius: 4px;
-    margin-left: 0.25rem;
+    border-radius: var(--radius-xs);
+    margin-left: var(--space-1);
   }
   .check {
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
+    gap: var(--space-1);
     font-size: 0.9em;
     color: var(--text-muted);
   }
   .filter {
     font: inherit;
-    padding: 0.25rem 0.4rem;
+    padding: var(--space-1) var(--space-2);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     background: var(--surface);
@@ -336,7 +336,7 @@
     max-height: 28rem;
     overflow-y: auto;
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
     background: var(--surface);
     color: var(--text);
   }
@@ -353,7 +353,7 @@
   }
   th,
   td {
-    padding: 0.3rem 0.5rem;
+    padding: var(--space-1) var(--space-2);
     text-align: center;
     border-bottom: 1px solid var(--border);
   }
@@ -371,18 +371,18 @@
   }
 
   .actions {
-    margin-top: 0.75rem;
+    margin-top: var(--space-3);
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--space-2);
   }
   .actions button {
-    padding: 0.35rem 0.8rem;
+    padding: var(--space-1) var(--space-3);
     border: 1px solid var(--border);
     background: var(--surface-2);
     color: var(--text);
-    border-radius: 4px;
+    border-radius: var(--radius-xs);
     cursor: pointer;
     font: inherit;
     font-size: 0.9em;
@@ -395,6 +395,6 @@
     cursor: not-allowed;
   }
   .bump {
-    margin-left: 0.5rem;
+    margin-left: var(--space-2);
   }
 </style>

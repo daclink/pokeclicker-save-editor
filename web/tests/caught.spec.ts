@@ -15,6 +15,7 @@ import { resolve } from 'node:path'
 import { describe, expect, test } from 'vitest'
 
 import { decodeBytes } from '../src/lib/save'
+import { SHINY_CHANCE_BREEDING } from '../src/lib/breeding'
 import {
   readCaughtRows,
   setCaughtAtkBonus,
@@ -43,7 +44,7 @@ function withEgg(data: ReturnType<typeof loadFixture>, pokemon: number) {
   const save = data.save as any
   save.breeding = save.breeding ?? {}
   save.breeding.eggList = [
-    { type: 0, pokemon, steps: 0, totalSteps: 100, shinyChance: 1024, notified: false },
+    { type: 0, pokemon, steps: 0, totalSteps: 100, shinyChance: SHINY_CHANCE_BREEDING, notified: false },
   ]
   return data
 }

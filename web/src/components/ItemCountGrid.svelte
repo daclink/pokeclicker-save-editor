@@ -72,7 +72,7 @@
   .cell {
     display: flex;
     flex-direction: column;
-    gap: 0.2rem;
+    gap: var(--space-1);
   }
   .name {
     color: var(--text-muted);

@@ -44,6 +44,45 @@ function rawColorLines(css: string): string[] {
     .map((line) => line.trim())
 }
 
+/** Spacing/radius properties whose values must come from the tokens. */
+const SPACING_PROP = /^\s*(?:padding|margin|gap|row-gap|column-gap|border-radius)(?:-(?:top|right|bottom|left))?\s*:\s*([^;]+);/
+/** One allowed value part: a token reference, zero, or auto. */
+const SPACING_PART = /^(?:var\(--[a-z0-9-]+\)|0|auto)$/
+
+function rawSpacingLines(css: string): string[] {
+  return css
+    .split('\n')
+    .filter((line) => {
+      const m = line.match(SPACING_PROP)
+      if (!m) return false
+      return !m[1].trim().split(/\s+/).every((part) => SPACING_PART.test(part))
+    })
+    .map((line) => line.trim())
+}
+
+describe('spacing-token guard', () => {
+  test('detector flags raw spacing and radius values', () => {
+    expect(rawSpacingLines('  padding: 8px;')).toHaveLength(1)
+    expect(rawSpacingLines('  margin-top: 0.5rem;')).toHaveLength(1)
+    expect(rawSpacingLines('  gap: 4px 8px;')).toHaveLength(1)
+    expect(rawSpacingLines('  border-radius: 50%;')).toHaveLength(1)
+    expect(rawSpacingLines('  padding: 0 var(--space-2) 3px;')).toHaveLength(1)
+    expect(rawSpacingLines('  padding: var(--space-1) var(--space-2);')).toHaveLength(0)
+    expect(rawSpacingLines('  margin: 0 auto;')).toHaveLength(0)
+    expect(rawSpacingLines('  gap: 0;')).toHaveLength(0)
+    expect(rawSpacingLines('  border-radius: var(--radius-sm);')).toHaveLength(0)
+    // Widths and non-spacing properties are out of scope.
+    expect(rawSpacingLines('  width: 9rem;')).toHaveLength(0)
+    expect(rawSpacingLines('  border: 1px solid var(--border);')).toHaveLength(0)
+  })
+
+  for (const file of allComponents()) {
+    test(`${file} uses only spacing/radius tokens`, () => {
+      expect(rawSpacingLines(styleBlock(file))).toEqual([])
+    })
+  }
+})
+
 describe('design-token guard', () => {
   test('detector flags raw colors (sanity check on the patterns)', () => {
     expect(rawColorLines('  background: #fafafa;')).toHaveLength(1)

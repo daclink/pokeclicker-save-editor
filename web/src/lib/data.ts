@@ -158,14 +158,18 @@ const _buckets = genderBucketsJson as GenderBucketsJson
 const BUCKET_LABELS = _buckets.labels as readonly GenderBucket[]
 const BUCKET_INDEX: string = _buckets.index
 
-// Backward-compat alias for callers that still want Kanto only.
-export const KANTO_NAMES: readonly string[] = NATIONAL_NAMES.slice(0, 151)
-
 // --- import-time invariants (parallel to pokeclicker_data.py) --------------
 
-if (NATIONAL_NAMES.length !== 1025) {
+/** National roster size at the pinned game version (ids 1..1025, PokemonList.ts). */
+export const NATIONAL_ROSTER_SIZE = 1025
+/** Count of PokemonType members (Normal..Fairy) in the game's PokemonType enum. */
+export const POKEMON_TYPE_COUNT = 18
+/** Berry roster size at the pinned game version (BerryType enum, Cheri..Hopo). */
+export const BERRY_ROSTER_SIZE = 70
+
+if (NATIONAL_NAMES.length !== NATIONAL_ROSTER_SIZE) {
   throw new Error(
-    `national roster is 1025 names, got ${NATIONAL_NAMES.length}`,
+    `national roster is ${NATIONAL_ROSTER_SIZE} names, got ${NATIONAL_NAMES.length}`,
   )
 }
 if (BUCKET_INDEX.length !== NATIONAL_NAMES.length) {
@@ -180,14 +184,14 @@ if (POKEMON_TYPES.length !== NATIONAL_NAMES.length) {
       `NATIONAL_NAMES (${NATIONAL_NAMES.length})`,
   )
 }
-if (POKEMON_TYPE_NAMES.length !== 18) {
-  throw new Error(`expected 18 PokemonType names, got ${POKEMON_TYPE_NAMES.length}`)
+if (POKEMON_TYPE_NAMES.length !== POKEMON_TYPE_COUNT) {
+  throw new Error(`expected ${POKEMON_TYPE_COUNT} PokemonType names, got ${POKEMON_TYPE_NAMES.length}`)
 }
 if (parseGameVersion(DATA_GAME_VERSION) === null) {
   throw new Error(`manifest.json: gameVersion ${JSON.stringify(DATA_GAME_VERSION)} is not X.Y.Z`)
 }
-if (BERRY_NAMES.length !== 70) {
-  throw new Error(`berry roster is 70 names, got ${BERRY_NAMES.length}`)
+if (BERRY_NAMES.length !== BERRY_ROSTER_SIZE) {
+  throw new Error(`berry roster is ${BERRY_ROSTER_SIZE} names, got ${BERRY_NAMES.length}`)
 }
 if (BERRY_NAMES[0] !== 'Cheri' || BERRY_NAMES[BERRY_NAMES.length - 1] !== 'Hopo') {
   throw new Error(
