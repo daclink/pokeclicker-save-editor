@@ -1,26 +1,15 @@
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, test } from 'vitest'
 
-// Guard for the Phase 2 tab migration: once a component is migrated to the
-// design tokens in `src/app.css`, its <style> block must not reintroduce raw
-// colors. Hardcoded light backgrounds were the root cause of the
-// "unreadable in dark mode" bug (light --text inherited onto #fafafa/white).
-//
-// Add a file here when its migration lands; the list grows until it covers
-// every tab, at which point it can become a glob.
-const MIGRATED_COMPONENTS = [
-  'src/tabs/BerriesTab.svelte',
-  'src/components/SimpleIntDialog.svelte',
-  'src/tabs/InventoryTab.svelte',
-  'src/components/ItemCountGrid.svelte',
-  'src/tabs/CaughtTab.svelte',
-  'src/components/NumberField.svelte',
-  'src/tabs/CurrenciesTab.svelte',
-  'src/tabs/EggsTab.svelte',
-  'src/tabs/QuestsTab.svelte',
-  'src/tabs/UndergroundTab.svelte',
-] as const
+// Every component's <style> block must use the design tokens in
+// `src/app.css` for color — no raw hex/rgb/named colors. Hardcoded light
+// backgrounds were the root cause of the "unreadable in dark mode" bug
+// (light --text inherited onto #fafafa/white). The Phase 2 migration
+// finished with Shards, Gems, Flutes, Pokédex and the Sidebar scrim, so the
+// guard now covers every .svelte file, including ones added later.
+const COMPONENT_EXT = '.svelte'
+const SRC_DIR = 'src'
 
 const WEB_ROOT = resolve(__dirname, '..')
 
@@ -32,6 +21,15 @@ const RAW_COLOR_PATTERNS: readonly RegExp[] = [
   /\b(?:rgb|rgba|hsl|hsla)\(/,
   /:\s*(?:white|black|gray|grey|silver)\b/,
 ]
+
+/** Every component under src/, as paths relative to the web root. */
+function allComponents(): string[] {
+  return readdirSync(resolve(WEB_ROOT, SRC_DIR), { recursive: true })
+    .map(String)
+    .filter((f) => f.endsWith(COMPONENT_EXT))
+    .map((f) => `${SRC_DIR}/${f}`)
+    .sort()
+}
 
 function styleBlock(relPath: string): string {
   const src = readFileSync(resolve(WEB_ROOT, relPath), 'utf8')
@@ -57,11 +55,16 @@ describe('design-token guard', () => {
     expect(rawColorLines('  white-space: nowrap;')).toHaveLength(0)
   })
 
-  for (const file of MIGRATED_COMPONENTS) {
+  test('finds the components (guards against an empty glob)', () => {
+    const files = allComponents()
+    expect(files).toContain('src/App.svelte')
+    expect(files).toContain('src/tabs/PokedexTab.svelte')
+    expect(files).toContain('src/components/Sidebar.svelte')
+  })
+
+  for (const file of allComponents()) {
     test(`${file} uses only design tokens for color`, () => {
-      const css = styleBlock(file)
-      expect(css.length).toBeGreaterThan(0)
-      expect(rawColorLines(css)).toEqual([])
+      expect(rawColorLines(styleBlock(file))).toEqual([])
     })
   }
 })

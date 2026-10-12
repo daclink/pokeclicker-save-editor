@@ -116,6 +116,39 @@ export function regionRows(
 
 // --- writes -----------------------------------------------------------------
 
+// --- filter + sort (pure; the tab applies these to regionRows output) ---------
+
+export type DexSortKey = 'id' | 'name'
+export type SortDir = 'asc' | 'desc'
+
+/** A query that reads as an id: digits, optional decimal part, optional `#`. */
+const ID_QUERY = /^#?(\d+(?:\.\d*)?)$/
+
+/**
+ * Rows whose name contains `query` (case-insensitive), or — when the query
+ * is a number like `201` or `#201.06` — whose id starts with it, so a
+ * species' forms come along. A blank query keeps everything.
+ */
+export function filterRows(rows: readonly DexRow[], query: string): DexRow[] {
+  const q = query.trim().toLowerCase()
+  if (q === '') return [...rows]
+  const id = ID_QUERY.exec(q)?.[1]
+  return rows.filter((r) =>
+    id !== undefined ? String(r.pid).startsWith(id) : r.name.toLowerCase().includes(q),
+  )
+}
+
+const NAME_COLLATOR = new Intl.Collator(undefined, { sensitivity: 'base' })
+
+/** A sorted copy: by numeric id, or by name (ties broken by id). */
+export function sortRows(rows: readonly DexRow[], key: DexSortKey, dir: SortDir): DexRow[] {
+  const sign = dir === 'asc' ? 1 : -1
+  return [...rows].sort((a, b) => {
+    const byKey = key === 'id' ? a.pid - b.pid : NAME_COLLATOR.compare(a.name, b.name) || a.pid - b.pid
+    return sign * byKey
+  })
+}
+
 /**
  * Append caught entries for any `ids` not already in the party. Returns the
  * number of entries actually added. With `bumpStats`, also updates the

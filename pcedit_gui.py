@@ -40,6 +40,14 @@ from pcedit_backup import (
     list_backups,
     make_backup,
 )
+from pcedit_notice import (
+    DEPRECATION_BANNER_BG,
+    DEPRECATION_BANNER_BORDER,
+    DEPRECATION_BANNER_FG,
+    DEPRECATION_BANNER_TEXT,
+    DEPRECATION_BUTTON_TEXT,
+    WEB_APP_URL,
+)
 from pcedit_updates import (
     REPO,
     UpdateResult,
@@ -116,6 +124,7 @@ class PCEditGUI(tk.Tk):
 
         self._build_menubar()
         self._build_top_bar()
+        self._build_deprecation_banner()
         self._build_update_banner()
         self._build_status_bar()
         self._build_notebook()
@@ -169,6 +178,8 @@ class PCEditGUI(tk.Tk):
 
         # Help menu
         help_menu = tk.Menu(menubar, tearoff=0)
+        help_menu.add_command(label=f"{DEPRECATION_BUTTON_TEXT}…",
+                              command=self._open_web_app)
         help_menu.add_command(label="Check for updates…",
                               command=self._open_update_check_dialog)
         help_menu.add_command(label="Browse all backups…",
@@ -207,6 +218,28 @@ class PCEditGUI(tk.Tk):
         self.btn_save.pack(side="left", padx=4)
         self.btn_undo = ttk.Button(btn_row, text="Undo (.bak)", command=self.on_undo)
         self.btn_undo.pack(side="left", padx=4)
+
+    def _build_deprecation_banner(self) -> None:
+        # Always shown: the desktop app is deprecated in favour of the web app.
+        banner = tk.Frame(self, background=DEPRECATION_BANNER_BG,
+                          highlightbackground=DEPRECATION_BANNER_BORDER,
+                          highlightthickness=1)
+        banner.pack(fill="x", after=self._top_bar_frame)
+        # Button packed first so the wrapping label can't push it off-screen.
+        ttk.Button(banner, text=DEPRECATION_BUTTON_TEXT,
+                   command=self._open_web_app).pack(side="right", padx=8, pady=4)
+        label = tk.Label(banner, background=DEPRECATION_BANNER_BG,
+                         foreground=DEPRECATION_BANNER_FG, anchor="w",
+                         justify="left", padx=8, pady=4,
+                         text=DEPRECATION_BANNER_TEXT)
+        label.pack(side="left", fill="x", expand=True)
+        # Wrap to the label's own width as the window resizes.
+        label.bind("<Configure>",
+                   lambda e: label.config(wraplength=max(e.width - 16, 1)))
+        self.deprecation_banner = banner
+
+    def _open_web_app(self) -> None:
+        webbrowser.open(WEB_APP_URL)
 
     def _build_update_banner(self) -> None:
         # Hidden until the update check returns "available".

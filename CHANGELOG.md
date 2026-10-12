@@ -20,8 +20,23 @@ Release notes.
   does. The roster is generated from the game's `UndergroundItems.ts`
   (`data/underground-items.json`). Shards, evolution stones and mega stones
   are mined too but stay on the Shards and Inventory tabs.
+- **Pokédex search and sort (web).** A filter box matches a name ("unown")
+  or an id prefix ("201", "#869.1"), so a species brings its forms along.
+  The **ID** and **Name** column headers sort (click again to reverse).
+  Checked rows stay selected while you change the filter, so you can gather
+  picks from several searches and mark them in one go.
+
+### Deprecated
+- **Desktop app.** The desktop editor now shows a banner, plus a Help menu
+  item, linking to the web app. It still works and installers are still
+  built, but new features land only in the web app. The README leads with
+  the web app and labels the installers as the deprecated desktop app.
 
 ### Fixed
+- **Dark mode: Shards, Gems, Flutes and Pokédex were unreadable.** Their
+  light panels inherited the dark theme's light text. They now use the design
+  tokens like every other tab, and the token guard test covers every
+  component automatically.
 - **Shards tab listed the wrong colours.** It showed an *Indigo* shard that
   doesn't exist in PokeClicker and was missing **Brown** and **Slate**. The
   shard list now comes from the game's own underground item list.

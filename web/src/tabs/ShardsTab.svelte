@@ -163,17 +163,18 @@
 
 <style>
   .empty {
-    color: #666;
+    color: var(--text-muted);
     padding: 1rem;
-    background: #f5f5f5;
+    background: var(--surface-2);
     border-radius: 6px;
   }
   .block {
     margin-bottom: 1.25rem;
     padding: 1rem 1.25rem;
-    border: 1px solid #e5e5e5;
+    border: 1px solid var(--border);
     border-radius: 8px;
-    background: #fafafa;
+    background: var(--surface);
+    color: var(--text);
   }
   .block h3 {
     margin: 0 0 0.5rem;
@@ -181,11 +182,11 @@
   }
   .note {
     margin: 0 0 0.75rem;
-    color: #666;
+    color: var(--text-muted);
     font-size: 0.9em;
   }
   .note code {
-    background: #eee;
+    background: var(--surface-2);
     padding: 0 0.25rem;
     border-radius: 3px;
     font-size: 0.95em;
@@ -208,21 +209,23 @@
     gap: 0.25rem;
   }
   .color {
-    color: #444;
+    color: var(--text-muted);
     font-size: 0.85em;
   }
   .cell input,
   .extra-row input {
     width: 100%;
     padding: 0.25rem 0.5rem;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text);
     border-radius: 4px;
     font: inherit;
     text-align: right;
   }
   .cell input:focus,
   .extra-row input:focus {
-    outline: 2px solid #2563eb;
+    outline: 2px solid var(--focus-ring);
     outline-offset: -1px;
   }
 
@@ -234,15 +237,16 @@
   }
   .actions button {
     padding: 0.35rem 0.8rem;
-    border: 1px solid #ccc;
-    background: white;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text);
     border-radius: 4px;
     cursor: pointer;
     font: inherit;
     font-size: 0.9em;
   }
   .actions button:hover {
-    background: #f0f0f0;
+    border-color: var(--text-muted);
   }
 
   .extras {
@@ -256,7 +260,7 @@
     gap: 0.25rem;
   }
   .extra-key {
-    color: #444;
+    color: var(--text-muted);
     font-size: 0.85em;
     font-family: ui-monospace, monospace;
   }
