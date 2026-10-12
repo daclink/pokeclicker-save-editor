@@ -12,15 +12,14 @@
  * preserve them on write, never truncating the underlying array.
  */
 import type { SaveData } from './save'
+import { POKEMON_TYPE_NAMES } from './data'
 
-/** The 18 PokeClicker types in canonical `PokemonType` enum order. */
-export const KNOWN_GEM_TYPES: readonly string[] = [
-  'Normal',   'Fighting', 'Flying', 'Poison',  // 0–3
-  'Ground',   'Rock',     'Bug',    'Ghost',   // 4–7
-  'Steel',    'Fire',     'Water',  'Grass',   // 8–11
-  'Electric', 'Psychic',  'Ice',    'Dragon',  // 12–15
-  'Dark',     'Fairy',                         // 16–17
-]
+/**
+ * The 18 PokeClicker types in `PokemonType` enum order — wallet position `i`
+ * is the gem of type `i`. Shares the one hand-kept list in data.ts so the
+ * Gems tab and the type filters can't drift apart.
+ */
+export const KNOWN_GEM_TYPES: readonly string[] = POKEMON_TYPE_NAMES
 
 export type GemCounts = Record<string, number>
 
