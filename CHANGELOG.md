@@ -25,6 +25,9 @@ Release notes.
   The **ID** and **Name** column headers sort (click again to reverse).
   Checked rows stay selected while you change the filter, so you can gather
   picks from several searches and mark them in one go.
+- **Unsaved-changes warning (web).** Closing or reloading the tab after
+  editing a save, without downloading it, now asks before leaving so an
+  edit session isn't lost by accident.
 
 ### Changed
 - **Game data now comes from the released game (v0.10.26).** The editor's
@@ -45,6 +48,25 @@ Release notes.
   the web app and labels the installers as the deprecated desktop app.
 
 ### Fixed
+- **Selections carried over to the next save.** Rows ticked on the Caught,
+  Pokédex or Berries tab (and open edit dialogs) stayed selected after
+  Browse… loaded a different save, so a bulk action could hit the same ids
+  in the new one. Loading a save now resets the open tab.
+- **Refused numbers stayed in the field.** When a value was rejected (5 egg
+  slots, a 0.5 multiplier) the field kept showing it although the save
+  wasn't changed. It now snaps back to the saved value.
+- **Pokédex id search lists the exact match first.** Searching `25` used to
+  bury #25 among 250–259 whenever the list was sorted by name or
+  descending. The searched species and its forms now come first, with the
+  rest in the chosen order.
+- **The app failed to start with browser storage blocked.** In Safari
+  private mode (or with site data blocked) reading the saved theme threw and
+  the page stayed blank. It now falls back to the default theme; the toggle
+  still works, it just isn't remembered.
+- **Viewing a tab could add empty data to an incomplete save.** The Gems,
+  Shards, Inventory and Underground tabs created a missing gem wallet or
+  item list (and padded a short wallet) just by being opened. Reading no
+  longer changes the save; only an edit does.
 - **Number fields misread what you typed.** `1e6` became 1, `1.5` became 1
   and `5k` or `12abc` became 5 and 12, silently. Fields now take a whole
   number or a plain decimal (`1000000`, `1,000,000`, `1e6`), and anything

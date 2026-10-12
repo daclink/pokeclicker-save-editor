@@ -87,6 +87,16 @@ describe('PokedexTab sorting', () => {
     expect(firstDesc).toBe('Zubat')
   })
 
+  test('an id query puts the exact species first even when sorted descending', async () => {
+    const { getByRole, getByLabelText, container } = render(PokedexTab)
+    await fireEvent.click(getByRole('button', { name: /^ID/ }))
+    await fireEvent.input(getByLabelText(FILTER), { target: { value: '1' } })
+    const ids = shownIds(container)
+    expect(ids[0]).toBe('#1')
+    // The rest keep the chosen (descending) order.
+    expect(ids.slice(1, 3)).toEqual(['#151', '#150'])
+  })
+
   test('the active sort header reports its direction', async () => {
     const { getByRole } = render(PokedexTab)
     const idHeader = getByRole('columnheader', { name: /^ID/ })

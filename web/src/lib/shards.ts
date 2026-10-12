@@ -25,7 +25,17 @@ export const KNOWN_SHARD_COLORS: readonly string[] = UNDERGROUND_ITEMS
 
 export type ShardCounts = Record<string, number>
 
-function getItemList(data: SaveData): Record<string, unknown> {
+// Readers ("peek") never write: the tab calls them inside Svelte `$derived`,
+// where mutating `$state` throws `state_unsafe_mutation`. A missing
+// `_itemList` reads as empty; only the write helpers ("ensure") create it.
+
+function peekItemList(data: SaveData): Record<string, unknown> {
+  const player = data.player as Record<string, unknown> | undefined
+  const items = player?._itemList
+  return items && typeof items === 'object' ? (items as Record<string, unknown>) : {}
+}
+
+function ensureItemList(data: SaveData): Record<string, unknown> {
   const player = (data.player ?? {}) as Record<string, unknown>
   let items = player._itemList as Record<string, unknown> | undefined
   if (!items) {
@@ -38,7 +48,7 @@ function getItemList(data: SaveData): Record<string, unknown> {
 
 /** Read counts for every known colour. Missing entries default to 0. */
 export function readKnownShards(data: SaveData): ShardCounts {
-  const items = getItemList(data)
+  const items = peekItemList(data)
   const out: ShardCounts = {}
   for (const color of KNOWN_SHARD_COLORS) {
     const key = `${color}${SHARD_KEY_SUFFIX}`
@@ -54,7 +64,7 @@ export function readKnownShards(data: SaveData): ShardCounts {
  * Keyed by the full item name (e.g. `Sapphire_shard`), value is the count.
  */
 export function readExtraShards(data: SaveData): ShardCounts {
-  const items = getItemList(data)
+  const items = peekItemList(data)
   const known = new Set(KNOWN_SHARD_COLORS.map((c) => `${c}${SHARD_KEY_SUFFIX}`))
   const out: ShardCounts = {}
   for (const [key, value] of Object.entries(items)) {
@@ -74,7 +84,7 @@ export function readExtraShards(data: SaveData): ShardCounts {
  * completely alone.
  */
 export function writeKnownShards(data: SaveData, edits: ShardCounts): void {
-  const items = getItemList(data)
+  const items = ensureItemList(data)
   for (const color of KNOWN_SHARD_COLORS) {
     const key = `${color}${SHARD_KEY_SUFFIX}`
     const v = edits[color]
@@ -93,7 +103,7 @@ export function writeKnownShards(data: SaveData, edits: ShardCounts): void {
  * the UI only ever feeds in keys readExtraShards surfaced.
  */
 export function writeExtraShards(data: SaveData, edits: ShardCounts): void {
-  const items = getItemList(data)
+  const items = ensureItemList(data)
   for (const [key, v] of Object.entries(edits)) {
     if (!Number.isInteger(v) || v < 0) {
       throw new RangeError(`${key}: expected non-negative integer, got ${v}`)

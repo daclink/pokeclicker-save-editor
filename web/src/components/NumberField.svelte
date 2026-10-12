@@ -10,11 +10,15 @@
   // Integer fields also reject fractions ("1.5") rather than truncating.
   // onCommit fires only when the parsed value differs from `value`, so
   // tabbing through a field never marks the save dirty or rewrites it.
+  // After onCommit the text resyncs from `value`: a parent that refuses the
+  // number (its lib helper threw) leaves `value` unchanged, so the field
+  // snaps back instead of showing a value the save doesn't hold.
   //
   // Local `text` state keeps the user's in-flight edits independent from
   // the source `value` until commit, which is what makes Reset work without
   // jankily snapping the cursor mid-typing.
 
+  import { tick } from 'svelte'
   import { parseNumberInput } from '../lib/numberInput'
 
   type Props = {
@@ -64,7 +68,7 @@
     return String(v)
   }
 
-  function commit(): void {
+  async function commit(): Promise<void> {
     const n = parseNumberInput(text, { integer })
     // Rejected input, or nothing changed: resync the text ("05" -> "5",
     // garbage -> the current value) and leave the save alone.
@@ -72,7 +76,17 @@
       text = formatValue(value, integer)
       return
     }
-    onCommit(n)
+    try {
+      onCommit(n)
+    } catch (e) {
+      // Parents surface their own errors; one that escapes is a bug, so log
+      // it rather than leave an unhandled rejection — and still resync.
+      console.error(e)
+    }
+    // Let an accepting parent's new `value` arrive, then show whatever the
+    // save now holds (a no-op when it accepted: the effect already did it).
+    await tick()
+    text = formatValue(value, integer)
   }
 
   function onKeyDown(evt: KeyboardEvent): void {

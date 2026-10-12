@@ -17,6 +17,12 @@ class AppStore {
   errorDetail = $state('')
   /** True after any commit() call until the next load or download. */
   isDirty = $state(false)
+  /**
+   * Bumped by every successful load (a failed pick keeps the old data, so
+   * it doesn't count). App keys the active tab on it so per-tab selections,
+   * drafts and open dialogs never carry over to a different save.
+   */
+  loadId = $state(0)
 
   async load(file: File): Promise<void> {
     this.errorDetail = ''
@@ -25,6 +31,7 @@ class AppStore {
       this.data = decodeBytes(text)
       this.fileName = file.name
       this.isDirty = false
+      this.loadId++
       this.status = `loaded ${file.name}`
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)

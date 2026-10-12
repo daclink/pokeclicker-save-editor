@@ -14,6 +14,7 @@
   import { ALL_REGIONS, DATA_GAME_VERSION, DEX_REGION_OPTIONS, REGION_RANGES } from '../lib/data'
   import { saveGameVersion } from '../lib/quests'
   import {
+    exactIdFirst,
     filterRows,
     formsMarkableFor,
     isFormId,
@@ -62,8 +63,12 @@
     void tick
     return store.data ? regionRows(store.data, region, false, { includeForms: showForms }) : []
   })
+  // Filter, then sort, then (for an id query) lift the exact species to the top.
   let rows = $derived(
-    sortRows(filterRows(uncaughtOnly ? allRows.filter((r) => !r.caught) : allRows, query), sortKey, sortDir),
+    exactIdFirst(
+      sortRows(filterRows(uncaughtOnly ? allRows.filter((r) => !r.caught) : allRows, query), sortKey, sortDir),
+      query,
+    ),
   )
   let filtering = $derived(query.trim() !== '')
   let caughtSet = $derived(new Set(allRows.filter((r) => r.caught).map((r) => r.pid)))

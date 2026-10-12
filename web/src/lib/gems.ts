@@ -23,7 +23,19 @@ export const KNOWN_GEM_TYPES: readonly string[] = POKEMON_TYPE_NAMES
 
 export type GemCounts = Record<string, number>
 
-function getGemWallet(data: SaveData): number[] {
+// Readers ("peek") never write: the tab calls them inside Svelte `$derived`,
+// where mutating `$state` throws `state_unsafe_mutation`. A missing wallet,
+// or a missing position in a short one, reads as 0. Only the write helpers
+// ("ensure") create `save.gems.gemWallet` and pad it to every known type.
+
+function peekGemWallet(data: SaveData): readonly unknown[] {
+  const save = data.save as Record<string, unknown> | undefined
+  const gems = save?.gems as Record<string, unknown> | undefined
+  const wallet = gems?.gemWallet
+  return Array.isArray(wallet) ? wallet : []
+}
+
+function ensureGemWallet(data: SaveData): number[] {
   const save = (data.save ?? {}) as Record<string, unknown>
   let gems = save.gems as Record<string, unknown> | undefined
   if (!gems) {
@@ -36,14 +48,14 @@ function getGemWallet(data: SaveData): number[] {
     wallet = Array<number>(KNOWN_GEM_TYPES.length).fill(0)
     gems.gemWallet = wallet
   }
-  // Pad short wallets up to 18 so callers can rely on every known index.
+  // Pad short wallets up to 18 so writes land on fixed positions.
   while (wallet.length < KNOWN_GEM_TYPES.length) wallet.push(0)
   return wallet
 }
 
 /** Read counts for the 18 canonical types. */
 export function readKnownGems(data: SaveData): GemCounts {
-  const wallet = getGemWallet(data)
+  const wallet = peekGemWallet(data)
   const out: GemCounts = {}
   KNOWN_GEM_TYPES.forEach((name, i) => {
     const v = wallet[i]
@@ -58,7 +70,7 @@ export function readKnownGems(data: SaveData): GemCounts {
  * PokeClicker types without truncating the save.
  */
 export function readExtraGems(data: SaveData): GemCounts {
-  const wallet = getGemWallet(data)
+  const wallet = peekGemWallet(data)
   const out: GemCounts = {}
   for (let i = KNOWN_GEM_TYPES.length; i < wallet.length; i++) {
     const v = wallet[i]
@@ -79,7 +91,7 @@ function validate(name: string, v: number): void {
  * keys — protects against typo'd inputs from the UI).
  */
 export function writeKnownGems(data: SaveData, edits: GemCounts): void {
-  const wallet = getGemWallet(data)
+  const wallet = ensureGemWallet(data)
   for (const [name, v] of Object.entries(edits)) {
     const idx = KNOWN_GEM_TYPES.indexOf(name)
     if (idx < 0) continue
@@ -93,7 +105,7 @@ export function writeKnownGems(data: SaveData, edits: GemCounts): void {
  * `'Type #<n>'` where `n >= 18` — anything else is ignored.
  */
 export function writeExtraGems(data: SaveData, edits: GemCounts): void {
-  const wallet = getGemWallet(data)
+  const wallet = ensureGemWallet(data)
   for (const [name, v] of Object.entries(edits)) {
     const m = /^Type #(\d+)$/.exec(name)
     if (!m) continue

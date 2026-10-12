@@ -40,9 +40,10 @@ describe('readItemCounts', () => {
     })
   })
 
-  test('creates an empty _itemList when the player has none', () => {
+  test('reads a missing _itemList as zeros without creating it', () => {
     const d: SaveData = { player: {} }
     expect(readItemCounts(d, ['Leaf_stone'])).toEqual({ Leaf_stone: 0 })
+    expect(d).toEqual({ player: {} })
   })
 })
 
@@ -149,5 +150,44 @@ describe('mega stones', () => {
     for (const s of all) expect(itemList(d)[s]).toBe(1)
     setMegaStones(d, all, false)
     expect(itemList(d)).toEqual(UNRELATED)
+  })
+})
+
+/**
+ * Readers run inside Svelte `$derived` (Inventory and Underground tabs):
+ * they must never create `_itemList` or `player`.
+ */
+describe('readers never mutate the save', () => {
+  const readAll = (d: SaveData) => {
+    readItemCounts(d, ['Leaf_stone', 'Fire_egg'])
+    readMegaStones(d)
+  }
+
+  test('no _itemList', () => {
+    const d = makeSave({}, [25])
+    delete (d.player as Record<string, unknown>)._itemList
+    const before = JSON.stringify(d)
+    readAll(d)
+    expect(JSON.stringify(d)).toBe(before)
+    expect(readMegaStones(d).every((r) => !r.owned)).toBe(true)
+  })
+
+  test('no player at all', () => {
+    const d: SaveData = { save: { party: { caughtPokemon: [] } } }
+    const before = JSON.stringify(d)
+    readAll(d)
+    expect(JSON.stringify(d)).toBe(before)
+  })
+
+  test('writes still create player._itemList', () => {
+    const a: SaveData = {}
+    setItemCount(a, 'Leaf_stone', 2)
+    expect(itemList(a).Leaf_stone).toBe(2)
+    const b: SaveData = {}
+    setItemCounts(b, ['Fire_egg'], 3)
+    expect(itemList(b).Fire_egg).toBe(3)
+    const c: SaveData = {}
+    setMegaStone(c, MEGA_STONES[0].stone, true)
+    expect(itemList(c)[MEGA_STONES[0].stone]).toBe(1)
   })
 })

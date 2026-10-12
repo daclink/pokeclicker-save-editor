@@ -29,7 +29,17 @@ export type MegaStoneRow = {
   baseCaught: boolean
 }
 
-function getItemList(data: SaveData): Record<string, unknown> {
+// Readers ("peek") never write: the tab calls them inside Svelte `$derived`,
+// where mutating `$state` throws `state_unsafe_mutation`. A missing
+// `_itemList` reads as empty; only the write helpers ("ensure") create it.
+
+function peekItemList(data: SaveData): Record<string, unknown> {
+  const player = data.player as Record<string, unknown> | undefined
+  const items = player?._itemList
+  return items && typeof items === 'object' ? (items as Record<string, unknown>) : {}
+}
+
+function ensureItemList(data: SaveData): Record<string, unknown> {
   const player = (data.player ?? {}) as Record<string, unknown>
   let items = player._itemList as Record<string, unknown> | undefined
   if (!items) {
@@ -67,7 +77,7 @@ export function megaStoneBaseId(base: string): number | null {
 
 /** Counts for `keys`; missing entries read as 0. */
 export function readItemCounts(data: SaveData, keys: readonly string[]): ItemCounts {
-  const items = getItemList(data)
+  const items = peekItemList(data)
   const out: ItemCounts = {}
   for (const key of keys) {
     const v = items[key]
@@ -79,13 +89,13 @@ export function readItemCounts(data: SaveData, keys: readonly string[]): ItemCou
 /** Set one item's count; 0 deletes the key. */
 export function setItemCount(data: SaveData, key: string, n: number): void {
   ensureCount(key, n)
-  writeCount(getItemList(data), key, n)
+  writeCount(ensureItemList(data), key, n)
 }
 
 /** Set the same count on many items (validated before any write). */
 export function setItemCounts(data: SaveData, keys: readonly string[], n: number): void {
   ensureCount('item count', n)
-  const items = getItemList(data)
+  const items = ensureItemList(data)
   for (const key of keys) writeCount(items, key, n)
 }
 
@@ -93,7 +103,7 @@ export function setItemCounts(data: SaveData, keys: readonly string[], n: number
 
 /** One row per mega stone in roster order. */
 export function readMegaStones(data: SaveData): MegaStoneRow[] {
-  const items = getItemList(data)
+  const items = peekItemList(data)
   const caught = caughtIdSet(data)
   return MEGA_STONES.map(({ stone, base }) => {
     const v = items[stone]
@@ -115,6 +125,6 @@ export function setMegaStone(data: SaveData, stone: string, owned: boolean): voi
 /** Give or remove many mega stones; every name is validated before any write. */
 export function setMegaStones(data: SaveData, stones: readonly string[], owned: boolean): void {
   for (const stone of stones) ensureMegaStone(stone)
-  const items = getItemList(data)
+  const items = ensureItemList(data)
   for (const stone of stones) writeCount(items, stone, owned ? MEGA_STONE_OWNED_COUNT : 0)
 }

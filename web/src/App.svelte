@@ -1,7 +1,9 @@
 <script lang="ts">
   // App shell: sidebar nav + main column (save bar, active section, footer).
   // Sections render conditionally — unmounting on switch keeps per-tab state
-  // (open dialogs, drafts) from leaking across.
+  // (open dialogs, drafts) from leaking across. The section block is also
+  // keyed on `store.loadId`, so loading another save remounts the tab and
+  // clears its selections/filters instead of applying them to the new save.
   import Sidebar from './components/Sidebar.svelte'
   import SaveBar from './components/SaveBar.svelte'
   import EmptyState from './components/EmptyState.svelte'
@@ -21,6 +23,21 @@
   import UndergroundTab from './tabs/UndergroundTab.svelte'
 
   let active = $state<SectionId>(SECTIONS[0].id)
+
+  // Closing or reloading the tab with unsaved edits asks first. The handler
+  // reads `store.isDirty` when the event fires, so the effect reads nothing
+  // reactive and registers exactly once.
+  function onBeforeUnload(evt: BeforeUnloadEvent): void {
+    if (!store.isDirty) return
+    evt.preventDefault()
+    // Legacy browsers only show the prompt when returnValue is set.
+    evt.returnValue = ''
+  }
+
+  $effect(() => {
+    window.addEventListener('beforeunload', onBeforeUnload)
+    return () => window.removeEventListener('beforeunload', onBeforeUnload)
+  })
 </script>
 
 <div class="app">
@@ -29,31 +46,33 @@
   <main>
     <SaveBar />
 
-    {#if store.data === null}
-      <EmptyState />
-    {:else if active === 'currencies'}
-      <CurrenciesTab />
-    {:else if active === 'eggs'}
-      <EggsTab />
-    {:else if active === 'shards'}
-      <ShardsTab />
-    {:else if active === 'gems'}
-      <GemsTab />
-    {:else if active === 'flutes'}
-      <FlutesTab />
-    {:else if active === 'berries'}
-      <BerriesTab />
-    {:else if active === 'inventory'}
-      <InventoryTab />
-    {:else if active === 'underground'}
-      <UndergroundTab />
-    {:else if active === 'caught'}
-      <CaughtTab />
-    {:else if active === 'pokedex'}
-      <PokedexTab />
-    {:else if active === 'quests'}
-      <QuestsTab />
-    {/if}
+    {#key store.loadId}
+      {#if store.data === null}
+        <EmptyState />
+      {:else if active === 'currencies'}
+        <CurrenciesTab />
+      {:else if active === 'eggs'}
+        <EggsTab />
+      {:else if active === 'shards'}
+        <ShardsTab />
+      {:else if active === 'gems'}
+        <GemsTab />
+      {:else if active === 'flutes'}
+        <FlutesTab />
+      {:else if active === 'berries'}
+        <BerriesTab />
+      {:else if active === 'inventory'}
+        <InventoryTab />
+      {:else if active === 'underground'}
+        <UndergroundTab />
+      {:else if active === 'caught'}
+        <CaughtTab />
+      {:else if active === 'pokedex'}
+        <PokedexTab />
+      {:else if active === 'quests'}
+        <QuestsTab />
+      {/if}
+    {/key}
 
     <footer>
       <p>

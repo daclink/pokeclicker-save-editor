@@ -145,6 +145,11 @@ export type SortDir = 'asc' | 'desc'
 /** A query that reads as an id: digits, optional decimal part, optional `#`. */
 const ID_QUERY = /^#?(\d+(?:\.\d*)?)$/
 
+/** The id part of an id-shaped query (`"#25"` → `"25"`), or undefined. */
+function idQuery(query: string): string | undefined {
+  return ID_QUERY.exec(query.trim().toLowerCase())?.[1]
+}
+
 /**
  * Rows whose name contains `query` (case-insensitive), or — when the query
  * is a number like `201` or `#201.06` — whose id starts with it, so a
@@ -153,7 +158,7 @@ const ID_QUERY = /^#?(\d+(?:\.\d*)?)$/
 export function filterRows(rows: readonly DexRow[], query: string): DexRow[] {
   const q = query.trim().toLowerCase()
   if (q === '') return [...rows]
-  const id = ID_QUERY.exec(q)?.[1]
+  const id = idQuery(q)
   return rows.filter((r) =>
     id !== undefined ? String(r.pid).startsWith(id) : r.name.toLowerCase().includes(q),
   )
@@ -168,6 +173,21 @@ export function sortRows(rows: readonly DexRow[], key: DexSortKey, dir: SortDir)
     const byKey = key === 'id' ? a.pid - b.pid : NAME_COLLATOR.compare(a.name, b.name) || a.pid - b.pid
     return sign * byKey
   })
+}
+
+/**
+ * For an id query, a stable partition: rows of the queried species (its
+ * base id and forms — `"25"` → 25, 25.01) first, everything else after,
+ * each part keeping the order it came in. Apply after `sortRows`, so the
+ * prefix matches (250, 2500…) stay in the chosen sort below the exact one.
+ * Text and blank queries return the rows unchanged (as a copy).
+ */
+export function exactIdFirst(rows: readonly DexRow[], query: string): DexRow[] {
+  const id = idQuery(query)
+  if (id === undefined) return [...rows]
+  const base = Math.trunc(Number(id))
+  const isExact = (r: DexRow): boolean => Math.trunc(r.pid) === base
+  return [...rows.filter(isExact), ...rows.filter((r) => !isExact(r))]
 }
 
 /**
