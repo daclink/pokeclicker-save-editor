@@ -6,6 +6,7 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { afterEach, beforeEach, describe, expect, test } from 'vitest'
+import { tick } from 'svelte'
 import { cleanup, fireEvent, render, screen } from '@testing-library/svelte'
 
 import { decodeBytes } from '../src/lib/save'
@@ -148,5 +149,29 @@ describe('EggsTab edit dialog: Shiny chance', () => {
     await fireEvent.blur(field)
     await fireEvent.click(screen.getByRole('button', { name: 'OK' }))
     expect(breeding().eggList[0].shinyChance).toBe(300.5)
+  })
+})
+
+describe('EggsTab slots field', () => {
+  const slotsField = () => screen.getByLabelText(/^Egg slots/) as HTMLInputElement
+  const savedSlots = () => (store.data!.save as any).breeding.eggSlots
+
+  test('a refused slot count snaps the field back to the saved value', async () => {
+    render(EggsTab)
+    const before = slotsField().value
+    await fireEvent.input(slotsField(), { target: { value: '5' } })
+    await fireEvent.blur(slotsField())
+    await tick()
+    expect(slotsField().value).toBe(before)
+    expect(String(savedSlots())).toBe(before)
+  })
+
+  test('an accepted slot count stays in the field', async () => {
+    render(EggsTab)
+    await fireEvent.input(slotsField(), { target: { value: '2' } })
+    await fireEvent.blur(slotsField())
+    await tick()
+    expect(savedSlots()).toBe(2)
+    expect(slotsField().value).toBe('2')
   })
 })

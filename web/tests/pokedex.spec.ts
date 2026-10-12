@@ -19,6 +19,7 @@ import {
 } from '../src/lib/data'
 import {
   caughtIdSet,
+  exactIdFirst,
   filterRows,
   formsMarkableFor,
   formsOf,
@@ -349,5 +350,43 @@ describe('sortRows', () => {
     const sorted = sortRows(ROWS, 'name', 'asc')
     expect(sorted).not.toBe(ROWS)
     expect(pids(ROWS)).toEqual(before)
+  })
+})
+
+describe('exactIdFirst', () => {
+  const desc = sortRows(ROWS, 'id', 'desc')
+  const byName = sortRows(ROWS, 'name', 'asc')
+
+  test('a numeric query lifts the exact species and its forms to the top', () => {
+    // filtered "25" → 25, 25.01, 250; sorted desc → 250, 25.01, 25
+    const shown = sortRows(filterRows(ROWS, '25'), 'id', 'desc')
+    expect(pids(exactIdFirst(shown, '25'))).toEqual([25.01, 25, 250])
+  })
+
+  test('the exact group keeps the chosen sort order, as does the rest', () => {
+    // Name order is Flying Pikachu, Ho-Oh, Pikachu, Raichu, Unown, Unown (G).
+    expect(pids(exactIdFirst(byName, '25'))).toEqual([25.01, 25, 250, 26, 201, 201.06])
+  })
+
+  test('a leading # and a form id use the species as the exact group', () => {
+    expect(pids(exactIdFirst(desc, '#25'))).toEqual([25.01, 25, 250, 201.06, 201, 26])
+    expect(pids(exactIdFirst(desc, '25.01'))).toEqual([25.01, 25, 250, 201.06, 201, 26])
+  })
+
+  test('no exact match leaves the order alone', () => {
+    expect(pids(exactIdFirst(desc, '2'))).toEqual(pids(desc))
+  })
+
+  test('text and blank queries leave the order alone', () => {
+    expect(pids(exactIdFirst(desc, 'pika'))).toEqual(pids(desc))
+    expect(pids(exactIdFirst(desc, ''))).toEqual(pids(desc))
+    expect(pids(exactIdFirst(desc, '   '))).toEqual(pids(desc))
+  })
+
+  test('returns a new array and leaves the input alone', () => {
+    const before = pids(desc)
+    const out = exactIdFirst(desc, '25')
+    expect(out).not.toBe(desc)
+    expect(pids(desc)).toEqual(before)
   })
 })

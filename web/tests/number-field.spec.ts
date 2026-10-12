@@ -4,6 +4,7 @@
  * unchanged input, Escape reverts, Enter commits.
  */
 import { afterEach, describe, expect, test, vi } from 'vitest'
+import { tick } from 'svelte'
 import { cleanup, fireEvent, render } from '@testing-library/svelte'
 
 import NumberField from '../src/components/NumberField.svelte'
@@ -107,5 +108,54 @@ describe('NumberField (decimal)', () => {
     await typeAndBlur(input, '1.5x')
     expect(onCommit).not.toHaveBeenCalled()
     expect(input.value).toBe('1.5')
+  })
+})
+
+/**
+ * The parent may refuse a parsed value (its lib helper throws and it shows
+ * an error, e.g. 5 egg slots or a 0.5 multiplier): `value` then stays put,
+ * and the field must snap back to it rather than keep the refused text.
+ */
+describe('NumberField after the parent handles a commit', () => {
+  test('refused (value unchanged) → text snaps back to the current value', async () => {
+    const { input, onCommit } = setup(4)
+    await typeAndBlur(input, '5')
+    expect(onCommit).toHaveBeenCalledWith(5)
+    await tick()
+    expect(input.value).toBe('4')
+  })
+
+  test('parent handler throws → text still snaps back and the error is logged', async () => {
+    const boom = new RangeError('refused by lib')
+    const onCommit = vi.fn(() => {
+      throw boom
+    })
+    const logged = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const utils = render(NumberField, { props: { label: 'Amount', value: 4, onCommit } })
+    const input = utils.getByLabelText('Amount') as HTMLInputElement
+    await typeAndBlur(input, '5')
+    await tick()
+    expect(input.value).toBe('4')
+    expect(logged).toHaveBeenCalledWith(boom)
+    logged.mockRestore()
+  })
+
+  test('refused decimal → text snaps back too', async () => {
+    const { input } = setup(1.5, false)
+    await typeAndBlur(input, '0.5')
+    await tick()
+    expect(input.value).toBe('1.5')
+  })
+
+  test('accepted (parent updates value) → text shows the new value', async () => {
+    const onCommit = vi.fn()
+    const utils = render(NumberField, { props: { label: 'Amount', value: 4, onCommit } })
+    onCommit.mockImplementation((n: number) => {
+      void utils.rerender({ value: n })
+    })
+    const input = utils.getByLabelText('Amount') as HTMLInputElement
+    await typeAndBlur(input, '1e3')
+    await tick()
+    expect(input.value).toBe('1000')
   })
 })

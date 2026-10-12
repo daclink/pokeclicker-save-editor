@@ -81,13 +81,12 @@ describe('readKnownGems', () => {
     expect(gems.Fairy).toBe(0)
   })
 
-  test('initialises gems.gemWallet if absent', () => {
+  test('reads a missing gems container as zeros without creating it', () => {
     const data = { save: {} } as ReturnType<typeof loadFixture>
     const gems = readKnownGems(data)
     for (const t of KNOWN_GEM_TYPES) expect(gems[t]).toBe(0)
-    const wallet = (data.save as any).gems.gemWallet
-    expect(Array.isArray(wallet)).toBe(true)
-    expect(wallet).toHaveLength(18)
+    expect(readExtraGems(data)).toEqual({})
+    expect(data.save).toEqual({})
   })
 })
 
@@ -165,5 +164,69 @@ describe('extras (wallet entries beyond index 17)', () => {
     // Doesn't match /Type #<n>/ — silently ignored, no wallet growth.
     writeExtraGems(data, { 'Lucky_egg': 7 })
     expect((data.save as any).gems.gemWallet).toHaveLength(18)
+  })
+})
+
+/**
+ * Readers run inside Svelte `$derived`, where writing `$state` throws
+ * (state_unsafe_mutation) — so they must never create or pad anything.
+ * Stripped saves exercise both the create and the pad paths.
+ */
+describe('readers never mutate the save', () => {
+  const readers = [readKnownGems, readExtraGems]
+
+  test('no save.gems at all', () => {
+    const data = loadFixture()
+    delete (data.save as any).gems
+    const before = JSON.stringify(data)
+    for (const read of readers) read(data)
+    expect(JSON.stringify(data)).toBe(before)
+  })
+
+  test('no data.save at all', () => {
+    const data = loadFixture()
+    delete (data as any).save
+    const before = JSON.stringify(data)
+    for (const read of readers) read(data)
+    expect(JSON.stringify(data)).toBe(before)
+  })
+
+  test('short wallet is not padded; missing positions read as 0', () => {
+    const data = loadFixture()
+    ;(data.save as any).gems.gemWallet = [1, 2, 3]
+    const before = JSON.stringify(data)
+    const gems = readKnownGems(data)
+    expect(readExtraGems(data)).toEqual({})
+    expect(JSON.stringify(data)).toBe(before)
+    expect([gems.Normal, gems.Fire, gems.Water]).toEqual([1, 2, 3])
+    for (const t of KNOWN_GEM_TYPES.slice(3)) expect(gems[t], t).toBe(0)
+  })
+})
+
+describe('writers create/pad the wallet', () => {
+  test('writeKnownGems creates save.gems.gemWallet with every known position', () => {
+    const data = { save: {} } as ReturnType<typeof loadFixture>
+    writeKnownGems(data, { Fire: 4 })
+    const wallet = (data.save as any).gems.gemWallet as number[]
+    expect(wallet).toHaveLength(KNOWN_GEM_TYPES.length)
+    expect(wallet[KNOWN_GEM_TYPES.indexOf('Fire')]).toBe(4)
+  })
+
+  test('writeKnownGems pads a short wallet, keeping existing values', () => {
+    const data = loadFixture()
+    ;(data.save as any).gems.gemWallet = [1, 2, 3]
+    writeKnownGems(data, { Fairy: 9 })
+    const wallet = (data.save as any).gems.gemWallet as number[]
+    expect(wallet).toHaveLength(KNOWN_GEM_TYPES.length)
+    expect(wallet.slice(0, 3)).toEqual([1, 2, 3])
+    expect(wallet[KNOWN_GEM_TYPES.indexOf('Fairy')]).toBe(9)
+  })
+
+  test('writeExtraGems on a save with no data.save creates the wallet', () => {
+    const data = {} as ReturnType<typeof loadFixture>
+    writeExtraGems(data, { 'Type #18': 5 })
+    const wallet = (data.save as any).gems.gemWallet as number[]
+    expect(wallet[18]).toBe(5)
+    expect(wallet.slice(0, 18).every((v) => v === 0)).toBe(true)
   })
 })

@@ -116,3 +116,34 @@ describe('extras (unrecognized *_shard keys)', () => {
     expect(items['Sapphire_shard']).toBeUndefined()
   })
 })
+
+/** Readers run inside Svelte `$derived`: they must never create `_itemList`. */
+describe('readers never mutate the save', () => {
+  test('no _itemList', () => {
+    const data = loadFixture()
+    delete (data.player as any)._itemList
+    const before = JSON.stringify(data)
+    const known = readKnownShards(data)
+    expect(readExtraShards(data)).toEqual({})
+    expect(JSON.stringify(data)).toBe(before)
+    for (const c of KNOWN_SHARD_COLORS) expect(known[c]).toBe(0)
+  })
+
+  test('no player at all', () => {
+    const data = loadFixture()
+    delete (data as any).player
+    const before = JSON.stringify(data)
+    readKnownShards(data)
+    readExtraShards(data)
+    expect(JSON.stringify(data)).toBe(before)
+  })
+
+  test('writes still create _itemList (known and extras)', () => {
+    const a = {} as ReturnType<typeof loadFixture>
+    writeKnownShards(a, { [KNOWN_SHARD_COLORS[0]]: 3 })
+    expect((a.player as any)._itemList[`${KNOWN_SHARD_COLORS[0]}_shard`]).toBe(3)
+    const b = {} as ReturnType<typeof loadFixture>
+    writeExtraShards(b, { Sapphire_shard: 2 })
+    expect((b.player as any)._itemList.Sapphire_shard).toBe(2)
+  })
+})
