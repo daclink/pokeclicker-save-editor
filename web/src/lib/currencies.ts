@@ -84,6 +84,14 @@ export function writeCurrencies(data: SaveData, edits: Currencies): void {
 
 // --- multipliers ------------------------------------------------------------
 
+/**
+ * Smallest effective price multiplier. The game clamps with
+ * `Math.max(… || 1, 1)` (`src/modules/items/Item.ts`) and
+ * `Player.toJSON` drops `_itemMultipliers` entries `<= 1`, so anything below
+ * 1 is a no-op and exactly 1 is the default (absent).
+ */
+export const MIN_ITEM_MULTIPLIER = 1
+
 /** A single editable price-multiplier row from `player._itemMultipliers`. */
 export type MultiplierRow = { key: string; label: string; value: number }
 
@@ -149,14 +157,17 @@ export function readMultipliers(data: SaveData): MultiplierRow[] {
 }
 
 /**
- * Set a single multiplier. A value of exactly 1.0 deletes the key (the game
- * treats absent and 1.0 identically; not writing 1.0 keeps fresh saves clean).
+ * Set a single multiplier. Must be at least `MIN_ITEM_MULTIPLIER` (1): the
+ * game ignores anything lower. Exactly 1 deletes the key (the game's default;
+ * mirrors Player.toJSON dropping entries `<= 1`, keeps fresh saves clean).
  */
 export function setMultiplier(data: SaveData, key: string, value: number): void {
-  if (!Number.isFinite(value) || value < 0) {
-    throw new RangeError(`${key}: expected non-negative number, got ${value}`)
+  if (!Number.isFinite(value) || value < MIN_ITEM_MULTIPLIER) {
+    throw new RangeError(
+      `${key}: multiplier must be at least ${MIN_ITEM_MULTIPLIER} (the game ignores lower values), got ${value}`,
+    )
   }
   const bag = getOrCreateMultiplierBag(data)
-  if (value === 1.0) delete bag[key]
+  if (value === MIN_ITEM_MULTIPLIER) delete bag[key]
   else bag[key] = value
 }

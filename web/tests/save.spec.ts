@@ -76,3 +76,25 @@ describe('save format', () => {
     expect(getPath(data, 'save.wallet.currencies[0]')).toBe(99999)
   })
 })
+
+describe('string codec (documents current behaviour)', () => {
+  // The game's SaveSelector percent-encodes non-Latin-1 chars and '%' before
+  // btoa, and decodeURI's on load. The editor never touches strings, so it
+  // must pass those sequences through verbatim.
+  const NAME = 'Ash%25 %E6%97%A5 Pok\u00e9mon'
+  const payload = { player: { name: NAME }, save: {}, settings: {} }
+  // Built independently of the editor's codec (Node Buffer, latin1).
+  const b64 = Buffer.from(JSON.stringify(payload), 'latin1').toString('base64')
+
+  test('percent-encoded sequences and Latin-1 chars survive decode -> encode byte-identically', () => {
+    const data = decodeBytes(b64)
+    expect((data.player as any).name).toBe(NAME)
+    expect(encodeBytes(data)).toBe(b64)
+  })
+
+  test('a raw non-Latin-1 string is rejected on encode (must be percent-encoded first)', () => {
+    const data = decodeBytes(b64)
+    ;(data.player as any).name = '\u65e5'
+    expect(() => encodeBytes(data)).toThrow(RangeError)
+  })
+})

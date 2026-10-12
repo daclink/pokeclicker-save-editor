@@ -8,9 +8,16 @@
  *
  * `TextDecoder` has a `'iso-8859-1'` label; `TextEncoder` does not — only
  * utf-8 is web-standard. We hand-roll the encoder, packing each
- * `charCodeAt(0)` into a byte. Input strings with codepoints > 0xff throw —
- * that's a bug, because round-tripped JSON should only contain Latin-1
- * codepoints (anything higher gets `\uXXXX`-escaped by JSON.stringify).
+ * `charCodeAt(0)` into a byte. Input strings with codepoints > 0xff throw.
+ *
+ * NOTE: JSON.stringify does NOT `\u`-escape non-Latin-1 characters, so a raw
+ * non-Latin-1 string would hit that throw. The game avoids this itself: its
+ * SaveSelector percent-encodes every char outside \u0000-\u00ff, plus `%`
+ * itself, before `btoa`, and applies `decodeURI` after `atob` on load. Saves
+ * from real games therefore already carry sequences like `%25` or `%E6%97%A5`
+ * inside the JSON strings; the editor passes them through verbatim (it
+ * neither decodes nor re-encodes). The editor writes no strings today — any
+ * future string edit MUST apply the same percent-encoding before encoding.
  */
 
 export function bytesToLatin1(bytes: Uint8Array): string {

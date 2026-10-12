@@ -15,6 +15,7 @@
     readCaughtRows,
     setCaughtAtkBonus,
     setCaughtEntry,
+    inEggBlocker,
     setCaughtPokerus,
     setCaughtShiny,
     type CaughtPatch,
@@ -223,6 +224,14 @@
     }
     const id = editId
     const patch = { ...draft }
+    // Surface the strand-refusal as the status message (the modal would hide
+    // it, so close the dialog); nothing is written.
+    const blocker = patch.inEgg && store.data ? inEggBlocker(store.data, id) : null
+    if (blocker) {
+      store.status = blocker
+      closeEdit()
+      return
+    }
     refreshAfter(() => setCaughtEntry(store.data!, id, patch))
     closeEdit()
   }
