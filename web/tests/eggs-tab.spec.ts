@@ -133,3 +133,20 @@ describe('EggsTab edit dialog: validation and type', () => {
     expect(breeding().eggList[0].type).toBe(3)
   })
 })
+
+describe('EggsTab edit dialog: Shiny chance', () => {
+  /** Real saves carry fractional chances (the game divides by bonuses). */
+  const FRACTIONAL_CHANCE = 458.47
+
+  test('a fractional shiny chance is shown and kept, and a typed decimal is saved', async () => {
+    breeding().eggList[0].shinyChance = FRACTIONAL_CHANCE
+    render(EggsTab)
+    await fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    const field = screen.getByLabelText(/^Shiny chance/) as HTMLInputElement
+    expect(field.value).toBe(String(FRACTIONAL_CHANCE))
+    await fireEvent.input(field, { target: { value: '300.5' } })
+    await fireEvent.blur(field)
+    await fireEvent.click(screen.getByRole('button', { name: 'OK' }))
+    expect(breeding().eggList[0].shinyChance).toBe(300.5)
+  })
+})

@@ -40,7 +40,8 @@ Release notes.
   through a field no longer counts as an edit either.
 - **Egg Pokémon ID dropped form decimals.** Opening an egg's Edit dialog and
   tabbing through the Pokémon ID turned a form id like `306.01` into `306`.
-  The field now keeps decimals.
+  The field now keeps decimals, and so does Shiny chance (real eggs carry
+  values like 458.47).
 - **Eggs: a 5th egg was silently lost.** PokeClicker has exactly 4 egg
   slots, but Add egg and the quick-add buttons appended a 5th egg (and set
   egg slots to 5) once all 4 were full; the game drops it on load. Adds are

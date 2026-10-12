@@ -260,6 +260,7 @@
     <NumberField
       label="Shiny chance"
       value={draft.shinyChance}
+      integer={false}
       onCommit={(n) => (draft.shinyChance = n)}
       suffix={`(lower = more likely; game default ${SHINY_CHANCE_BREEDING})`}
       labelWidth="10rem"
