@@ -33,6 +33,14 @@ Release notes.
   the web app and labels the installers as the deprecated desktop app.
 
 ### Fixed
+- **Number fields misread what you typed.** `1e6` became 1, `1.5` became 1
+  and `5k` or `12abc` became 5 and 12, silently. Fields now take a whole
+  number or a plain decimal (`1000000`, `1,000,000`, `1e6`), and anything
+  else is refused: the text snaps back and nothing is written. Tabbing
+  through a field no longer counts as an edit either.
+- **Egg Pokémon ID dropped form decimals.** Opening an egg's Edit dialog and
+  tabbing through the Pokémon ID turned a form id like `306.01` into `306`.
+  The field now keeps decimals.
 - **Gems tab edited the wrong types.** It listed the gem types in the
   main-series order (Normal, Fighting, Flying, …), but PokeClicker stores
   gems in its own `PokemonType` order (Normal, Fire, Water, …). Every type

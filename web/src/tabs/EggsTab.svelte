@@ -193,6 +193,7 @@
     <NumberField
       label="Pokémon ID"
       value={draft.pokemon}
+      integer={false}
       onCommit={(n) => (draft.pokemon = n)}
       labelWidth="10rem"
     />

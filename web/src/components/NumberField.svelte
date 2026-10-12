@@ -1,12 +1,21 @@
 <script lang="ts">
   // Labeled text input that parses to a number on commit (blur or Enter)
   // and reports through the `onCommit` callback. The text-input mode (not
-  // type="number") lets the user paste "1,000,000" or "1e6"; we clean it
-  // up on commit.
+  // type="number") lets the user paste "1,000,000" or "1e6".
+  //
+  // Accepted (see lib/numberInput.ts): non-negative decimal literals with an
+  // optional fraction/exponent ("42", "1.5", "1e6", "2.5E3"), commas and
+  // surrounding spaces ignored, blank = 0. Anything else ("5k", "12abc",
+  // "-1", "0x10") is rejected: the text snaps back and nothing is written.
+  // Integer fields also reject fractions ("1.5") rather than truncating.
+  // onCommit fires only when the parsed value differs from `value`, so
+  // tabbing through a field never marks the save dirty or rewrites it.
   //
   // Local `text` state keeps the user's in-flight edits independent from
   // the source `value` until commit, which is what makes Reset work without
   // jankily snapping the cursor mid-typing.
+
+  import { parseNumberInput } from '../lib/numberInput'
 
   type Props = {
     label: string
@@ -14,7 +23,8 @@
     onCommit: (next: number) => void
     onReset?: () => void
     resetLabel?: string
-    /** false → parseFloat; true → parseInt (default for currencies) */
+    /** true → whole numbers only (default for currencies); false → any
+     *  non-negative decimal (multipliers, form ids like 306.01) */
     integer?: boolean
     /** Helper text shown to the right of the input. */
     suffix?: string
@@ -46,27 +56,23 @@
     text = formatValue(value, integer)
   })
 
+  // Display only: an unchanged blur no longer commits, so the truncation in
+  // integer mode can't write back into the save.
   function formatValue(v: number, isInt: boolean): string {
     if (!Number.isFinite(v)) return ''
     if (isInt) return String(Math.trunc(v))
-    // Drop trailing ".0" so 1.0 doesn't look noisier than "1".
-    return Number.isInteger(v) ? String(v) : String(v)
+    return String(v)
   }
 
   function commit(): void {
-    const cleaned = text.replace(/,/g, '').trim()
-    if (cleaned === '') {
-      // Treat blank as zero — matches the desktop editor's parse_int/float.
-      onCommit(0)
+    const n = parseNumberInput(text, { integer })
+    // Rejected input, or nothing changed: resync the text ("05" -> "5",
+    // garbage -> the current value) and leave the save alone.
+    if (n === null || n === value) {
+      text = formatValue(value, integer)
       return
     }
-    const n = integer ? Number.parseInt(cleaned, 10) : Number.parseFloat(cleaned)
-    if (Number.isFinite(n) && n >= 0) {
-      onCommit(n)
-    } else {
-      // Reject silently — snap the text back to the source value.
-      text = formatValue(value, integer)
-    }
+    onCommit(n)
   }
 
   function onKeyDown(evt: KeyboardEvent): void {
