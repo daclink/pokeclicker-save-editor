@@ -183,7 +183,7 @@
       inset: 0;
       z-index: 20;
       border: none;
-      background: rgba(0, 0, 0, 0.5);
+      background: var(--backdrop);
       cursor: pointer;
     }
   }

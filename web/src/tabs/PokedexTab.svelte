@@ -217,21 +217,22 @@
 
 <style>
   .empty {
-    color: #666;
+    color: var(--text-muted);
     padding: 1rem;
-    background: #f5f5f5;
+    background: var(--surface-2);
     border-radius: 6px;
   }
   .block {
     margin-bottom: 1.25rem;
     padding: 1rem 1.25rem;
-    border: 1px solid #e5e5e5;
+    border: 1px solid var(--border);
     border-radius: 8px;
-    background: #fafafa;
+    background: var(--surface);
+    color: var(--text);
   }
   .note {
     margin: 0 0 0.75rem;
-    color: #666;
+    color: var(--text-muted);
     font-size: 0.9em;
   }
   .controls {
@@ -244,7 +245,9 @@
   .controls select {
     font: inherit;
     padding: 0.25rem 0.4rem;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text);
     border-radius: 4px;
     margin-left: 0.25rem;
   }
@@ -253,7 +256,7 @@
     align-items: center;
     gap: 0.35rem;
     font-size: 0.9em;
-    color: #444;
+    color: var(--text-muted);
   }
   .filter {
     font: inherit;
@@ -278,16 +281,17 @@
   }
   .status {
     margin-left: auto;
-    color: #444;
+    color: var(--text-muted);
     font-size: 0.9em;
   }
 
   .table-wrap {
     max-height: 28rem;
     overflow-y: auto;
-    border: 1px solid #e5e5e5;
+    border: 1px solid var(--border);
     border-radius: 6px;
-    background: white;
+    background: var(--surface);
+    color: var(--text);
   }
   table {
     width: 100%;
@@ -297,14 +301,14 @@
   thead {
     position: sticky;
     top: 0;
-    background: #f5f5f5;
+    background: var(--surface-2);
     z-index: 1;
   }
   th,
   td {
     padding: 0.3rem 0.5rem;
     text-align: center;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--border);
   }
   .sel {
     width: 2rem;
@@ -313,10 +317,10 @@
     text-align: left;
   }
   tbody tr.caught {
-    color: #888;
+    color: var(--text-muted);
   }
   .muted {
-    color: #999;
+    color: var(--text-muted);
   }
 
   .actions {
@@ -328,18 +332,19 @@
   }
   .actions button {
     padding: 0.35rem 0.8rem;
-    border: 1px solid #ccc;
-    background: white;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text);
     border-radius: 4px;
     cursor: pointer;
     font: inherit;
     font-size: 0.9em;
   }
   .actions button:hover:not(:disabled) {
-    background: #f0f0f0;
+    border-color: var(--text-muted);
   }
   .actions button:disabled {
-    color: #aaa;
+    color: var(--text-muted);
     cursor: not-allowed;
   }
   .bump {
