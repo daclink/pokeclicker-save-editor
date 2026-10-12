@@ -209,7 +209,7 @@
   }
   .note code {
     background: var(--surface-2);
-    padding: 0 0.25rem;
+    padding: 0 var(--space-1);
     border-radius: var(--radius-sm);
     font-size: 0.95em;
   }
@@ -234,7 +234,7 @@
     color: var(--danger);
   }
   button {
-    padding: 0.3rem 0.7rem;
+    padding: var(--space-1) var(--space-3);
     border: 1px solid var(--brand);
     background: transparent;
     color: var(--brand);

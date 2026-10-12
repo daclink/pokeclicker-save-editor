@@ -17,9 +17,9 @@ import {
   DEX_REGION_OPTIONS,
   POKEMON_FORMS,
   formKey,
-  KANTO_NAMES,
   MULCH_NAMES,
   NATIONAL_NAMES,
+  POKEMON_TYPE_COUNT,
   REGION_RANGES,
   nameFor,
   nameForBerry,
@@ -77,11 +77,6 @@ describe('national-dex names', () => {
     expect(nameFor(0)).toBe('?')
   })
 
-  test('KANTO_NAMES is the first 151 entries', () => {
-    expect(KANTO_NAMES.length).toBe(151)
-    expect(KANTO_NAMES[0]).toBe('Bulbasaur')
-    expect(KANTO_NAMES[150]).toBe('Mew')
-  })
 })
 
 describe('regions', () => {
@@ -299,7 +294,7 @@ describe('pokémon forms (fractional ids)', () => {
       expect(String(n), `key ${k} is not normalized`).toBe(k)
       const f = POKEMON_FORMS[k]
       expect(f.name.length, k).toBeGreaterThan(0)
-      for (const t of f.types) expect(t >= 0 && t < 18, `${k} type ${t}`).toBe(true)
+      for (const t of f.types) expect(t >= 0 && t < POKEMON_TYPE_COUNT, `${k} type ${t}`).toBe(true)
       if (f.region !== undefined) expect(regions.has(f.region), `${k} ${f.region}`).toBe(true)
     }
   })

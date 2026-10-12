@@ -379,7 +379,7 @@
     background: var(--surface-2);
     color: var(--text);
     padding: 0 var(--space-1);
-    border-radius: 3px;
+    border-radius: var(--radius-xs);
     font-family: var(--font-mono);
     font-size: 0.95em;
   }
@@ -399,10 +399,10 @@
   .count-pill {
     font-size: 0.85em;
     color: var(--text-muted);
-    padding: 0.1rem var(--space-2);
+    padding: var(--space-0) var(--space-2);
     background: var(--surface-2);
     border: 1px solid var(--border);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
   }
 
   /* Table ----------------------------------------------- */
@@ -427,7 +427,7 @@
   }
   th,
   td {
-    padding: 0.3rem var(--space-2);
+    padding: var(--space-1) var(--space-2);
     text-align: center;
     border-bottom: 1px solid var(--border);
   }
@@ -471,7 +471,7 @@
     padding-top: var(--space-3);
   }
   .actions button {
-    padding: 0.35rem 0.8rem;
+    padding: var(--space-1) var(--space-3);
     border: 1px solid var(--border);
     background: var(--surface-2);
     color: var(--text);
@@ -499,7 +499,7 @@
   .shovels label {
     display: flex;
     flex-direction: column;
-    gap: 0.2rem;
+    gap: var(--space-1);
   }
   .mulch-name,
   .shovels label span {

@@ -112,7 +112,7 @@
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: var(--space-0);
   }
   .item {
     display: flex;

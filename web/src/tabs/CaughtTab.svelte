@@ -34,6 +34,9 @@
 
   /** atkBonus the quick action sets (four hatches' worth of +25). */
   const QUICK_ATK_BONUS = 100
+  /** Row keyboard map (see onRowKeydown): Space toggles selection, Enter opens edit. */
+  const KEY_TOGGLE_ROW = ' '
+  const KEY_EDIT_ROW = 'Enter'
 
   // --- reactive state ----------------------------------------------------
 
@@ -195,6 +198,20 @@
   let dialogEl: HTMLDialogElement | undefined = $state()
   let draft: CaughtPatch = $state({})
 
+  /** Keyboard twin of the row's mouse gestures: Space = click (toggle
+   *  selection), Enter = double-click (open the edit dialog). Keys pressed on
+   *  a control inside the row (the checkbox) keep their native behaviour. */
+  function onRowKeydown(e: KeyboardEvent, id: number): void {
+    if (e.target !== e.currentTarget) return
+    if (e.key === KEY_TOGGLE_ROW) {
+      e.preventDefault() // Space would otherwise scroll the page
+      toggleSelected(id)
+    } else if (e.key === KEY_EDIT_ROW) {
+      e.preventDefault()
+      openEdit(id)
+    }
+  }
+
   function openEdit(id: number): void {
     editId = id
     const row = rows.find((r) => r.id === id)
@@ -310,8 +327,10 @@
           {#each viewRows as row (row.id)}
             <tr
               class:selected={selected.has(row.id)}
+              tabindex="0"
               onclick={() => toggleSelected(row.id)}
               ondblclick={() => openEdit(row.id)}
+              onkeydown={(e) => onRowKeydown(e, row.id)}
             >
               <td class="check-col">
                 <input
@@ -467,11 +486,11 @@
   .filters label {
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
+    gap: var(--space-1);
   }
   select {
     font: inherit;
-    padding: 0.2rem 0.35rem;
+    padding: var(--space-1) var(--space-1);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     background: var(--surface-2);
@@ -483,10 +502,10 @@
   .count-pill {
     margin-left: auto;
     color: var(--text-muted);
-    padding: 0.1rem var(--space-2);
+    padding: var(--space-0) var(--space-2);
     background: var(--surface-2);
     border: 1px solid var(--border);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
   }
 
   /* Table ------------------------------------------------------ */
@@ -511,7 +530,7 @@
   }
   th,
   td {
-    padding: 0.3rem var(--space-2);
+    padding: var(--space-1) var(--space-2);
     text-align: center;
     border-bottom: 1px solid var(--border);
   }
@@ -552,7 +571,7 @@
   .filters .clear,
   .actions button,
   .dialog-actions button {
-    padding: 0.35rem 0.8rem;
+    padding: var(--space-1) var(--space-3);
     border: 1px solid var(--border);
     background: var(--surface-2);
     color: var(--text);
@@ -619,7 +638,7 @@
   }
   .select-row select {
     flex: 1;
-    padding: 0.3rem 0.4rem;
+    padding: var(--space-1) var(--space-2);
   }
   .dialog-actions {
     display: flex;

@@ -130,20 +130,20 @@
 <style>
   .empty {
     color: var(--text-muted);
-    padding: 1rem;
+    padding: var(--space-4);
     background: var(--surface-2);
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
   }
   .block {
-    margin-bottom: 1.5rem;
-    padding: 1rem 1.25rem;
+    margin-bottom: var(--space-5);
+    padding: var(--space-4) var(--space-4);
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: var(--radius);
     background: var(--surface);
     color: var(--text);
   }
   .block h2 {
-    margin: 0 0 0.75rem;
+    margin: 0 0 var(--space-3);
     font-size: 1.05rem;
   }
   .hint {
@@ -153,19 +153,19 @@
     font-size: 0.85em;
   }
   .note {
-    margin: 0 0 0.75rem;
+    margin: 0 0 var(--space-3);
     color: var(--text-muted);
     font-size: 0.9em;
   }
   .actions {
-    margin-top: 0.75rem;
+    margin-top: var(--space-3);
   }
   .actions button {
-    padding: 0.4rem 0.9rem;
+    padding: var(--space-2) var(--space-4);
     border: 1px solid var(--border);
     background: var(--surface-2);
     color: var(--text);
-    border-radius: 4px;
+    border-radius: var(--radius-xs);
     cursor: pointer;
     font: inherit;
     font-size: 0.9em;

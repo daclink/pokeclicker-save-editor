@@ -40,6 +40,10 @@ Release notes.
   skips alternate forms (your game may not have them, and a missing form can
   stop the save from loading) and says so. Base species are still marked.
   Saves without a version are not affected.
+- **Caught table works from the keyboard.** Rows are now focusable: Space
+  selects or deselects the row, Enter opens its edit dialog. Panel and button
+  spacing snapped to the shared spacing scale, so a few paddings and corner
+  radii shifted by 1-4px.
 
 ### Deprecated
 - **Desktop app.** The desktop editor now shows a banner, plus a Help menu
