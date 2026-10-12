@@ -33,6 +33,13 @@ Release notes.
   the web app and labels the installers as the deprecated desktop app.
 
 ### Fixed
+- **Gems tab edited the wrong types.** It listed the gem types in the
+  main-series order (Normal, Fighting, Flying, …), but PokeClicker stores
+  gems in its own `PokemonType` order (Normal, Fire, Water, …). Every type
+  except Normal and Fairy wrote another type's slot. For example, editing
+  *Fire* changed your *Flying* gems. The "All to…" buttons were unaffected.
+  The tab now uses the game's order, checked by a test against the game's
+  enum.
 - **Dark mode: Shards, Gems, Flutes and Pokédex were unreadable.** Their
   light panels inherited the dark theme's light text. They now use the design
   tokens like every other tab, and the token guard test covers every

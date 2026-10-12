@@ -29,6 +29,36 @@ const FIXTURE = resolve(
 
 const loadFixture = () => decodeBytes(readFileSync(FIXTURE, 'utf8').trim())
 
+/**
+ * The game's `PokemonType` enum (src/modules/enums/PokemonType.ts, v0.10.26),
+ * copied by hand so this test is an independent oracle: `gemWallet[i]` is the
+ * gem of type `i` (GenericDeal.ts / BagHandler.ts index it by type).
+ */
+const GAME_POKEMON_TYPE_ENUM: Readonly<Record<string, number>> = {
+  Normal: 0, Fire: 1, Water: 2, Electric: 3, Grass: 4, Ice: 5,
+  Fighting: 6, Poison: 7, Ground: 8, Flying: 9, Psychic: 10, Bug: 11,
+  Rock: 12, Ghost: 13, Dragon: 14, Dark: 15, Steel: 16, Fairy: 17,
+}
+
+describe('KNOWN_GEM_TYPES', () => {
+  test("matches the game's PokemonType enum position for position", () => {
+    const expected = Object.entries(GAME_POKEMON_TYPE_ENUM)
+      .sort(([, a], [, b]) => a - b)
+      .map(([name]) => name)
+    expect(KNOWN_GEM_TYPES).toEqual(expected)
+  })
+
+  test('each type writes the wallet slot the game reads for that type', () => {
+    for (const [name, idx] of Object.entries(GAME_POKEMON_TYPE_ENUM)) {
+      const data = loadFixture()
+      writeKnownGems(data, { [name]: 12345 })
+      const wallet = (data.save as any).gems.gemWallet as number[]
+      expect(wallet[idx], `${name} should land in gemWallet[${idx}]`).toBe(12345)
+      expect(wallet.filter((v) => v === 12345)).toHaveLength(1)
+    }
+  })
+})
+
 describe('readKnownGems', () => {
   test('returns all 18 canonical types, defaulting absent positions to 0', () => {
     const data = loadFixture()
@@ -43,9 +73,11 @@ describe('readKnownGems', () => {
   test('reads positional values from the minimal fixture', () => {
     const data = loadFixture()
     const gems = readKnownGems(data)
-    // Fixture seeds Normal=10, Fighting=20, rest=0.
+    // Fixture seeds gemWallet[0]=10, gemWallet[1]=20, rest=0 — i.e.
+    // Normal and Fire in the game's enum order.
     expect(gems.Normal).toBe(10)
-    expect(gems.Fighting).toBe(20)
+    expect(gems.Fire).toBe(20)
+    expect(gems.Fighting).toBe(0)
     expect(gems.Fairy).toBe(0)
   })
 
