@@ -28,7 +28,11 @@ import {
   statBucketFor,
   typeNamesFor,
   typesFor,
+  DATA_GAME_VERSION,
+  POKEMON_TYPE_NAMES,
 } from '../src/lib/data'
+import manifestJson from '../../data/manifest.json'
+import typeNamesJson from '../../data/pokemon-type-names.json'
 
 describe('national-dex names', () => {
   test('roster has 1025 entries', () => {
@@ -329,5 +333,20 @@ describe('inventory rosters', () => {
     expect(itemDisplayName('Kings_rock')).toBe('Kings rock')
     expect(itemDisplayName('Charizardite_X')).toBe('Charizardite X')
     expect(itemDisplayName('Upgrade')).toBe('Upgrade')
+  })
+})
+
+describe('data manifest + generated type order', () => {
+  test('DATA_GAME_VERSION is the manifest gameVersion, an X.Y.Z release', () => {
+    expect(DATA_GAME_VERSION).toBe(manifestJson.gameVersion)
+    expect(DATA_GAME_VERSION).toMatch(/^\d+\.\d+\.\d+$/)
+  })
+
+  test('the committed data came from the release tag, not a branch', () => {
+    expect(manifestJson.gameRef).toBe(`v${manifestJson.gameVersion}`)
+  })
+
+  test('POKEMON_TYPE_NAMES is the list generated from PokemonType.ts', () => {
+    expect(POKEMON_TYPE_NAMES).toEqual(typeNamesJson)
   })
 })

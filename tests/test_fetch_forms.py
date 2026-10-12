@@ -12,6 +12,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 
 import fetch_pokeclicker_data as f  # noqa: E402
+from test_fetch_pipeline import TYPE_NAMES  # noqa: E402
 
 # Trimmed, representative PokemonList.ts shape (nested objects, escaped
 # quotes, trailing-zero literal, nativeRegion, negative special id).
@@ -74,7 +75,7 @@ class NormalizeFormIdTest(unittest.TestCase):
 
 class ParsePokemonFormsTest(unittest.TestCase):
     def setUp(self):
-        self.forms = f.parse_pokemon_forms(SAMPLE)
+        self.forms = f.parse_pokemon_forms(SAMPLE, TYPE_NAMES)
 
     def test_only_fractional_ids_are_forms(self):
         self.assertNotIn("26", self.forms)
@@ -106,12 +107,28 @@ class ParsePokemonFormsTest(unittest.TestCase):
     def test_duplicate_form_id_is_an_error(self):
         dup = SAMPLE.replace("'id': 25.10", "'id': 26.01")
         with self.assertRaises(SystemExit):
-            f.parse_pokemon_forms(dup)
+            f.parse_pokemon_forms(dup, TYPE_NAMES)
 
     def test_form_without_name_is_an_error(self):
         broken = SAMPLE.replace("'name': 'Alolan Raichu',", "")
         with self.assertRaises(SystemExit):
-            f.parse_pokemon_forms(broken)
+            f.parse_pokemon_forms(broken, TYPE_NAMES)
+
+    def test_name_before_id_is_rejected(self):
+        # Chunks run from one 'id' to the next, so a 'name' ahead of 'id'
+        # would hand every form the next entry's name. Must abort instead.
+        swapped = SAMPLE.replace(
+            "        'id': 26.01,\n        'name': 'Alolan Raichu',\n",
+            "        'name': 'Alolan Raichu',\n        'id': 26.01,\n",
+        )
+        self.assertNotEqual(swapped, SAMPLE)
+        with self.assertRaises(SystemExit):
+            f.parse_pokemon_forms(swapped, TYPE_NAMES)
+
+    def test_unknown_type_name_is_an_error(self):
+        broken = SAMPLE.replace("PokemonType.Psychic", "PokemonType.Stellar")
+        with self.assertRaises(SystemExit):
+            f.parse_pokemon_forms(broken, TYPE_NAMES)
 
 
 if __name__ == "__main__":

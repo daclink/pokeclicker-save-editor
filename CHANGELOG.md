@@ -26,6 +26,18 @@ Release notes.
   Checked rows stay selected while you change the filter, so you can gather
   picks from several searches and mark them in one go.
 
+### Changed
+- **Game data now comes from the released game (v0.10.26).** The editor's
+  rosters (pokémon, forms, items, quests, …) were read from PokeClicker's
+  development branch, which can include content the released game doesn't
+  have yet. They are now generated from the tagged release the editor
+  targets, recorded in `data/manifest.json`. The data itself is unchanged.
+- **Pokédex won't add forms to saves from an older game version.** If your
+  save comes from an older PokeClicker than the editor's data, "Mark caught"
+  skips alternate forms (your game may not have them, and a missing form can
+  stop the save from loading) and says so. Base species are still marked.
+  Saves without a version are not affected.
+
 ### Deprecated
 - **Desktop app.** The desktop editor now shows a banner, plus a Help menu
   item, linking to the web app. It still works and installers are still

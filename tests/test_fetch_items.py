@@ -51,9 +51,12 @@ class QuotedEnumTest(unittest.TestCase):
             ["Abomasite", "Blue_Orb", "Charizardite_X"],
         )
 
-    def test_mismatched_quotes_are_not_accepted(self):
+    def test_mismatched_quotes_fail_loudly(self):
+        # A skipped member would shift every later index, so it must abort.
         src = "enum X {\n    'Leaf_stone,\n    Fire_stone',\n    Ok,\n}"
-        self.assertEqual(f._parse_enum_idents(src, "X"), ["Ok"])
+        with self.assertRaises(SystemExit) as cm:
+            f._parse_enum_idents(src, "X")
+        self.assertIn("'Leaf_stone,", str(cm.exception))
 
 
 class ParseEggItemsTest(unittest.TestCase):

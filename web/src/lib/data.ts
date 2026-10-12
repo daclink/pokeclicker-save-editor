@@ -3,7 +3,8 @@
  * `pokeclicker_data.py`.
  *
  * Reads the same `data/*.json` files the Python shim reads (one source of
- * truth for both runtimes) — plus web-only `pokemon-forms.json`. Vite inlines the JSON at build time, so there's
+ * truth for both runtimes) — plus web-only `pokemon-forms.json`,
+ * `pokemon-type-names.json` and `manifest.json`. Vite inlines the JSON at build time, so there's
  * no runtime fetch; the cost is in the bundle (the names table is the
  * biggest at ~14 KB pretty-printed → ~8 KB minified, well worth it for the
  * zero-network UX).
@@ -22,8 +23,11 @@ import mulchNamesJson from '../../../data/mulch-names.json'
 import pokemonFormsJson from '../../../data/pokemon-forms.json'
 import pokemonNamesJson from '../../../data/pokemon-names.json'
 import pokemonTypesJson from '../../../data/pokemon-types.json'
+import pokemonTypeNamesJson from '../../../data/pokemon-type-names.json'
+import manifestJson from '../../../data/manifest.json'
 import regionRangesJson from '../../../data/region-ranges.json'
 import undergroundItemsJson from '../../../data/underground-items.json'
+import { parseGameVersion } from './version'
 
 // --- types -----------------------------------------------------------------
 
@@ -94,12 +98,22 @@ export function itemDisplayName(key: string): string {
   return key.replace(/_/g, ' ')
 }
 
-/** Canonical PokeClicker `PokemonType` enum order (0 Normal … 17 Fairy). */
-export const POKEMON_TYPE_NAMES: readonly string[] = [
-  'Normal', 'Fire', 'Water', 'Electric', 'Grass', 'Ice', 'Fighting',
-  'Poison', 'Ground', 'Flying', 'Psychic', 'Bug', 'Rock', 'Ghost',
-  'Dragon', 'Dark', 'Steel', 'Fairy',
-]
+/**
+ * Canonical PokeClicker `PokemonType` enum order (0 Normal … 17 Fairy),
+ * generated from the game's `PokemonType.ts` — the single source for type
+ * indexes (pokemon-types.json, the gem wallet).
+ */
+export const POKEMON_TYPE_NAMES: readonly string[] = pokemonTypeNamesJson as readonly string[]
+
+type DataManifest = { readonly gameVersion: string; readonly gameRef: string }
+const MANIFEST = manifestJson as DataManifest
+
+/**
+ * PokeClicker release every `data/*.json` file was generated from
+ * (`data/manifest.json`; the fetch script reads the matching git tag). Saves
+ * from an older game build may lack content listed here, e.g. forms.
+ */
+export const DATA_GAME_VERSION: string = MANIFEST.gameVersion
 
 /**
  * Per-species type indices, parallel to `NATIONAL_NAMES` (id-1 → type list).
@@ -168,6 +182,9 @@ if (POKEMON_TYPES.length !== NATIONAL_NAMES.length) {
 }
 if (POKEMON_TYPE_NAMES.length !== 18) {
   throw new Error(`expected 18 PokemonType names, got ${POKEMON_TYPE_NAMES.length}`)
+}
+if (parseGameVersion(DATA_GAME_VERSION) === null) {
+  throw new Error(`manifest.json: gameVersion ${JSON.stringify(DATA_GAME_VERSION)} is not X.Y.Z`)
 }
 if (BERRY_NAMES.length !== 70) {
   throw new Error(`berry roster is 70 names, got ${BERRY_NAMES.length}`)
