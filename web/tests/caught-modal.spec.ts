@@ -17,6 +17,7 @@ import { cleanup, fireEvent, render, waitFor } from '@testing-library/svelte'
 import { decodeBytes } from '../src/lib/save'
 import { store } from '../src/lib/store.svelte'
 import CaughtTab from '../src/tabs/CaughtTab.svelte'
+import { EFFORT_POINTS_PER_EV, POKERUS, POKERUS_RESISTANT_EVS } from '../src/lib/caught'
 
 // ---------------------------------------------------------------------------
 // Fixture
@@ -26,7 +27,7 @@ const FIXTURE = resolve(__dirname, '..', '..', 'tests', 'fixtures', 'v0.10.25', 
 const loadFixture = () => decodeBytes(readFileSync(FIXTURE, 'utf8').trim())
 
 // Table column positions (<td> index). Column 0 is the selection checkbox.
-const COL = { id: 1, pokerus: 4, shiny: 7 } as const
+const COL = { id: 1, pokerus: 4, evs: 5, shiny: 8 } as const
 
 function rawEntry(id: number): Record<string, unknown> {
   const list = (store.data!.save as any).party.caughtPokemon as Array<Record<string, unknown>>
@@ -45,6 +46,7 @@ beforeEach(() => {
 
 afterEach(() => {
   store.data = null
+  store.isDirty = false
   cleanup()
 })
 
@@ -173,5 +175,117 @@ describe('CaughtTab edit dialog — pokérus update', () => {
       const cells = pikaRow!.querySelectorAll('td')
       expect(cells[COL.shiny].textContent?.trim(), 'shiny cell for Pikachu should show "yes"').toBe('yes')
     })
+  })
+})
+
+// ---------------------------------------------------------------------------
+// EVs in the edit dialog
+// ---------------------------------------------------------------------------
+
+const RESISTANT_POINTS = POKERUS_RESISTANT_EVS * EFFORT_POINTS_PER_EV
+
+function rowFor(id: number): HTMLTableRowElement {
+  const row = Array.from(document.querySelectorAll('table tbody tr')).find(
+    (tr) => tr.querySelectorAll('td')[COL.id]?.textContent?.trim() === String(id),
+  )
+  if (!row) throw new Error(`no table row for id ${id}`)
+  return row as HTMLTableRowElement
+}
+
+async function openDialogFor(id: number): Promise<HTMLSelectElement> {
+  await fireEvent.dblClick(rowFor(id))
+  return waitFor(() => {
+    const select = document.querySelector('dialog select') as HTMLSelectElement | null
+    if (!select) throw new Error('pokérus <select> not found in dialog')
+    return select
+  })
+}
+
+async function typeInto(label: string, value: string): Promise<void> {
+  const input = Array.from(document.querySelectorAll('dialog label')).find(
+    (l) => l.querySelector('.label')?.textContent?.trim() === label,
+  )?.querySelector('input') as HTMLInputElement | null
+  if (!input) throw new Error(`dialog field "${label}" not found`)
+  await fireEvent.input(input, { target: { value } })
+  await fireEvent.blur(input)
+}
+
+describe('CaughtTab edit dialog — EVs', () => {
+  test('choosing Resistant gives a 0-EV pokémon 50 EVs and the cell updates', async () => {
+    polyfillDialog()
+    const { getByRole } = render(CaughtTab)
+    const select = await openDialogFor(4)
+    await fireEvent.change(select, { target: { value: String(POKERUS.Resistant) } })
+    await fireEvent.click(getByRole('button', { name: /^ok$/i }))
+
+    expect(rawEntry(4)['8']).toBe(POKERUS.Resistant)
+    expect(rawEntry(4)['9']).toBe(RESISTANT_POINTS)
+    await waitFor(() =>
+      expect(rowFor(4).querySelectorAll('td')[COL.evs].textContent?.trim()).toBe(
+        String(POKERUS_RESISTANT_EVS),
+      ),
+    )
+  })
+
+  test('choosing Resistant never lowers EVs that are already higher', async () => {
+    polyfillDialog()
+    rawEntry(4)['9'] = 504479
+    const { getByRole } = render(CaughtTab)
+    const select = await openDialogFor(4)
+    await fireEvent.change(select, { target: { value: String(POKERUS.Resistant) } })
+    await fireEvent.click(getByRole('button', { name: /^ok$/i }))
+    expect(rawEntry(4)['9']).toBe(504479)
+  })
+
+  test('editing the EVs field writes effort points', async () => {
+    polyfillDialog()
+    const { getByRole } = render(CaughtTab)
+    await openDialogFor(4)
+    await typeInto('EVs', '75')
+    await fireEvent.click(getByRole('button', { name: /^ok$/i }))
+    expect(rawEntry(4)['9']).toBe(75 * EFFORT_POINTS_PER_EV)
+  })
+
+  test('lowering EVs on an already-Resistant pokémon sticks (no re-raise, no demotion)', async () => {
+    polyfillDialog()
+    rawEntry(4)['8'] = POKERUS.Resistant
+    rawEntry(4)['9'] = 52836
+    const { getByRole } = render(CaughtTab)
+    await openDialogFor(4)
+    await typeInto('EVs', '30')
+    await fireEvent.click(getByRole('button', { name: /^ok$/i }))
+    expect(rawEntry(4)['9']).toBe(30 * EFFORT_POINTS_PER_EV)
+    expect(rawEntry(4)['8']).toBe(POKERUS.Resistant)
+  })
+
+  test('OK with nothing changed writes nothing and leaves the save clean', async () => {
+    polyfillDialog()
+    rawEntry(4)['8'] = POKERUS.Resistant // editor-made Resistant with 0 EVs
+    const before = JSON.stringify(rawEntry(4))
+    const { getByRole } = render(CaughtTab)
+    await openDialogFor(4)
+    await fireEvent.click(getByRole('button', { name: /^ok$/i }))
+    expect(JSON.stringify(rawEntry(4))).toBe(before)
+    expect(store.isDirty).toBe(false)
+  })
+
+  test('changing only exp leaves exact effort points alone', async () => {
+    polyfillDialog()
+    rawEntry(4)['9'] = 52836
+    const { getByRole } = render(CaughtTab)
+    await openDialogFor(4)
+    await typeInto('exp', '999')
+    await fireEvent.click(getByRole('button', { name: /^ok$/i }))
+    expect(rawEntry(4)['3']).toBe(999)
+    expect(rawEntry(4)['9']).toBe(52836)
+  })
+
+  test('a fractional EVs entry is refused by the field (nothing written)', async () => {
+    polyfillDialog()
+    const { getByRole } = render(CaughtTab)
+    await openDialogFor(4)
+    await typeInto('EVs', '1.5')
+    await fireEvent.click(getByRole('button', { name: /^ok$/i }))
+    expect('9' in rawEntry(4)).toBe(false)
   })
 })

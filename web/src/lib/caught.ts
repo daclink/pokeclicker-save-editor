@@ -16,6 +16,8 @@
  *       "5": (optional bool) shiny,
  *       "8": pokerus state — Pokerus enum 0..3
  *            (0 Uninfected, 1 Infected, 2 Contagious, 3 Resistant),
+ *       "9": effortPoints — raw points behind EVs (absent = 0); see
+ *            `pointsPerEv` for the points → EVs conversion,
  *     },
  *     ...
  *   ]
@@ -41,6 +43,7 @@ export type CaughtRow = {
   atkBonus: number // "0"
   pokerus: number  // "8" — Pokerus enum 0..3
   exp: number      // "3"
+  evs: number      // "9" effortPoints, converted to whole EVs
   inEgg: boolean   // "4" (breeding) — true iff key present and truthy
   shiny: boolean   // "5" — true iff key present and truthy
 }
@@ -50,6 +53,8 @@ export type CaughtPatch = {
   atkBonus?: number
   pokerus?: number
   exp?: number
+  /** Whole EVs. Setting pokérus to Resistant in the same patch wins if this is lower. */
+  evs?: number
   inEgg?: boolean
   shiny?: boolean
 }
@@ -108,8 +113,60 @@ export const POKERUS_LABELS: readonly string[] = Object.keys(POKERUS)
 /**
  * In-game, a pokémon with any pokérus is promoted to Resistant once it has
  * this many EVs (PartyPokemon.ts) — including right after the save loads.
+ * The editor mirrors that: setting Resistant raises EVs to at least this.
  */
 export const POKERUS_RESISTANT_EVS = 50
+
+/** Party-entry key holding raw effort points (`PartyPokemonSaveKeys.effortPoints`). */
+const KEY_EFFORT_POINTS = '9'
+
+/** Effort points per EV (game `GameConstants.EP_EV_RATIO`). */
+export const EFFORT_POINTS_PER_EV = 1000
+
+/**
+ * Extra divisor on effort points while the "Slow EVs" challenge is active
+ * (game `GameConstants.EP_CHALLENGE_MODIFIER`).
+ */
+export const SLOW_EVS_EP_MODIFIER = 10
+
+/**
+ * Effort points one EV costs in this save: `PartyPokemon.calculateEVs` divides
+ * by `EP_EV_RATIO`, and by `EP_CHALLENGE_MODIFIER` too when
+ * `save.challenges.list.slowEVs` is on. A missing challenge entry is "off"
+ * (the game's own default).
+ */
+export function pointsPerEv(data: SaveData): number {
+  const save = data.save as Record<string, unknown> | undefined
+  const challenges = save?.challenges as Record<string, unknown> | undefined
+  const list = challenges?.list as Record<string, unknown> | undefined
+  return list?.slowEVs === true
+    ? EFFORT_POINTS_PER_EV * SLOW_EVS_EP_MODIFIER
+    : EFFORT_POINTS_PER_EV
+}
+
+/** Whole EVs an entry currently has (the game floors `calculateEVs`). */
+function evsOf(entry: Record<string, unknown>, perEv: number): number {
+  const points = entry[KEY_EFFORT_POINTS]
+  if (typeof points !== 'number' || !Number.isFinite(points) || points < 0) return 0
+  return Math.floor(points / perEv)
+}
+
+function ensureEvs(evs: number, perEv: number): void {
+  if (!Number.isInteger(evs) || evs < 0 || !Number.isSafeInteger(evs * perEv)) {
+    throw new RangeError(`evs: expected a non-negative whole number of EVs, got ${evs}`)
+  }
+}
+
+/**
+ * Set an entry's EVs. A no-op when the entry already has that many EVs, so
+ * the exact effort points (52,836 → still 52 EVs) survive an unchanged edit.
+ * 0 deletes the key: the game omits default-valued keys.
+ */
+function writeEvs(entry: Record<string, unknown>, evs: number, perEv: number): void {
+  if (evsOf(entry, perEv) === evs) return
+  if (evs === 0) delete entry[KEY_EFFORT_POINTS]
+  else entry[KEY_EFFORT_POINTS] = evs * perEv
+}
 
 /**
  * Hatchery queue entry kind for a pokémon (`EggType.Pokemon`, game
@@ -133,6 +190,7 @@ function ensurePokerus(v: number): void {
 
 export function readCaughtRows(data: SaveData): CaughtRow[] {
   const out: CaughtRow[] = []
+  const perEv = pointsPerEv(data)
   for (const entry of getParty(data)) {
     if (!entry || typeof entry !== 'object') continue
     const id = typeof entry.id === 'number' ? entry.id : Number(entry.id)
@@ -143,6 +201,7 @@ export function readCaughtRows(data: SaveData): CaughtRow[] {
       atkBonus: asInt(entry['0']),
       pokerus: asInt(entry['8']),
       exp: asInt(entry['3']),
+      evs: evsOf(entry, perEv),
       inEgg: Boolean(entry['4']),
       shiny: Boolean(entry['5']),
     })
@@ -195,9 +254,12 @@ export function inEggBlocker(data: SaveData, id: number): string | null {
 // --- public writes ----------------------------------------------------------
 
 /**
- * Apply a patch to a single caught entry. Numeric fields get written
- * straight; `inEgg` and `resistant` follow the desktop's
- * key-present-iff-true rule.
+ * Apply a patch to a single caught entry. Every field is validated before
+ * anything is written, so a rejected patch leaves the entry untouched.
+ * `inEgg`/`shiny` follow the key-present-iff-true rule.
+ *
+ * EVs are written before pokérus so that Resistant's raise-to-50 has the last
+ * word: `{pokerus: Resistant, evs: 30}` ends at 50 EVs.
  */
 export function setCaughtEntry(
   data: SaveData,
@@ -205,22 +267,20 @@ export function setCaughtEntry(
   patch: CaughtPatch,
 ): void {
   const entry = requireEntry(data, id)
+  const perEv = pointsPerEv(data)
   if (patch.inEgg) {
     const blocker = inEggBlocker(data, id)
     if (blocker) throw new RangeError(blocker)
   }
-  if (patch.atkBonus !== undefined) {
-    ensureNonNegInt('atkBonus', patch.atkBonus)
-    entry['0'] = patch.atkBonus
-  }
-  if (patch.pokerus !== undefined) {
-    ensurePokerus(patch.pokerus)
-    writePokerus(entry, patch.pokerus)
-  }
-  if (patch.exp !== undefined) {
-    ensureNonNegInt('exp', patch.exp)
-    entry['3'] = patch.exp
-  }
+  if (patch.atkBonus !== undefined) ensureNonNegInt('atkBonus', patch.atkBonus)
+  if (patch.pokerus !== undefined) ensurePokerus(patch.pokerus)
+  if (patch.exp !== undefined) ensureNonNegInt('exp', patch.exp)
+  if (patch.evs !== undefined) ensureEvs(patch.evs, perEv)
+
+  if (patch.atkBonus !== undefined) entry['0'] = patch.atkBonus
+  if (patch.evs !== undefined) writeEvs(entry, patch.evs, perEv)
+  if (patch.pokerus !== undefined) writePokerus(entry, patch.pokerus, perEv)
+  if (patch.exp !== undefined) entry['3'] = patch.exp
   if (patch.inEgg !== undefined) {
     if (patch.inEgg) entry['4'] = true
     else delete entry['4']
@@ -231,10 +291,17 @@ export function setCaughtEntry(
   }
 }
 
-/** Uninfected is the game's default, so it is absent from real saves. */
-function writePokerus(entry: Record<string, unknown>, level: number): void {
+/**
+ * Write a pokérus level. Uninfected is the game's default, so it is absent
+ * from real saves. Resistant also raises EVs to `POKERUS_RESISTANT_EVS` —
+ * the game only grants Resistant at that many — but never lowers them.
+ */
+function writePokerus(entry: Record<string, unknown>, level: number, perEv: number): void {
   if (level === POKERUS.Uninfected) delete entry['8']
   else entry['8'] = level
+  if (level === POKERUS.Resistant && evsOf(entry, perEv) < POKERUS_RESISTANT_EVS) {
+    writeEvs(entry, POKERUS_RESISTANT_EVS, perEv)
+  }
 }
 
 /** Bulk: set `shiny` (key "5") on multiple ids. Off → delete the key (no `false`). */
@@ -255,6 +322,7 @@ export function setCaughtShiny(
  * Bulk: set pokérus (key "8") on multiple ids. The level is validated before
  * any write; ids missing from the save are skipped. Uninfected deletes the
  * key (the game omits default-valued keys; `fromJSON` defaults to 0).
+ * Resistant raises each pokémon's EVs to 50 if lower; higher EVs are kept.
  */
 export function setCaughtPokerus(
   data: SaveData,
@@ -262,10 +330,31 @@ export function setCaughtPokerus(
   level: number,
 ): void {
   ensurePokerus(level)
+  const perEv = pointsPerEv(data)
   for (const id of ids) {
     const entry = findEntry(data, id)
     if (!entry) continue
-    writePokerus(entry, level)
+    writePokerus(entry, level, perEv)
+  }
+}
+
+/**
+ * Bulk: set EVs on multiple ids (validated before any write; missing ids are
+ * skipped). Entries already at that many EVs keep their exact effort points.
+ * Pokérus status is left alone: the game promotes an infected pokémon with
+ * 50+ EVs itself, and never demotes a Resistant one.
+ */
+export function setCaughtEvs(
+  data: SaveData,
+  ids: number[],
+  evs: number,
+): void {
+  const perEv = pointsPerEv(data)
+  ensureEvs(evs, perEv)
+  for (const id of ids) {
+    const entry = findEntry(data, id)
+    if (!entry) continue
+    writeEvs(entry, evs, perEv)
   }
 }
 
