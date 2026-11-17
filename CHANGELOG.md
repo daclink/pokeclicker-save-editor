@@ -11,6 +11,22 @@ Release notes.
 
 ## [Unreleased]
 
+### Added
+- **EV editing (web, Caught tab).** A sortable **EVs** column, an **EVs**
+  field in the edit dialog and a bulk **Set EVs** control. EVs are stored in
+  the save as effort points (1,000 per EV, or 10,000 with the Slow EVs
+  challenge on); the editor converts for you. A pokémon whose EVs you don't
+  change keeps its exact effort points, and 0 EVs removes the key, as the
+  game does.
+
+### Changed
+- **Setting pokérus to Resistant now raises EVs to 50** (edit dialog and
+  bulk), matching the game, which only grants Resistant at 50 EVs. It is
+  raise-only: a pokémon that already has more than 50 EVs keeps them.
+  Lowering EVs below 50 does not remove Resistant, as in-game.
+- The Caught edit dialog now writes only the fields you changed; OK with no
+  changes no longer marks the save as edited.
+
 ## [0.11.0] — 2026-10-12
 
 ### Added

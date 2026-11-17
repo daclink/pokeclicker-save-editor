@@ -4,7 +4,8 @@
   //
   // Check rows (or click them) to select; the header checkbox selects every
   // *visible* row, so the region/type filters scope bulk actions. Bulk bar:
-  // shiny on/off, pokérus level, atkBonus 100. Double-click a row to edit it.
+  // shiny on/off, pokérus level, EVs, atkBonus 100. Double-click a row to edit
+  // it. Setting Resistant raises EVs to 50 (never lowers) — see lib/caught.
   // Sortable column headers; numeric columns sort numerically.
 
   import { store } from '../lib/store.svelte'
@@ -15,12 +16,14 @@
     readCaughtRows,
     setCaughtAtkBonus,
     setCaughtEntry,
+    setCaughtEvs,
     inEggBlocker,
     setCaughtPokerus,
     setCaughtShiny,
     type CaughtPatch,
     type CaughtRow,
   } from '../lib/caught'
+  import { parseNumberInput } from '../lib/numberInput'
   import NumberField from '../components/NumberField.svelte'
   import Card from '../components/ui/Card.svelte'
   import {
@@ -34,6 +37,8 @@
 
   /** atkBonus the quick action sets (four hatches' worth of +25). */
   const QUICK_ATK_BONUS = 100
+  /** Status line shown when an edit is refused (details go to store.errorDetail). */
+  const STATUS_INVALID_VALUE = 'invalid value rejected'
   /** Row keyboard map (see onRowKeydown): Space toggles selection, Enter opens edit. */
   const KEY_TOGGLE_ROW = ' '
   const KEY_EDIT_ROW = 'Enter'
@@ -48,11 +53,14 @@
   /** Level the bulk pokérus control will apply. */
   let bulkPokerus = $state<number>(POKERUS.Contagious)
 
-  type SortCol = 'id' | 'name' | 'atkBonus' | 'pokerus' | 'exp' | 'inEgg' | 'shiny'
+  /** Text in the bulk EVs box; parsed when "Set EVs" is clicked. */
+  let bulkEvsText = $state(String(POKERUS_RESISTANT_EVS))
+
+  type SortCol = 'id' | 'name' | 'atkBonus' | 'pokerus' | 'evs' | 'exp' | 'inEgg' | 'shiny'
   let sortCol = $state<SortCol>('id')
   let sortReverse = $state(false)
 
-  const NUMERIC_COLS: ReadonlySet<SortCol> = new Set(['id', 'atkBonus', 'pokerus', 'exp'])
+  const NUMERIC_COLS: ReadonlySet<SortCol> = new Set(['id', 'atkBonus', 'pokerus', 'evs', 'exp'])
   const BOOL_COLS: ReadonlySet<SortCol> = new Set(['inEgg', 'shiny'])
 
   // Filters ('' = no filter). Region by dex range; type1/type2 each match if
@@ -125,7 +133,7 @@
       tick++
     } catch (e) {
       store.errorDetail = e instanceof Error ? e.message : String(e)
-      store.status = 'invalid value rejected'
+      store.status = STATUS_INVALID_VALUE
     }
   }
 
@@ -185,6 +193,22 @@
     )
   }
 
+  function onBulkEvs(): void {
+    const ids = selectedIds
+    // parseNumberInput reads blank as 0; in a bulk action that would silently
+    // wipe EVs on every selected pokémon, so an empty box is refused instead.
+    const evs = bulkEvsText.trim() === '' ? null : parseNumberInput(bulkEvsText, { integer: true })
+    if (evs === null) {
+      store.errorDetail = `EVs: expected a non-negative whole number, got "${bulkEvsText}"`
+      store.status = STATUS_INVALID_VALUE
+      return
+    }
+    refreshAfter(
+      () => setCaughtEvs(store.data!, ids, evs),
+      `${evs} EVs for ${plural(ids.length)}`,
+    )
+  }
+
   function onBulkAtkBonus(): void {
     const ids = selectedIds
     refreshAfter(
@@ -220,6 +244,7 @@
       atkBonus: row.atkBonus,
       pokerus: row.pokerus,
       exp: row.exp,
+      evs: row.evs,
       inEgg: row.inEgg,
       shiny: row.shiny,
     }
@@ -234,13 +259,29 @@
     dialogEl?.close()
   }
 
+  /** Only the draft fields that differ from the row as loaded. An untouched
+   *  EVs field must not ride along with a pokérus change — it would be a
+   *  stale value competing with Resistant's raise-to-50. */
+  function changedFields(d: CaughtPatch, row: CaughtRow | null): CaughtPatch {
+    if (!row) return { ...d }
+    const out: Record<string, unknown> = {}
+    for (const [key, value] of Object.entries(d)) {
+      if (value !== undefined && value !== row[key as keyof CaughtRow]) out[key] = value
+    }
+    return out as CaughtPatch
+  }
+
   function saveEdit(): void {
     if (editId === null) {
       closeEdit()
       return
     }
     const id = editId
-    const patch = { ...draft }
+    const patch = changedFields(draft, editRow)
+    if (Object.keys(patch).length === 0) {
+      closeEdit() // nothing edited: don't rewrite the entry or mark the save dirty
+      return
+    }
     // Surface the strand-refusal as the status message (the modal would hide
     // it, so close the dialog); nothing is written.
     const blocker = patch.inEgg && store.data ? inEggBlocker(store.data, id) : null
@@ -318,6 +359,7 @@
             <th class="name-col"><button type="button" onclick={() => toggleSort('name')}>Name{sortIndicator('name')}</button></th>
             <th><button type="button" onclick={() => toggleSort('atkBonus')}>atkBonus{sortIndicator('atkBonus')}</button></th>
             <th><button type="button" onclick={() => toggleSort('pokerus')}>pokerus{sortIndicator('pokerus')}</button></th>
+            <th><button type="button" onclick={() => toggleSort('evs')}>EVs{sortIndicator('evs')}</button></th>
             <th><button type="button" onclick={() => toggleSort('exp')}>exp{sortIndicator('exp')}</button></th>
             <th><button type="button" onclick={() => toggleSort('inEgg')}>in egg{sortIndicator('inEgg')}</button></th>
             <th><button type="button" onclick={() => toggleSort('shiny')}>shiny{sortIndicator('shiny')}</button></th>
@@ -345,12 +387,13 @@
               <td class="name-col">{row.name}</td>
               <td>{row.atkBonus}</td>
               <td>{pokerusLabel(row.pokerus)}</td>
+              <td>{row.evs}</td>
               <td>{row.exp}</td>
               <td>{row.inEgg ? 'yes' : ''}</td>
               <td>{row.shiny ? 'yes' : ''}</td>
             </tr>
           {:else}
-            <tr><td colspan="8" class="muted">(no caught pokémon)</td></tr>
+            <tr><td colspan="9" class="muted">(no caught pokémon)</td></tr>
           {/each}
         </tbody>
       </table>
@@ -382,6 +425,18 @@
           Apply pokérus
         </button>
       </span>
+      <span class="group">
+        <input
+          class="bulk-evs"
+          type="text"
+          inputmode="numeric"
+          bind:value={bulkEvsText}
+          aria-label="Bulk EVs"
+        />
+        <button type="button" onclick={onBulkEvs} disabled={selectedIds.length === 0}>
+          Set EVs
+        </button>
+      </span>
       <button type="button" onclick={onBulkAtkBonus} disabled={selectedIds.length === 0}>
         Set atkBonus {QUICK_ATK_BONUS}
       </button>
@@ -395,7 +450,10 @@
     <p class="note hint">
       Pokérus: in-game, any infected pokémon with {POKERUS_RESISTANT_EVS}+ EVs is
       promoted to Resistant as soon as the save loads (Resistant keeps the
-      Contagious attack bonus).
+      Contagious attack bonus). Setting Resistant here raises EVs to
+      {POKERUS_RESISTANT_EVS} if they are lower; higher EVs are kept.
+      <strong>Set EVs</strong> is exact: it sets every selected pokémon to that
+      number, including ones that had more.
     </p>
     </Card>
   </section>
@@ -423,6 +481,12 @@
           {/each}
         </select>
       </label>
+      <NumberField
+        label="EVs"
+        value={draft.evs ?? 0}
+        onCommit={(n) => (draft.evs = n)}
+        labelWidth="11rem"
+      />
       <NumberField
         label="exp"
         value={draft.exp ?? 0}
@@ -491,6 +555,15 @@
   select {
     font: inherit;
     padding: var(--space-1) var(--space-1);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+    color: var(--text);
+  }
+  .bulk-evs {
+    font: inherit;
+    width: 5rem;
+    padding: var(--space-1) var(--space-2);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     background: var(--surface-2);
